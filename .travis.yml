@@ -33,7 +33,7 @@ install:
 - conda create -n _testing python=$TRAVIS_PYTHON_VERSION
 - source activate _testing
 - conda install -q coveralls
-- conda install -q --file=requirements_dev.txt
+- conda install -q --file=requirements_dev.txt -c conda-forge -c landlab
 script:
 - pytest --cov=sequence --cov-report= --cov-report=xml
 after_success:
