@@ -1,10 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
+
+import versioneer
 
 with open("README.rst") as readme_file:
     readme = readme_file.read()
-
-with open("HISTORY.rst") as history_file:
-    history = history_file.read()
 
 requirements = []
 
@@ -30,7 +29,6 @@ setup(
     description="Python version of the Steckler Sequence model",
     install_requires=requirements,
     license="MIT license",
-    long_description=readme + "\n\n" + history,
     include_package_data=True,
     keywords="sequence",
     name="sequence",
@@ -39,6 +37,7 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/sequence-dev/sequence",
-    version="0.1.0",
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     zip_safe=False,
 )
