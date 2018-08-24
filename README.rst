@@ -3,19 +3,15 @@ sequence
 ========
 
 
-.. image:: https://img.shields.io/pypi/v/sequence.svg
-        :target: https://pypi.python.org/pypi/sequence
-
-.. image:: https://img.shields.io/travis/mcflugen/sequence.svg
-        :target: https://travis-ci.org/mcflugen/sequence
+.. image:: https://img.shields.io/travis/sequence-dev/sequence.svg
+        :target: https://travis-ci.org/sequence-dev/sequence
 
 .. image:: https://readthedocs.org/projects/sequence/badge/?version=latest
         :target: https://sequence.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-
-.. image:: https://pyup.io/repos/github/mcflugen/sequence/shield.svg
-     :target: https://pyup.io/repos/github/mcflugen/sequence/
+.. image:: https://pyup.io/repos/github/sequence-dev/sequence/shield.svg
+     :target: https://pyup.io/repos/github/sequence-dev/sequence/
      :alt: Updates
 
 
