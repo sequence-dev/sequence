@@ -72,11 +72,14 @@ class SubsidenceTimeSeries(Component):
     def run_one_step(self, dt):
         dz = self.grid.at_node["bedrock_surface__increment_of_elevation"]
         z = self.grid.at_node["bedrock_surface__elevation"]
+        z_top = self.grid.at_node["topographic__elevation"]
 
         dz = dz.reshape(self.grid.shape)
         z = z.reshape(self.grid.shape)
+        z_top = z_top.reshape(self.grid.shape)
 
         dz[:] = self._dz * dt
         z[:] += dz
+        z_top[:] += dz
 
         self._time += dt
