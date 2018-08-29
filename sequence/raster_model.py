@@ -31,17 +31,18 @@ class RasterModel(object):
     def run_one_step(self, dt=None, output=None):
         """Run each component for one time step."""
         dt = dt or self.clock.step
-        self.clock.advance(step=dt)
+        self.clock.dt = dt
+        self.clock.advance()
 
         self.advance_components(dt)
 
         if output:
-            write_raster_netcdf(output, self.grid, append=True)
+            write_raster_netcdf(output, self.grid, append=True, time=self.clock.time)
 
     def run(self, output=None):
         """Run the model until complete."""
         if output:
-            write_raster_netcdf(output, self.grid, append=False)
+            write_raster_netcdf(output, self.grid, append=False, time=self.clock.time)
 
         try:
             while 1:
