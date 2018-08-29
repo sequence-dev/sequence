@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 import numpy as np
+from .bathymetry import BathymetryReader
 from .fluvial import Fluvial
 from .raster_model import RasterModel
 from .sea_level import SinusoidalSeaLevel
@@ -37,6 +38,7 @@ class SequenceModel(RasterModel):
             "mud_density": 2720.,
             "sand_frac": 0.5,
         },
+        "bathymetry": {"filepath": "bathymetry.csv", "kind": "linear"},
     }
 
     LONG_NAME = {"z": "topographic__elevation", "z0": "bedrock_surface__elevation"}
@@ -50,36 +52,43 @@ class SequenceModel(RasterModel):
         subsidence=None,
         flexure=None,
         sediments=None,
+        bathymetry=None,
     ):
         RasterModel.__init__(self, grid=grid, clock=clock)
 
-        z0 = self.grid.add_empty("bedrock_surface__elevation", at="node")
-        z = self.grid.add_empty("topographic__elevation", at="node")
-        percent_sand = self.grid.add_empty("sand_frac", at="node")
+        #z0 = self.grid.add_empty("bedrock_surface__elevation", at="node")
+        #z = self.grid.add_empty("topographic__elevation", at="node")
+        #percent_sand = self.grid.add_empty("sand_frac", at="node")
         
-        shoreface_height=submarine_diffusion["shoreface_height"]
-        alpha=submarine_diffusion["alpha"]
-        spacing=grid["spacing"]
+        #shoreface_height=submarine_diffusion["shoreface_height"]
+        #alpha=submarine_diffusion["alpha"]
+        #spacing=grid["spacing"]
 
-        z[:] = -.001 * self.grid.x_of_node + 120.
-        shore = 120./.001
+        #z[:] = -.001 * self.grid.x_of_node + 120.
+        #shore = 120./.001
         
         #shore = 30/(.001 * spacing )*1000
-        under_water = z < 0.
-        z[under_water] = z[under_water] - shoreface_height*(
-            1 - np.exp(-1*alpha*(self.grid.x_of_node[under_water] - shore))
-        )
+        #under_water = z < 0.
+        #z[under_water] = z[under_water] - shoreface_height*(
+        #    1 - np.exp(-1*alpha*(self.grid.x_of_node[under_water] - shore))
+        #)
 
         
-        z0[:] = z - 100.
+        #z0[:] = z - 100.
+        BathymetryReader(self.grid, **bathymetry).run_one_step()
+
+        z0 = self.grid.at_node["bedrock_surface__elevation"]
 
         self.grid.layers.add(
             100.,
             age=self.clock.start,
-            water_depth=-z[self.grid.core_nodes],
+            water_depth=-z0[self.grid.core_nodes],
             t0=10.,
             percent_sand=0.5,
         )
+
+        z = self.grid.add_empty("topographic__elevation", at="node")
+        z[:] = z0 + 100.
 
         self._sea_level = SinusoidalSeaLevel(
             self.grid, start=clock["start"], **sea_level
