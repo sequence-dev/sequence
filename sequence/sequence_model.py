@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from .bathymetry import BathymetryReader
 from .fluvial import Fluvial
 from .raster_model import RasterModel
 from .sea_level import SinusoidalSeaLevel
@@ -36,6 +37,7 @@ class SequenceModel(RasterModel):
             "mud_density": 2720.,
             "sand_frac": 0.5,
         },
+        "bathymetry": {"filepath": "bathymetry.csv", "kind": "linear"},
     }
 
     LONG_NAME = {"z": "topographic__elevation", "z0": "bedrock_surface__elevation"}
@@ -49,22 +51,24 @@ class SequenceModel(RasterModel):
         subsidence=None,
         flexure=None,
         sediments=None,
+        bathymetry=None,
     ):
         RasterModel.__init__(self, grid=grid, clock=clock)
 
-        z0 = self.grid.add_empty("bedrock_surface__elevation", at="node")
-        z = self.grid.add_empty("topographic__elevation", at="node")
+        BathymetryReader(self.grid, **bathymetry).run_one_step()
 
-        z[:] = -.001 * self.grid.x_of_node + 20.
-        z0[:] = z
+        z0 = self.grid.at_node["bedrock_surface__elevation"]
 
         self.grid.layers.add(
             10.,
             age=self.clock.start,
-            water_depth=-z[self.grid.core_nodes],
+            water_depth=-z0[self.grid.core_nodes],
             t0=10.,
             percent_sand=0.5,
         )
+
+        z = self.grid.add_empty("topographic__elevation", at="node")
+        z[:] = z0 + 10.
 
         self._sea_level = SinusoidalSeaLevel(
             self.grid, start=clock["start"], **sea_level
