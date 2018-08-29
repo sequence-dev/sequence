@@ -31,7 +31,7 @@ class RasterModel(object):
     def run_one_step(self, dt=None, output=None):
         """Run each component for one time step."""
         dt = dt or self.clock.step
-        self.clock.advance(step=dt)
+        self.clock.advance()
 
         self.advance_components(dt)
 

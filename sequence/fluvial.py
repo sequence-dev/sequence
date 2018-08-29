@@ -154,7 +154,7 @@ class Fluvial(Component):
 
             if dz[i] > 0.:
 
-                bigN = self.alpha * (r_cb[i] - r_fp) / r_b[i]
+                bigN = self.alpha * (r_cb[i] - r_fp[i]) / r_b[i]
                 if bigN > 1.:
                     r_cb[i] *= bigN
                 # rate is bigger because of avulsions */

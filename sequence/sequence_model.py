@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+import numpy as np
 from .fluvial import Fluvial
 from .raster_model import RasterModel
 from .sea_level import SinusoidalSeaLevel
@@ -25,7 +26,7 @@ class SequenceModel(RasterModel):
             "shelf_slope": .001,
             "sediment_load": 3.,
         },
-        "sea_level": {"amplitude": 10., "wave_length": 1000., "phase": 0.},
+        "sea_level": {"amplitude": 10., "wave_length": 1000., "phase": 0., "linear": 0.},
         "subsidence": {"filepath": "subsidence.csv"},
         "flexure": {"method": "airy", "rho_mantle": 3300.},
         "sediments": {
@@ -54,12 +55,26 @@ class SequenceModel(RasterModel):
 
         z0 = self.grid.add_empty("bedrock_surface__elevation", at="node")
         z = self.grid.add_empty("topographic__elevation", at="node")
+        percent_sand = self.grid.add_empty("sand_frac", at="node")
+        
+        shoreface_height=submarine_diffusion["shoreface_height"]
+        alpha=submarine_diffusion["alpha"]
+        spacing=grid["spacing"]
 
-        z[:] = -.001 * self.grid.x_of_node + 20.
-        z0[:] = z
+        z[:] = -.001 * self.grid.x_of_node + 120.
+        shore = 120./.001
+        
+        #shore = 30/(.001 * spacing )*1000
+        under_water = z < 0.
+        z[under_water] = z[under_water] - shoreface_height*(
+            1 - np.exp(-1*alpha*(self.grid.x_of_node[under_water] - shore))
+        )
+
+        
+        z0[:] = z - 100.
 
         self.grid.layers.add(
-            10.,
+            100.,
             age=self.clock.start,
             water_depth=-z[self.grid.core_nodes],
             t0=10.,

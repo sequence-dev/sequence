@@ -2,7 +2,7 @@
 import numpy as np
 
 
-def find_shoreline(x, z, sea_level=0., kind="cubic"):
+def interp_shoreline_point(x, z, sea_level=0., kind="cubic"):
     """Find the shoreline of a profile.
 
     Parameters
@@ -65,30 +65,58 @@ def find_shoreline(x, z, sea_level=0., kind="cubic"):
     else:
         func = interp1d(x, z - sea_level, kind=kind)
         x_of_shoreline = bisect(func, x[index_at_shore - 1], x[index_at_shore])
-
+        
+        
     return x_of_shoreline
 
 
-def interp_shoreline_point(x, z, sea_level=0.):
-    index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
+def find_shoreline(x, z, sea_level=0.):
+    try:
+        index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
+    except ValueError:
+        if z[0] < sea_level:
+            x_of_shoreline = x[0]
+        else:
+            x_of_shoreline = x[-1]
+   
 
     p_land = np.polyfit(
-        x[index_at_shore - 2 : index_at_shore],
-        z[index_at_shore - 2 : index_at_shore],
-        1,
+        x[index_at_shore - 3 : index_at_shore],
+        z[index_at_shore - 3 : index_at_shore],
+        2,
     )
     p_sea = np.polyfit(
-        x[index_at_shore : index_at_shore + 2],
-        z[index_at_shore : index_at_shore + 2],
-        1,
+        x[index_at_shore : index_at_shore + 3],
+        z[index_at_shore : index_at_shore + 3],
+        2,
     )
 
-    if np.isclose(p_land[0], p_sea[0]):
-        raise ValueError("lines are parallel")
+
+    root_land = np.roots(p_land)
+    root_sea = np.roots(p_sea)
+        
+    i = np.argmin(np.abs(root_sea-x[index_at_shore]))
+    x_sea = root_sea[i]
+    x_sea = np.clip(x_sea,x[index_at_shore-1],x[index_at_shore]) 
+        
+    i = np.argmin(np.abs(root_land-x[index_at_shore]))
+    x_land = root_land[i]
+    x_land = np.clip(x_land,x[index_at_shore-1],x[index_at_shore])
+    
+    if np.isreal(x_land) and np.isreal(x_sea):
+        x_of_shoreline = (x_sea+x_land)/2
+    elif np.isreal(x_land) and not np.isreal(x_sea):
+        x_of_shoreline = np.real(x_land)
+    elif not np.isreal(x_land) and np.isreal(x_sea):
+        x_of_shoreline = np.real(x_sea)
     else:
-        x_int = (p_sea[1] - p_land[1]) / (p_land[0] - p_sea[0])
-        z_int = p_land[0] * x_int + p_land[1]
-        return x_int, z_int
+        x_of_shoreline = (np.real(x_land) + np.real(x_sea))/2
+            
+    #print (x[index_at_shore],x_land, x_sea,x_of_shoreline)
+    
+    #x_of_shoreline = x_of_shoreline + 250.
+        
+    return x_of_shoreline
 
 
 def insert_shoreline_point(x, z, sea_level=0.):
