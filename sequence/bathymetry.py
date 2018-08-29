@@ -10,13 +10,13 @@ class BathymetryReader(Component):
 
     _input_var_names = ()
 
-    _output_var_names = ("bedrock_surface__elevation",)
+    _output_var_names = ("topographic__elevation",)
 
-    _var_units = {"bedrock_surface__elevation": "m"}
+    _var_units = {"topographic__elevation": "m"}
 
-    _var_mapping = {"bedrock_surface__elevation": "node"}
+    _var_mapping = {"topographic__elevation": "node"}
 
-    _var_doc = {"bedrock_surface__elevation": "Surface elevation"}
+    _var_doc = {"topographic__elevation": "Surface elevation"}
 
     def __init__(self, grid, filepath=None, kind="linear", **kwds):
         """Generate a bathymetric profile from a file.
@@ -44,8 +44,8 @@ class BathymetryReader(Component):
             bounds_error=True,
         )
 
-        if "bedrock_surface__elevation" not in self.grid.at_node:
-            self.grid.add_zeros("bedrock_surface__elevation", at="node")
+        if "topographic__elevation" not in self.grid.at_node:
+            self.grid.add_zeros("topographic__elevation", at="node")
 
     @property
     def x(self):
@@ -53,10 +53,10 @@ class BathymetryReader(Component):
 
     @property
     def z(self):
-        return self.grid.at_node["bedrock_surface__elevation"][
+        return self.grid.at_node["topographic__elevation"][
             self.grid.nodes_at_bottom_edge
         ]
 
     def run_one_step(self, dt=None):
-        z = self.grid.at_node["bedrock_surface__elevation"].reshape(self.grid.shape)
+        z = self.grid.at_node["topographic__elevation"].reshape(self.grid.shape)
         z[:] = self._bathymetry(self.grid.x_of_node[self.grid.nodes_at_bottom_edge])
