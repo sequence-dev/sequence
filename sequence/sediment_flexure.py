@@ -43,6 +43,8 @@ class SedimentFlexure(Flexure1D):
         return self._rho_sediment
 
     def update(self):
+        self.grid.at_node["lithosphere_surface__increment_of_elevation"][:] = 0.
+
         dz = self.grid.at_node["sediment_deposit__thickness"]
         self.grid.at_node["lithosphere__increment_of_overlying_pressure"][:] = (
             dz * self.rho_sediment * self.gravity * self.grid.dx
