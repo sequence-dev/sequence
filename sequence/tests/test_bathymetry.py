@@ -10,7 +10,7 @@ from sequence.bathymetry import BathymetryReader
 
 @pytest.fixture(scope="session")
 def bathy_file(tmpdir_factory):
-    lines = ["0., 10.", "2., 0.", "4., -5."]
+    lines = ["# x (m), z (m)", "0., 10.", "2., 0.", "4., -5."]
     file_ = tmpdir_factory.mktemp("data").join("bathy.csv")
     file_.write(os.linesep.join(lines))
     return str(file_)
@@ -36,9 +36,9 @@ def test_reading_from_file(bathy_file):
 def test_output_is_topography(bathy_file):
     grid = RasterModelGrid((3, 5), spacing=.2)
 
-    assert "topographic__elevation" not in self.grid.at_node
+    assert "topographic__elevation" not in grid.at_node
     BathymetryReader(grid, filepath=bathy_file).run_one_step()
-    assert "topographic__elevation" in self.grid.at_node
+    assert "topographic__elevation" in grid.at_node
 
 
 def test_field_already_exists(bathy_file):
