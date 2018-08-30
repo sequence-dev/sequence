@@ -48,7 +48,7 @@ class SubsidenceTimeSeries(Component):
         """
         super(SubsidenceTimeSeries, self).__init__(grid, **kwds)
 
-        data = np.loadtxt(filepath, delimiter=",")
+        data = np.loadtxt(filepath, delimiter=",", comments="#")
         subsidence = interp1d(
             data[:, 0],
             data[:, 1],
