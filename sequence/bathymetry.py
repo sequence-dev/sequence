@@ -34,7 +34,7 @@ class BathymetryReader(Component):
         """
         super(BathymetryReader, self).__init__(grid, **kwds)
 
-        data = np.loadtxt(filepath, delimiter=",")
+        data = np.loadtxt(filepath, delimiter=",", comments="#")
         self._bathymetry = interp1d(
             data[:, 0],
             data[:, 1],
