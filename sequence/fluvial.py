@@ -44,12 +44,12 @@ class Fluvial(Component):
 
         # fixed parameters
         self.sand_grain = .001  # grain size = 1 mm
-        self.alpha = 10.  # ratio of channel depth to channel belt thickness  */
+        self.alpha = 10.  # ratio of channel depth to channel belt thickness  */ was 10.
         self.beta = .1  # beta*h is flow depth of flood, beta = .1 to .5   */
         # lambdap = .30
         self.flood_period = 10.  # recurrence time of floods ~1-10 y  */
-        self.basin_width = 5000.  # Basin width or river spacing of 20 km */
-        self.basin_length = 500000.  # length for downstream increase in diffusion */
+        self.basin_width = 5000.  # Basin width or river spacing of 20 km */ was 5000.
+        self.basin_length = 50000.  # length for downstream increase in diffusion */ was 500000.
 
         self.sand_frac = sand_frac
         self.sediment_load = sediment_load
@@ -60,7 +60,7 @@ class Fluvial(Component):
 
     def run_one_step(self, dt):
         # Upstream boundary conditions  */
-        mud_vol = self.sediment_load / (1. - self.sand_frac)
+        mud_vol = self.sediment_load * (1. - self.sand_frac)/self.sand_frac
         sand_vol = self.sediment_load
         qs = (
             10.
@@ -68,6 +68,7 @@ class Fluvial(Component):
             * (self.sand_grain ** 1.5)
         )
         # m^2/s  units */
+        #print (self.sand_frac,mud_vol,sand_vol,qs)
 
         # upstream diffusivity is set by equilibrium slope */
         diffusion = self.sediment_load / self.plain_slope
@@ -108,21 +109,22 @@ class Fluvial(Component):
         # width_cb = channel_width/epsilon
 
         # Original: r_cb = (model.new_height[i]-model.height[i]+model.d_sl);
-        r_cb = self.grid.at_node["bedrock_surface__increment_of_elevation"].reshape(
+        r_cb = self.grid.at_node["sediment_deposit__thickness"].reshape(
             self.grid.shape
-        )[1]
-        dz = self.grid.at_node["bedrock_surface__increment_of_elevation"].reshape(
+        )[1].copy()
+        dz = self.grid.at_node["bedrock_surface__elevation_increment"].reshape(
             self.grid.shape
-        )[1]
+        )[1].copy()
         # original: r_b = model.thickness[i];
-        r_b = self.grid.at_node["bedrock_surface__increment_of_elevation"].reshape(
+        r_b = self.grid.at_node["sediment_deposit__thickness"].reshape(
             self.grid.shape
-        )[1]
+        )[1].copy()
         # r_fp = np.zeros(self.grid.shape[1])
         r_fp = np.zeros_like(z)
         percent_sand = self.grid.at_node[
             "delta_sediment_sand__volume_fraction"
         ].reshape(self.grid.shape)[1]
+        percent_sand *= 0.
 
         for i in np.where(land)[0]:
             if channel_width / channel_depth[i] > 75.:
@@ -152,7 +154,7 @@ class Fluvial(Component):
 
             # Find avulsion rate and sand density   */
 
-            if dz[i] > 0.:
+            if r_b[i] > 0.:
 
                 bigN = self.alpha * (r_cb[i] - r_fp[i]) / r_b[i]
                 if bigN > 1.:
@@ -175,10 +177,10 @@ class Fluvial(Component):
             # adjust parameters for next downstream point */
             if dz[i] > 0.:
                 sand_vol -= (
-                    percent_sand[i] * self.grid.dx * (dz[i] * dz[i + 1]) / 2 / dt
+                    percent_sand[i] * self.grid.dx * (dz[i] + dz[i + 1]) / 2 / dt
                 )
                 mud_vol -= (
-                    (1. - percent_sand[i]) * self.grid.dx * (dz[i] * dz[i + 1]) / 2 / dt
+                    (1. - percent_sand[i]) * self.grid.dx * (dz[i] + dz[i + 1]) / 2 / dt
                 )
             diffusion = (
                 self.sediment_load
@@ -188,3 +190,4 @@ class Fluvial(Component):
             qw = diffusion / 0.61
             conc_mud[i + 1] = mud_vol / qw
             channel_depth[i] = (self.sand_density - 1000.) * self.sand_grain / slope[1]
+        #print (sand_vol, mud_vol, self.sand_frac)
