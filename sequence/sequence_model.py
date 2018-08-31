@@ -18,6 +18,7 @@ class SequenceModel(RasterModel):
             "bc": {"top": "closed", "bottom": "closed"},
         },
         "clock": {"start": -20000., "stop": 0., "step": 100.},
+        "output": None,
         "submarine_diffusion": {
             "plain_slope": 0.0008,
             "wave_base": 60.,
@@ -46,6 +47,7 @@ class SequenceModel(RasterModel):
         self,
         grid=None,
         clock=None,
+        output=None,
         submarine_diffusion=None,
         sea_level=None,
         subsidence=None,
@@ -53,7 +55,7 @@ class SequenceModel(RasterModel):
         sediments=None,
         bathymetry=None,
     ):
-        RasterModel.__init__(self, grid=grid, clock=clock)
+        RasterModel.__init__(self, grid=grid, clock=clock, output=output)
 
         BathymetryReader(self.grid, **bathymetry).run_one_step()
 
@@ -85,7 +87,7 @@ class SequenceModel(RasterModel):
         )
         self._flexure = SedimentFlexure(self.grid, **flexure)
 
-        self._components = (
+        self._components += (
             self._sea_level,
             self._subsidence,
             self._submarine_diffusion,
