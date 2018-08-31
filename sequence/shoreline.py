@@ -75,9 +75,9 @@ def find_shoreline(x, z, sea_level=0.):
         index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
     except ValueError:
         if z[0] < sea_level:
-            x_of_shoreline = x[0]
+            index_at_shore = 0
         else:
-            x_of_shoreline = x[-1]
+            index_at_shore = len(x)-1
    
 
     p_land = np.polyfit(
@@ -112,7 +112,7 @@ def find_shoreline(x, z, sea_level=0.):
     else:
         x_of_shoreline = (np.real(x_land) + np.real(x_sea))/2
             
-    #print (x[index_at_shore],x_land, x_sea,x_of_shoreline)
+    # print (index_at_shore,z[index_at_shore - 3:index_at_shore+3] - sea_level, x[index_at_shore], x_land,  x_sea, x_of_shoreline)
     
     #x_of_shoreline = x_of_shoreline + 250.
         
