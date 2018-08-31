@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 from .bathymetry import BathymetryReader
+from .coastal_plume import CoastalPlume
 from .fluvial import Fluvial
 from .raster_model import RasterModel
 from .sea_level import SinusoidalSeaLevel
@@ -38,6 +39,14 @@ class SequenceModel(RasterModel):
             "sand_frac": 0.5,
         },
         "bathymetry": {"filepath": "bathymetry.csv", "kind": "linear"},
+        "plume": {
+            "river_velocity": 1.,
+            "river_width": 1.,
+            "river_depth": 1.,
+            "river_concentration": 1.,
+            "sediment_removal_rate": 1.,
+            "sediment_bulk_density": 1600.,
+        },
     }
 
     LONG_NAME = {"z": "topographic__elevation", "z0": "bedrock_surface__elevation"}
@@ -52,6 +61,7 @@ class SequenceModel(RasterModel):
         flexure=None,
         sediments=None,
         bathymetry=None,
+        plume=None,
     ):
         RasterModel.__init__(self, grid=grid, clock=clock)
 
@@ -84,12 +94,14 @@ class SequenceModel(RasterModel):
             plain_slope=submarine_diffusion["plain_slope"],
         )
         self._flexure = SedimentFlexure(self.grid, **flexure)
+        self._plume = CoastalPlume(self.grid, **plume)
 
         self._components = (
             self._sea_level,
             self._subsidence,
             self._submarine_diffusion,
-            self._fluvial,
+            self._plume,
+            # self._fluvial,
             self._flexure,
         )
 
