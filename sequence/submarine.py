@@ -59,11 +59,11 @@ class SubmarineDiffuser(LinearDiffuser):
         shoreface_height: float, optional
             Water depth of the shelf/slope break (m).
         alpha: float, optional
-            Some coefficient. (1 / m)
+            Some coefficient (1 / m).
         shelf_slope: float, optional
             Slope of the shelf (m / m).
         sediment_load: float, optional
-            Sediment load entering the profile.
+            Sediment load entering the profile (m2 / y).
         """
         self._plain_slope = float(plain_slope)
         self._wave_base = float(wave_base)
