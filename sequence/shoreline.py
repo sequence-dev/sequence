@@ -56,7 +56,7 @@ def find_shoreline(x, z, sea_level=0., kind="cubic"):
     z = np.asarray(z)
 
     try:
-        index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
+        index_at_shore = find_shoreline_index(z, sea_level=sea_level)
     except ValueError:
         if z[0] < sea_level:
             x_of_shoreline = x[0]
@@ -70,7 +70,7 @@ def find_shoreline(x, z, sea_level=0., kind="cubic"):
 
 
 def interp_shoreline_point(x, z, sea_level=0.):
-    index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
+    index_at_shore = find_shoreline_index(z, sea_level=sea_level)
 
     p_land = np.polyfit(
         x[index_at_shore - 2 : index_at_shore],
@@ -100,13 +100,11 @@ def insert_shoreline_point(x, z, sea_level=0.):
     return np.insert(x, index, x_shore), np.insert(z, index, z_shore)
 
 
-def find_shoreline_index(x, z, sea_level=0.):
+def find_shoreline_index(z, sea_level=0.):
     """Find the landward-index of the shoreline.
 
     Parameters
     ----------
-    x : array of float
-        X-positions of profile.
     z : array of float
         Elevations along the profile.
     sea_level : float, optional
@@ -129,33 +127,32 @@ def find_shoreline_index(x, z, sea_level=0.):
 
     Create a linearly-dipping profile.
 
-    >>> x = np.arange(10.)
-    >>> z = - x + 5.
+    >>> z = - np.arange(10.) + 5.
     >>> z
     array([ 5.,  4.,  3.,  2.,  1.,  0., -1., -2., -3., -4.])
 
     Find the shoreline.
 
-    >>> find_shoreline_index(x, z)
+    >>> find_shoreline_index(z)
     6
-    >>> find_shoreline_index(x, z, sea_level=.25)
+    >>> find_shoreline_index(z, sea_level=.25)
     5
 
     If sea level is higher/lower than the max/min elevation, raise
     a `ValueError`.
 
-    >>> find_shoreline_index(x, z, sea_level=100.)
+    >>> find_shoreline_index(z, sea_level=100.)
     ...     # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ValueError: profile does not contain shoreline
-    >>> find_shoreline_index(x, z, sea_level=-100.)
+    >>> find_shoreline_index(z, sea_level=-100.)
     Traceback (most recent call last):
     ...
     ValueError: profile does not contain shoreline
     """
     (below_water,) = np.where(z < sea_level)
 
-    if len(below_water) == 0 or len(below_water) == len(x):
+    if len(below_water) == 0 or len(below_water) == len(z):
         raise ValueError("profile does not contain shoreline")
     else:
         return below_water[0]
