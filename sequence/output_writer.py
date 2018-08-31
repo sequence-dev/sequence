@@ -7,14 +7,7 @@ from landlab.io.netcdf import write_raster_netcdf
 
 class OutputWriter(Component):
     def __init__(
-        self,
-        grid,
-        filepath,
-        interval=1,
-        fields=None,
-        clobber=False,
-        rows=None,
-        clock=None,
+        self, grid, filepath, interval=1, fields=None, clobber=False, clock=None
     ):
         super(OutputWriter, self).__init__(grid)
 
