@@ -78,6 +78,9 @@ class SequenceModel(RasterModel):
         BathymetryReader(self.grid, **bathymetry).run_one_step()
 
         z0 = self.grid.at_node["bedrock_surface__elevation"]
+        z = self.grid.add_empty("topographic__elevation", at="node")
+        z[:] = z0
+        z0 -= 100.
 
         self.grid.layers.add(
             100.,
@@ -87,8 +90,8 @@ class SequenceModel(RasterModel):
             percent_sand=0.5,
         )
 
-        z = self.grid.add_empty("topographic__elevation", at="node")
-        z[:] = z0 + 100.
+        # z = self.grid.add_empty("topographic__elevation", at="node")
+        # z[:] = z0 + 100.
 
         self._sea_level = SinusoidalSeaLevel(
             self.grid, start=clock["start"], **sea_level
