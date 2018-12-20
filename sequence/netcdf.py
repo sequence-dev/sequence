@@ -108,7 +108,7 @@ def _create_layers(root, grid, names=None):
         netcdf_name = _netcdf_var_name(name, "layer")
         if netcdf_name not in root.variables:
             var = root.createVariable(
-                netcdf_name, _netcdf_type(grid.layers[name]), ("layer", "cell")
+                netcdf_name, _netcdf_type(grid.event_layers[name]), ("layer", "cell")
             )
 
     netcdf_name = _netcdf_var_name("thickness", "layer")
@@ -120,21 +120,21 @@ def _set_layers(root, grid, names=None):
     """Set values for variables at a grid layers."""
     if isinstance(names, six.string_types):
         names = [names]
-    names = names or grid.layers.tracking
+    names = names or grid.event_layers.tracking
 
     if "layer" not in root.dimensions:
         root.createDimension("layer", None)
 
     _create_layers(root, grid, names=names)
 
-    n_layers = grid.layers.number_of_layers
+    n_layers = grid.event_layers.number_of_layers
     for name in names:
-        root.variables[_netcdf_var_name(name, "layer")][:n_layers, :] = grid.layers[
+        root.variables[_netcdf_var_name(name, "layer")][:n_layers, :] = grid.event_layers[
             name
         ][:]
     root.variables[_netcdf_var_name("thickness", "layer")][
         :n_layers, :
-    ] = grid.layers.dz[:]
+    ] = grid.event_layers.dz[:]
 
 
 def to_netcdf(
