@@ -63,7 +63,7 @@ class SequenceModel(RasterModel):
         z0 = self.grid.add_empty("bedrock_surface__elevation", at="node")
         z0[:] = z - 10.
 
-        self.grid.layers.add(
+        self.grid.event_layers.add(
             10.,
             age=self.clock.start,
             water_depth=-z0[self.grid.core_nodes],
@@ -106,7 +106,7 @@ class SequenceModel(RasterModel):
         )
         percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
 
-        self.grid.layers.add(
+        self.grid.event_layers.add(
             dz[self.grid.node_at_cell],
             age=self.clock.time,
             water_depth=water_depth[self.grid.node_at_cell],
