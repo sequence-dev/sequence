@@ -3,11 +3,14 @@ import os
 from landlab import Component
 from landlab.bmi.bmi_bridge import TimeStepper
 from landlab.io.netcdf import write_raster_netcdf
+from landlab.graph.ugrid import ugrid_from_uniform_rectilinear
+
+from .netcdf import to_netcdf
 
 
 class OutputWriter(Component):
     def __init__(
-        self, grid, filepath, interval=1, fields=None, clobber=False, clock=None
+        self, grid, filepath, interval=1, fields=None, clobber=False, clock=None, rows=None
     ):
         super(OutputWriter, self).__init__(grid)
 
@@ -17,17 +20,22 @@ class OutputWriter(Component):
         self.fields = fields
         self.filepath = filepath
 
+        if rows is not None:
+            self._nodes = grid.nodes[tuple(rows)]
+        else:
+            self._nodes = None
+
         self._step_count = 0
 
     def run_one_step(self, dt=None):
         if self._step_count % self.interval == 0:
-            write_raster_netcdf(
-                self.filepath,
+            to_netcdf(
                 self.grid,
-                append=True,
+                self.filepath,
+                mode="a",
                 time=self._step_count,
-                # time=self.clock.time,
-                names=self.fields,
+                names={"node": self.fields},
+                ids={"node": self._nodes},
             )
         self._step_count += 1
 
