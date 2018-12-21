@@ -9,6 +9,9 @@ from .netcdf import to_netcdf
 
 
 class OutputWriter(Component):
+
+    """Write output to a netcdf file."""
+
     def __init__(
         self, grid, filepath, interval=1, fields=None, clobber=False, clock=None, rows=None
     ):
@@ -21,7 +24,7 @@ class OutputWriter(Component):
         self.filepath = filepath
 
         if rows is not None:
-            self._nodes = grid.nodes[tuple(rows)]
+            self._nodes = grid.nodes[(rows,)].flatten()
         else:
             self._nodes = None
 
