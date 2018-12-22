@@ -158,7 +158,7 @@ def to_netcdf(
         File to which to save the grid.
     mode: {'w', 'a'}, optional
         Write ('w') or append ('a') mode. If mode='w', any existing
-        file at this location will be overwritten. If mode=’a’,
+        file at this location will be overwritten. If mode="a",
         existing variables will be appended as a new time slice.
     format: {'NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_64BIT', 'NETCDF3_CLASSIC'}, optional
         File format for the resulting netCDF file.
