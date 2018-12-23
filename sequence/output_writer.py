@@ -1,3 +1,4 @@
+import errno
 import os
 
 from landlab import Component
@@ -52,8 +53,9 @@ class OutputWriter(Component):
             raise RuntimeError("file exists")
         try:
             os.remove(new_val)
-        except FileNotFoundError:
-            pass
+        except OSError as err:
+            if err.errno != errno.ENOENT:
+                raise
         finally:
             self._filepath = new_val
 
