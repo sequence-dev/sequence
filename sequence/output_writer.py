@@ -14,8 +14,11 @@ class OutputWriter(Component):
     """Write output to a netcdf file."""
 
     def __init__(
-        self, grid, filepath, interval=1, fields=None, clobber=False, clock=None, rows=None
+        self, grid, filepath=None, interval=1, fields=None, clobber=False, clock=None, rows=None
     ):
+        if filepath is None:
+            raise ValueError("filepath must be provided")
+
         super(OutputWriter, self).__init__(grid)
 
         self._clock = clock or TimeStepper()
