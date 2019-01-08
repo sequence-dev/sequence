@@ -38,6 +38,7 @@ setup(
     tests_require=test_requirements,
     url="https://github.com/sequence-dev/sequence",
     version=versioneer.get_version(),
+    entry_points={"console_scripts": ["sequence=sequence.sequence_model:main"]},
     cmdclass=versioneer.get_cmdclass(),
     zip_safe=False,
 )
