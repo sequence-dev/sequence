@@ -13,3 +13,4 @@ pytest-runner==2.11.1
 pytest-cov==2.5.1
 
 landlab==1.6.0
+click
