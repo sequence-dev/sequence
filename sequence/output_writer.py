@@ -3,8 +3,6 @@ import os
 
 from landlab import Component
 from landlab.bmi.bmi_bridge import TimeStepper
-from landlab.io.netcdf import write_raster_netcdf
-from landlab.graph.ugrid import ugrid_from_uniform_rectilinear
 
 from .netcdf import to_netcdf
 

@@ -4,8 +4,6 @@ from collections import defaultdict
 import netCDF4 as nc
 import six
 
-from landlab.graph.ugrid import ugrid_from_uniform_rectilinear
-
 
 _NUMPY_TO_NETCDF_TYPE = {
     "float32": "f4",
