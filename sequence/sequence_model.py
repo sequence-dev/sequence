@@ -2,9 +2,9 @@
 import os
 
 import click
+import yaml
 
 from landlab.core import load_params
-import yaml
 
 from .bathymetry import BathymetryReader
 from .fluvial import Fluvial
@@ -162,6 +162,8 @@ def main(file, with_citations, verbose, dry_run):
 
         click.secho("💥 Finished! 💥", err=True, fg="green")
         if "output" in params:
-            click.secho("Output written to {0}".format(params["output"]["filepath"]), fg="green")
+            click.secho(
+                "Output written to {0}".format(params["output"]["filepath"]), fg="green"
+            )
     else:
         click.secho("Nothing to do. 😴", fg="green")

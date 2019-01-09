@@ -4,7 +4,6 @@ from collections import defaultdict
 import netCDF4 as nc
 import six
 
-
 _NUMPY_TO_NETCDF_TYPE = {
     "float32": "f4",
     "float64": "f8",
@@ -73,9 +72,9 @@ def _set_grid_coordinates(root, grid, at="node", ids=None):
 def _create_field(root, grid, at="node", names=None):
     """Create variables at a field location(s)."""
     names = names or grid[at]
-    dimensions = (at, )
+    dimensions = (at,)
     if "time" in root.dimensions:
-        dimensions = ("time", ) + dimensions
+        dimensions = ("time",) + dimensions
 
     for name in names:
         netcdf_name = _netcdf_var_name(name, at)
@@ -94,7 +93,9 @@ def _set_field(root, grid, at="node", ids=None, names=None):
     if "time" in root.dimensions:
         n_times = len(root.dimensions["time"])
         for name in names:
-            root.variables[_netcdf_var_name(name, at)][n_times - 1, :] = grid[at][name][ids]
+            root.variables[_netcdf_var_name(name, at)][n_times - 1, :] = grid[at][name][
+                ids
+            ]
     else:
         for name in names:
             root.variables[_netcdf_var_name(name, at)][:] = grid[at][name][ids]
@@ -111,7 +112,7 @@ def _create_layers(root, grid, names=None):
 
     netcdf_name = _netcdf_var_name("thickness", "layer")
     if netcdf_name not in root.variables:
-        root.createVariable(netcdf_name, "f8", ("layer", "cell"), fill_value=0.)
+        root.createVariable(netcdf_name, "f8", ("layer", "cell"), fill_value=0.0)
 
 
 def _set_layers(root, grid, names=None):
@@ -127,9 +128,9 @@ def _set_layers(root, grid, names=None):
 
     n_layers = grid.event_layers.number_of_layers
     for name in names:
-        root.variables[_netcdf_var_name(name, "layer")][:n_layers, :] = grid.event_layers[
-            name
-        ][:]
+        root.variables[_netcdf_var_name(name, "layer")][
+            :n_layers, :
+        ] = grid.event_layers[name][:]
     root.variables[_netcdf_var_name("thickness", "layer")][
         :n_layers, :
     ] = grid.event_layers.dz[:]
@@ -140,7 +141,7 @@ def to_netcdf(
     filepath,
     mode="w",
     format="NETCDF4",
-    time=0.,
+    time=0.0,
     at=None,
     ids=None,
     names=None,

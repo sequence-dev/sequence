@@ -10,12 +10,12 @@ import numpy as np
 
 def create_initial_profile(
     x,
-    sl_plain=.0008,
-    init_shore=19750.,
-    hgt=15.,
-    alpha=1 / 2000.,
-    sl_sh=.001,
-    wavebase=60.,
+    sl_plain=0.0008,
+    init_shore=19750.0,
+    hgt=15.0,
+    alpha=1 / 2000.0,
+    sl_sh=0.001,
+    wavebase=60.0,
 ):
 
     # check shoreline is in array, else put in center of array
