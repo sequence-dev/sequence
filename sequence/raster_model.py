@@ -15,9 +15,11 @@ class RasterModel(object):
     def __init__(self, grid=None, clock=None, output=None):
         self._clock = TimeStepper(**clock)
         self._grid = RasterModelGrid.from_dict(grid)
-        self._output = OutputWriter(self._grid, **output)
 
-        self._components = [self._output]
+        self._components = []
+        if output:
+            self._output = OutputWriter(self._grid, **output)
+            self._components.append(self._output)
 
     @property
     def grid(self):
