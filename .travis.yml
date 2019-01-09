@@ -36,6 +36,6 @@ install:
 script:
 - pytest --cov=sequence --cov-report= --cov-report=xml
 - python setup.py install
-- sequence ./data/marmara/marmara.yaml
+- cd data/marmara && sequence marmara.yaml
 after_success:
 - coveralls --verbose
