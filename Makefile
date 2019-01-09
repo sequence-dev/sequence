@@ -53,6 +53,10 @@ clean-test: ## remove test and coverage artifacts
 lint: ## check style with flake8
 	flake8 sequence tests
 
+pretty: ## reformat files to make them look pretty
+	find sequence -name '*.py' | xargs isort
+	black setup.py sequence
+
 test: ## run tests quickly with the default Python
 	pytest --cov=sequence
 
