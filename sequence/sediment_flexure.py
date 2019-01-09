@@ -58,6 +58,5 @@ class SedimentFlexure(Flexure1D):
         self.grid.at_node["bedrock_surface__elevation"] -= dz
         self.grid.at_node["topographic__elevation"] -= dz
 
-
     def run_one_step(self, dt=None):
         self.update()
