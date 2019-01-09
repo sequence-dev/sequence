@@ -64,10 +64,12 @@ Ready to contribute? Here's how to set up `sequence` for local development.
 
     $ git clone git@github.com:your_name_here/sequence.git
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+3. Install your local copy into a new environment. Assuming you have conda
+   installed, this is how you set up your fork for local development::
 
-    $ mkvirtualenv sequence
-    $ cd sequence/
+    $ conda create -n sequence
+    $ conda activate sequence
+    $ conda install --file=requirements_dev.txt
     $ python setup.py develop
 
 4. Create a branch for local development::
@@ -77,13 +79,12 @@ Ready to contribute? Here's how to set up `sequence` for local development.
    Now you can make your changes locally.
 
 5. When you're done making changes, check that your changes pass flake8 and the
-   tests, including testing other Python versions with tox::
+   tests::
 
     $ flake8 sequence tests
-    $ python setup.py test or py.test
-    $ tox
+    $ pytest
 
-   To get flake8 and tox, just pip install them into your virtualenv.
+   To get flake8 and pytest, just condat install them into your environment.
 
 6. Commit your changes and push your branch to GitHub::
 
@@ -102,7 +103,7 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 2.7, 3.4, 3.5 and 3.6, and for PyPy. Check
+3. The pull request should work for Python 3.6 and 3.7. Check
    https://travis-ci.org/sequence-dev/sequence/pull_requests
    and make sure that the tests pass for all supported Python versions.
 
@@ -121,8 +122,10 @@ A reminder for the maintainers on how to deploy.
 Make sure all your changes are committed (including an entry in HISTORY.rst).
 Then run::
 
-$ bumpversion patch # possible: major / minor / patch
+$ git tag <version>
 $ git push
 $ git push --tags
 
-Travis will then deploy to PyPI if tests pass.
+conda-forge will see the new tag, and set up a pull request with the new version.
+Once the pull request is merged, sequence will be deployed to the conda-forge
+channel.
