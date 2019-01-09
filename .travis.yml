@@ -35,5 +35,6 @@ install:
 - conda install -q --file=requirements_dev.txt -c conda-forge
 script:
 - pytest --cov=sequence --cov-report= --cov-report=xml
+- sequence ./data/marmara/marmara.yaml
 after_success:
 - coveralls --verbose
