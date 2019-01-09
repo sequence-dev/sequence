@@ -109,7 +109,7 @@ class SubmarineDiffuser(LinearDiffuser):
     def calc_diffusion_coef(self, x_of_shore):
         """Calculate and store diffusion coefficient values.
 
-        The example below tests the result with 3 of the middle-row nodes above 
+        The example below tests the result with 3 of the middle-row nodes above
         sea level and three below, two of which are in deep water (below the
         default 60 m wave base).
 
