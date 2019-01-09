@@ -105,13 +105,13 @@ def _create_layers(root, grid, names=None):
     for name in names:
         netcdf_name = _netcdf_var_name(name, "layer")
         if netcdf_name not in root.variables:
-            var = root.createVariable(
+            root.createVariable(
                 netcdf_name, _netcdf_type(grid.event_layers[name]), ("layer", "cell")
             )
 
     netcdf_name = _netcdf_var_name("thickness", "layer")
     if netcdf_name not in root.variables:
-        var = root.createVariable(netcdf_name, "f8", ("layer", "cell"), fill_value=0.)
+        root.createVariable(netcdf_name, "f8", ("layer", "cell"), fill_value=0.)
 
 
 def _set_layers(root, grid, names=None):
