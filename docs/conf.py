@@ -21,7 +21,32 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(".."))
+# sys.path.insert(0, os.path.abspath(".."))
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MagicMock()
+
+
+MOCK_MODULES = [
+    "click",
+    "landlab",
+    "landlab.bmi.bmi_bridge",
+    "landlab.components",
+    "landlab.components.flexure",
+    "landlab.core",
+    "landlab.core.model_component",
+    "landlab.plot",
+    "netCDF4",
+    "numpy",
+    "scipy",
+    "six",
+    "yaml",
+]
+
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 
 import sequence
 
