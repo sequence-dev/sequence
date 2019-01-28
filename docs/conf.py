@@ -48,6 +48,13 @@ MOCK_MODULES = [
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
+if os.environ.get('READTHEDOCS', ''):
+    # RTD doesn't use the repo's Makefile to build docs.
+    import subprocess
+
+    subprocess.run(["sphinx-apidoc", "--force", "-o", "./api", "../sequence", "*tests"])
+
+
 import sequence
 
 # -- General configuration ---------------------------------------------
