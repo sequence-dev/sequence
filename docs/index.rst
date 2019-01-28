@@ -16,12 +16,34 @@ and tectonic subsidence and uplift.
    :maxdepth: 2
    :caption: Contents:
 
+   usage
    readme
    installation
-   usage
-   modules
+
+
+API Reference
+-------------
+
+If you are looking for information on a specific function, class, or
+method, this part of the documentation is for you.
+
+.. toctree::
+   :maxdepth: 2
+
+   api/index
+
+
+Miscellaneous Pages
+-------------------
+
+.. toctree::
+   :maxdepth: 2
+
    contributing
    authors
+   history
+   license
+
 
 Indices and tables
 ==================
