@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 import numpy as np
+
 from landlab.components import LinearDiffuser
 
 from .shoreline import find_shoreline
@@ -36,13 +37,13 @@ class SubmarineDiffuser(LinearDiffuser):
     def __init__(
         self,
         grid,
-        sea_level=0.,
-        plain_slope=.0008,
-        wave_base=60.,
-        shoreface_height=15.,
-        alpha=.0005,
-        shelf_slope=.001,
-        sediment_load=3.,
+        sea_level=0.0,
+        plain_slope=0.0008,
+        wave_base=60.0,
+        shoreface_height=15.0,
+        alpha=0.0005,
+        shelf_slope=0.001,
+        sediment_load=3.0,
         **kwds
     ):
         """Diffuse the ocean bottom.
@@ -80,7 +81,7 @@ class SubmarineDiffuser(LinearDiffuser):
         grid.add_zeros("kd", at="node")
         grid.add_zeros("sediment_deposit__thickness", at="node")
 
-        self._time = 0.
+        self._time = 0.0
 
         kwds.setdefault("linear_diffusivity", "kd")
         super(SubmarineDiffuser, self).__init__(grid, **kwds)
@@ -108,7 +109,7 @@ class SubmarineDiffuser(LinearDiffuser):
     def calc_diffusion_coef(self, x_of_shore):
         """Calculate and store diffusion coefficient values.
 
-        The example below tests the result with 3 of the middle-row nodes above 
+        The example below tests the result with 3 of the middle-row nodes above
         sea level and three below, two of which are in deep water (below the
         default 60 m wave base).
 
@@ -131,7 +132,7 @@ class SubmarineDiffuser(LinearDiffuser):
         sea_level = self.grid.at_grid["sea_level__elevation"]
         water_depth = sea_level - self._grid.at_node["topographic__elevation"]
 
-        under_water = water_depth > 0.
+        under_water = water_depth > 0.0
         deep_water = water_depth > self._wave_base
         land = ~under_water
 

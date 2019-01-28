@@ -30,7 +30,7 @@ class SedimentFlexure(Flexure1D):
         "bedrock_surface__elevation": "New bedrock elevation following subsidence",
     }
 
-    def __init__(self, grid, rho_sediment=1600., **kwds):
+    def __init__(self, grid, rho_sediment=1600.0, **kwds):
         self._rho_sediment = rho_sediment
 
         Flexure1D.__init__(self, grid, **kwds)
@@ -43,7 +43,7 @@ class SedimentFlexure(Flexure1D):
         return self._rho_sediment
 
     def update(self):
-        self.grid.at_node["lithosphere_surface__increment_of_elevation"][:] = 0.
+        self.grid.at_node["lithosphere_surface__increment_of_elevation"][:] = 0.0
 
         dz = self.grid.at_node["sediment_deposit__thickness"]
         self.grid.at_node["lithosphere__increment_of_overlying_pressure"][:] = (
@@ -57,7 +57,6 @@ class SedimentFlexure(Flexure1D):
 
         self.grid.at_node["bedrock_surface__elevation"] -= dz
         self.grid.at_node["topographic__elevation"] -= dz
-
 
     def run_one_step(self, dt=None):
         self.update()
