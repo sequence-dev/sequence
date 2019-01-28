@@ -42,7 +42,6 @@ MOCK_MODULES = [
     "netCDF4",
     "numpy",
     "scipy",
-    "six",
     "yaml",
 ]
 
