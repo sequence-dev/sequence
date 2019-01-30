@@ -54,8 +54,8 @@ class SedimentFlexure(Flexure):
         dz = self.grid.at_node["lithosphere_surface__elevation_increment"]
         self.grid.at_node["bedrock_surface__elevation_increment"][:] = dz
 
-        self.grid.at_node["bedrock_surface__elevation"] += dz
-        self.grid.at_node["topographic__elevation"] += dz
+        self.grid.at_node["bedrock_surface__elevation"] -= dz
+        self.grid.at_node["topographic__elevation"] -= dz
 
     def run_one_step(self, dt=None):
         self.update()
