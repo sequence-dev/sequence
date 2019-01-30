@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 import numpy as np
-from landlab import Component
 from scipy.interpolate import interp1d
+
+from landlab import Component
 
 
 class SubsidenceTimeSeries(Component):
@@ -48,7 +49,7 @@ class SubsidenceTimeSeries(Component):
         """
         super(SubsidenceTimeSeries, self).__init__(grid, **kwds)
 
-        data = np.loadtxt(filepath, delimiter=",")
+        data = np.loadtxt(filepath, delimiter=",", comments="#")
         subsidence = interp1d(
             data[:, 0],
             data[:, 1],
@@ -63,7 +64,7 @@ class SubsidenceTimeSeries(Component):
         inc[:] = subsidence(self.grid.x_of_node[self.grid.nodes_at_bottom_edge])
 
         self._dz = inc.copy()
-        self._time = 0.
+        self._time = 0.0
 
     @property
     def time(self):

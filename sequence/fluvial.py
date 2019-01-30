@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 import numpy as np
+
 from landlab import Component
 
 from .shoreline import find_shoreline
@@ -25,10 +26,10 @@ class Fluvial(Component):
         self,
         grid,
         sand_frac,
-        start=0.,
-        sediment_load=3.,
-        sand_density=2650.,
-        plain_slope=.0008,
+        start=0.0,
+        sediment_load=3.0,
+        sand_density=2650.0,
+        plain_slope=0.0008,
         **kwds
     ):
         """Generate percent sand/mud for fluvial section.
@@ -43,13 +44,13 @@ class Fluvial(Component):
         super(Fluvial, self).__init__(grid, **kwds)
 
         # fixed parameters
-        self.sand_grain = .001  # grain size = 1 mm
-        self.alpha = 10.  # ratio of channel depth to channel belt thickness  */
-        self.beta = .1  # beta*h is flow depth of flood, beta = .1 to .5   */
+        self.sand_grain = 0.001  # grain size = 1 mm
+        self.alpha = 10.0  # ratio of channel depth to channel belt thickness  */
+        self.beta = 0.1  # beta*h is flow depth of flood, beta = .1 to .5   */
         # lambdap = .30
-        self.flood_period = 10.  # recurrence time of floods ~1-10 y  */
-        self.basin_width = 5000.  # Basin width or river spacing of 20 km */
-        self.basin_length = 500000.  # length for downstream increase in diffusion */
+        self.flood_period = 10.0  # recurrence time of floods ~1-10 y  */
+        self.basin_width = 5000.0  # Basin width or river spacing of 20 km */
+        self.basin_length = 500000.0  # length for downstream increase in diffusion */
 
         self.sand_frac = sand_frac
         self.sediment_load = sediment_load
@@ -60,11 +61,11 @@ class Fluvial(Component):
 
     def run_one_step(self, dt):
         # Upstream boundary conditions  */
-        mud_vol = self.sediment_load / (1. - self.sand_frac)
+        mud_vol = self.sediment_load / (1.0 - self.sand_frac)
         sand_vol = self.sediment_load
         qs = (
-            10.
-            * np.sqrt(9.8 * (self.sand_density / 1000. - 1.))
+            10.0
+            * np.sqrt(9.8 * (self.sand_density / 1000.0 - 1.0))
             * (self.sand_grain ** 1.5)
         )
         # m^2/s  units */
@@ -75,7 +76,7 @@ class Fluvial(Component):
         conc_mud = np.zeros(self.grid.shape[1])
         conc_mud[0] = mud_vol / qw
 
-        channel_width = sand_vol * self.basin_width / qs / 31536000.
+        channel_width = sand_vol * self.basin_width / qs / 31536000.0
 
         x = self.grid.x_of_node.reshape(self.grid.shape)[1]
         z = self.grid.at_node["topographic__elevation"].reshape(self.grid.shape)[1]
@@ -97,7 +98,7 @@ class Fluvial(Component):
         # channel_depth = np.zeros(self.grid.number_of_cells)
         channel_depth = np.zeros_like(z)
         channel_depth[land] = (
-            (self.sand_density - 1000.) / 1000. * self.sand_grain / slope[land]
+            (self.sand_density - 1000.0) / 1000.0 * self.sand_grain / slope[land]
         )
 
         # Type of channelization */
@@ -125,7 +126,7 @@ class Fluvial(Component):
         ].reshape(self.grid.shape)[1]
 
         for i in np.where(land)[0]:
-            if channel_width / channel_depth[i] > 75.:
+            if channel_width / channel_depth[i] > 75.0:
                 epsilon = 0.8
                 # braided 0.3-0.5  */
             else:
@@ -135,8 +136,8 @@ class Fluvial(Component):
 
             # all rates  per timestep */
             # channelbelt deposition  */
-            if r_cb[i] < 0.:
-                r_cb[i] = 0.
+            if r_cb[i] < 0.0:
+                r_cb[i] = 0.0
 
             # floodplain deposition  */
             r_fp[i] = (
@@ -145,46 +146,50 @@ class Fluvial(Component):
                 / self.flood_period
                 * conc_mud[i]
                 * dt
-                * 1000.
+                * 1000.0
             )
             if r_fp[i] > r_cb[i]:
                 r_fp[i] = r_cb[i]
 
             # Find avulsion rate and sand density   */
 
-            if dz[i] > 0.:
+            if dz[i] > 0.0:
 
                 bigN = self.alpha * (r_cb[i] - r_fp) / r_b[i]
-                if bigN > 1.:
+                if bigN > 1.0:
                     r_cb[i] *= bigN
                 # rate is bigger because of avulsions */
 
-                if r_cb[i] <= 0.:
-                    r_cb[i] = 0.
-                    percent_sand[i] = 1.
+                if r_cb[i] <= 0.0:
+                    r_cb[i] = 0.0
+                    percent_sand[i] = 1.0
 
                 else:
                     bigN = self.alpha * (r_cb[i] - r_fp[i]) / r_b[i]
-                    percent_sand[i] = 1. - (1 - width_cb / self.basin_width) * np.exp(
-                        -1. * width_cb / self.basin_width * bigN
+                    percent_sand[i] = 1.0 - (1 - width_cb / self.basin_width) * np.exp(
+                        -1.0 * width_cb / self.basin_width * bigN
                     )
             else:
                 percent_sand[i] = 0
                 # NULL;*/
 
             # adjust parameters for next downstream point */
-            if dz[i] > 0.:
+            if dz[i] > 0.0:
                 sand_vol -= (
                     percent_sand[i] * self.grid.dx * (dz[i] * dz[i + 1]) / 2 / dt
                 )
                 mud_vol -= (
-                    (1. - percent_sand[i]) * self.grid.dx * (dz[i] * dz[i + 1]) / 2 / dt
+                    (1.0 - percent_sand[i])
+                    * self.grid.dx
+                    * (dz[i] * dz[i + 1])
+                    / 2
+                    / dt
                 )
             diffusion = (
                 self.sediment_load
                 / slope[i]
-                * (1. + i * self.grid.dx / self.basin_length)
+                * (1.0 + i * self.grid.dx / self.basin_length)
             )  # question is i correct?
             qw = diffusion / 0.61
             conc_mud[i + 1] = mud_vol / qw
-            channel_depth[i] = (self.sand_density - 1000.) * self.sand_grain / slope[1]
+            channel_depth[i] = (self.sand_density - 1000.0) * self.sand_grain / slope[1]
