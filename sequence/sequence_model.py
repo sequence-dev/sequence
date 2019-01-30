@@ -7,7 +7,8 @@ from .sea_level import SinusoidalSeaLevel
 from .sediment_flexure import SedimentFlexure
 from .submarine import SubmarineDiffuser
 from .subsidence import SubsidenceTimeSeries
-
+from .shoreline import find_shoreline
+from .shoreline import find_shoreline_index
 
 class SequenceModel(RasterModel):
 
@@ -88,6 +89,8 @@ class SequenceModel(RasterModel):
             water_depth=-z0[self.grid.core_nodes],
             t0=10.,
             percent_sand=0.5,
+            shoreline = 0.,
+            shelfedge = 0.
         )
 
         # z = self.grid.add_empty("topographic__elevation", at="node")
@@ -127,6 +130,24 @@ class SequenceModel(RasterModel):
             - self.grid.at_node["topographic__elevation"]
         )
         percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
+        
+        x = self.grid.x_of_node
+        dx = x[1]-x[0]
+        z = self.grid.at_node["topographic__elevation"].copy()
+        shore = find_shoreline(
+            self.grid.x_of_node[self.grid.node_at_cell],
+            z[self.grid.node_at_cell],
+            sea_level=self.grid.at_grid["sea_level__elevation"],
+        )
+        
+        under_water = water_depth > 0.
+        slope = np.gradient(under_water) 
+        curv = np.gradient(slope) 
+        edge = (np.argmax(curv)+find_shoreline_index(x, z, 
+                sea_level=self.grid.at_grid["sea_level__elevation"])
+               )*dx
+        
+        #print (shore, edge)
 
         self.grid.layers.add(
             dz[self.grid.node_at_cell],
@@ -134,4 +155,6 @@ class SequenceModel(RasterModel):
             water_depth=water_depth[self.grid.node_at_cell],
             t0=dz[self.grid.node_at_cell].clip(0.),
             percent_sand=percent_sand[self.grid.node_at_cell],
+            shoreline = shore,
+            shelfedge = edge,
         )
