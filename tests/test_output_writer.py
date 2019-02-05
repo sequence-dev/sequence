@@ -1,6 +1,6 @@
-from pytest import approx, raises
 import numpy as np
 import xarray as xr
+from pytest import approx, raises
 
 from landlab import RasterModelGrid
 from sequence import OutputWriter
@@ -15,7 +15,7 @@ def test_no_fields(tmpdir):
 
     assert np.all(ds.x_of_node == approx(grid.x_of_node))
     assert np.all(ds.y_of_node == approx(grid.y_of_node))
-    assert ds["time"] == approx([0.])
+    assert ds["time"] == approx([0.0])
 
 
 def test_default_output_interval(tmpdir):
@@ -28,7 +28,7 @@ def test_default_output_interval(tmpdir):
 
     assert np.all(ds.x_of_node == approx(grid.x_of_node))
     assert np.all(ds.y_of_node == approx(grid.y_of_node))
-    assert np.all(ds["time"] == approx([0., 1., 2., 3.]))
+    assert np.all(ds["time"] == approx([0.0, 1.0, 2.0, 3.0]))
 
 
 def test_output_interval(tmpdir):
@@ -41,7 +41,7 @@ def test_output_interval(tmpdir):
 
     assert np.all(ds.x_of_node == approx(grid.x_of_node))
     assert np.all(ds.y_of_node == approx(grid.y_of_node))
-    assert np.all(ds["time"] == approx([0., 2.]))
+    assert np.all(ds["time"] == approx([0.0, 2.0]))
 
 
 def test_default_clobber_is_false(tmpdir):
@@ -83,9 +83,9 @@ def test_rows_keyword(tmpdir):
         OutputWriter(grid, "test.nc", rows=(1,)).run_one_step()
         with xr.open_dataset("test.nc") as ds:
             assert np.all(ds.x_of_node == approx([0, 1, 2, 3]))
-            assert np.all(ds.y_of_node == approx(1.))
+            assert np.all(ds.y_of_node == approx(1.0))
 
-        OutputWriter(grid, "test.nc", rows=((0, 2), ), clobber=True).run_one_step()
+        OutputWriter(grid, "test.nc", rows=((0, 2),), clobber=True).run_one_step()
         with xr.open_dataset("test.nc") as ds:
             assert np.all(ds.x_of_node == approx([0, 1, 2, 3, 0, 1, 2, 3]))
             assert np.all(ds.y_of_node == approx([0, 0, 0, 0, 2, 2, 2, 2]))

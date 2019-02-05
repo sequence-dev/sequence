@@ -12,10 +12,10 @@ from .fluvial import Fluvial
 from .raster_model import RasterModel
 from .sea_level import SinusoidalSeaLevel
 from .sediment_flexure import SedimentFlexure
+from .shoreline import find_shoreline, find_shoreline_index
 from .submarine import SubmarineDiffuser
 from .subsidence import SubsidenceTimeSeries
-from .shoreline import find_shoreline
-from .shoreline import find_shoreline_index
+
 
 class SequenceModel(RasterModel):
 
@@ -36,7 +36,12 @@ class SequenceModel(RasterModel):
             "shelf_slope": 0.001,
             "sediment_load": 3.0,
         },
-        "sea_level": {"amplitude": 10.0, "wave_length": 1000.0, "phase": 0.0, "linear": 0.0},
+        "sea_level": {
+            "amplitude": 10.0,
+            "wave_length": 1000.0,
+            "phase": 0.0,
+            "linear": 0.0,
+        },
         "subsidence": {"filepath": "subsidence.csv"},
         "flexure": {"method": "flexure", "rho_mantle": 3300.0},
         "sediments": {
@@ -66,25 +71,24 @@ class SequenceModel(RasterModel):
     ):
         RasterModel.__init__(self, grid=grid, clock=clock, output=output)
 
-        #z0 = self.grid.add_empty("bedrock_surface__elevation", at="node")
-        #z = self.grid.add_empty("topographic__elevation", at="node")
-        #percent_sand = self.grid.add_empty("sand_frac", at="node")
-        
-        #shoreface_height=submarine_diffusion["shoreface_height"]
-        #alpha=submarine_diffusion["alpha"]
-        #spacing=grid["spacing"]
+        # z0 = self.grid.add_empty("bedrock_surface__elevation", at="node")
+        # z = self.grid.add_empty("topographic__elevation", at="node")
+        # percent_sand = self.grid.add_empty("sand_frac", at="node")
 
-        #z[:] = -.001 * self.grid.x_of_node + 120.
-        #shore = 120./.001
-        
-        #shore = 30/(.001 * spacing )*1000
-        #under_water = z < 0.
-        #z[under_water] = z[under_water] - shoreface_height*(
+        # shoreface_height=submarine_diffusion["shoreface_height"]
+        # alpha=submarine_diffusion["alpha"]
+        # spacing=grid["spacing"]
+
+        # z[:] = -.001 * self.grid.x_of_node + 120.
+        # shore = 120./.001
+
+        # shore = 30/(.001 * spacing )*1000
+        # under_water = z < 0.
+        # z[under_water] = z[under_water] - shoreface_height*(
         #    1 - np.exp(-1*alpha*(self.grid.x_of_node[under_water] - shore))
-        #)
+        # )
 
-        
-        #z0[:] = z - 100.
+        # z0[:] = z - 100.
         BathymetryReader(self.grid, **bathymetry).run_one_step()
 
         z = self.grid.at_node["topographic__elevation"]
@@ -97,8 +101,8 @@ class SequenceModel(RasterModel):
             water_depth=-z0[self.grid.core_nodes],
             t0=10.0,
             percent_sand=0.5,
-            shoreline = 0.,
-            shelfedge = 0.
+            shoreline=0.0,
+            shelfedge=0.0,
         )
 
         self._sea_level = SinusoidalSeaLevel(
@@ -135,31 +139,34 @@ class SequenceModel(RasterModel):
             - self.grid.at_node["topographic__elevation"]
         )
         percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
-        
+
         x = self.grid.x_of_node
-        dx = x[1]-x[0]
+        dx = x[1] - x[0]
         z = self.grid.at_node["topographic__elevation"].copy()
         shore = find_shoreline(
             self.grid.x_of_node[self.grid.node_at_cell],
             z[self.grid.node_at_cell],
             sea_level=self.grid.at_grid["sea_level__elevation"],
         )
-        
-        under_water = water_depth > 0.
-        slope = np.gradient(under_water) 
-        curv = np.gradient(slope) 
-        edge = (np.argmax(curv)+find_shoreline_index(x, z, 
-                sea_level=self.grid.at_grid["sea_level__elevation"])
-               )*dx
-        
+
+        under_water = water_depth > 0.0
+        slope = np.gradient(under_water)
+        curv = np.gradient(slope)
+        edge = (
+            np.argmax(curv)
+            + find_shoreline_index(
+                x, z, sea_level=self.grid.at_grid["sea_level__elevation"]
+            )
+        ) * dx
+
         self.grid.event_layers.add(
             dz[self.grid.node_at_cell],
             age=self.clock.time,
             water_depth=water_depth[self.grid.node_at_cell],
             t0=dz[self.grid.node_at_cell].clip(0.0),
             percent_sand=percent_sand[self.grid.node_at_cell],
-            shoreline = shore,
-            shelfedge = edge,
+            shoreline=shore,
+            shelfedge=edge,
         )
 
 

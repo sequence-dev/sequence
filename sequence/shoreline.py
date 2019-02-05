@@ -69,14 +69,14 @@ def find_shoreline(x, z, sea_level=0.0, kind="cubic"):
     return x_of_shoreline
 
 
-def find_shoreline_polyfit(x, z, sea_level=0.):
+def find_shoreline_polyfit(x, z, sea_level=0.0):
     try:
         index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
     except ValueError:
         if z[0] < sea_level:
             index_at_shore = 0
         else:
-            index_at_shore = len(x)-1
+            index_at_shore = len(x) - 1
 
     p_land = np.polyfit(
         x[index_at_shore - 3 : index_at_shore],
@@ -89,26 +89,25 @@ def find_shoreline_polyfit(x, z, sea_level=0.):
         2,
     )
 
-
     root_land = np.roots(p_land)
     root_sea = np.roots(p_sea)
-        
-    i = np.argmin(np.abs(root_sea-x[index_at_shore]))
+
+    i = np.argmin(np.abs(root_sea - x[index_at_shore]))
     x_sea = root_sea[i]
-    x_sea = np.clip(x_sea,x[index_at_shore-1],x[index_at_shore]) 
-        
-    i = np.argmin(np.abs(root_land-x[index_at_shore]))
+    x_sea = np.clip(x_sea, x[index_at_shore - 1], x[index_at_shore])
+
+    i = np.argmin(np.abs(root_land - x[index_at_shore]))
     x_land = root_land[i]
-    x_land = np.clip(x_land,x[index_at_shore-1],x[index_at_shore])
-    
+    x_land = np.clip(x_land, x[index_at_shore - 1], x[index_at_shore])
+
     if np.isreal(x_land) and np.isreal(x_sea):
-        x_of_shoreline = (x_sea+x_land)/2
+        x_of_shoreline = (x_sea + x_land) / 2
     elif np.isreal(x_land) and not np.isreal(x_sea):
         x_of_shoreline = np.real(x_land)
     elif not np.isreal(x_land) and np.isreal(x_sea):
         x_of_shoreline = np.real(x_sea)
     else:
-        x_of_shoreline = (np.real(x_land) + np.real(x_sea))/2
+        x_of_shoreline = (np.real(x_land) + np.real(x_sea)) / 2
 
     return x_of_shoreline
 

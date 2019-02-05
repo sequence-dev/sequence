@@ -83,8 +83,13 @@ class SinusoidalSeaLevel(SeaLevelTimeSeries):
         super(SeaLevelTimeSeries, self).__init__(grid, **kwds)
 
         self._sea_level = (
-            lambda time: (np.sin((time - phase) / wave_length) + 0.3*np.sin((2*time - phase) / wave_length))
-            * amplitude + mean + linear * time
+            lambda time: (
+                np.sin((time - phase) / wave_length)
+                + 0.3 * np.sin((2 * time - phase) / wave_length)
+            )
+            * amplitude
+            + mean
+            + linear * time
         )
 
         self._time = start
@@ -120,7 +125,10 @@ def sea_level_function(dictionary):
     run_duration = dictionary["run_duration"]
     dt = dictionary["dt"]
     t = arange(start_time, start_time + run_duration, dt)
-    sl_array = a * (sin((2 * pi * (p + t)) / Fs)+ 0.3*sin((2 * pi * (p + 2*t)) / Fs)) + l * t
+    sl_array = (
+        a * (sin((2 * pi * (p + t)) / Fs) + 0.3 * sin((2 * pi * (p + 2 * t)) / Fs))
+        + l * t
+    )
     """
     fig = plt.figure()
     plt.plot(t, sl_array)
