@@ -2,19 +2,24 @@
 import argparse
 
 import yaml
+
 from landlab import RasterModelGrid
 from landlab.bmi.bmi_bridge import TimeStepper
 from landlab.core import load_params
-from landlab.io.netcdf import write_raster_netcdf
 from landlab.plot import imshow_grid
+
+from .output_writer import OutputWriter
 
 
 class RasterModel(object):
-    def __init__(self, grid=None, clock=None):
+    def __init__(self, grid=None, clock=None, output=None):
         self._clock = TimeStepper(**clock)
         self._grid = RasterModelGrid.from_dict(grid)
 
-        self._components = ()
+        self._components = []
+        if output:
+            self._output = OutputWriter(self._grid, **output)
+            self._components.append(self._output)
 
     @property
     def grid(self):
@@ -36,17 +41,11 @@ class RasterModel(object):
 
         self.advance_components(dt)
 
-        if output:
-            write_raster_netcdf(output, self.grid, append=True, time=self.clock.time)
-
     def run(self, output=None):
         """Run the model until complete."""
-        if output:
-            write_raster_netcdf(output, self.grid, append=False, time=self.clock.time)
-
         try:
             while 1:
-                self.run_one_step(output=output)
+                self.run_one_step()
         except StopIteration:
             pass
 

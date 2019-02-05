@@ -1,0 +1,57 @@
+clock:
+  start: 0.0
+  step: 100.0
+  stop: 40000.0
+grid:
+  origin: [0.0, 0.0]
+  shape:
+  - 3
+  - 200
+  spacing: [250., 500.0]
+  bc:
+    top: closed
+    bottom: closed
+output:
+  interval: 10
+  filepath: marmara.nc
+  clobber: True
+  rows:
+  - 1
+  fields:
+  - sediment_deposit__thickness
+  - kd
+bathymetry:
+  filepath: marmara_bathymetry.csv
+  kind: linear
+sea_level:
+  amplitude: 15.
+  wave_length: 10000.
+  phase: 5000.
+  mean: 0.
+submarine_diffusion:
+  alpha: 0.0005
+  sediment_load: 50.
+  plain_slope: .0008
+  shoreface_height: 5.0
+  shelf_slope: 0.001
+  wave_base: 30.0
+subsidence:
+  filepath: marmara_subsidence.csv
+flexure:
+  method: flexure
+  rho_mantle: 3300.
+  eet: 10000.
+sediments:
+  layers: 2,
+  sand_size: 1.,
+  mud_size:  0.006,
+  sand_density: 2650.
+  mud_density: 2720.
+  sand_frac: 0.5
+# plume:
+#   river_velocity: 1.5
+#   river_width: 100.
+#   river_depth: 1.
+#   river_concentration: .1
+#   sediment_removal_rate: 2.
+#   sediment_bulk_density: 1600.

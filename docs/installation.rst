@@ -8,20 +8,32 @@ Installation
 Stable release
 --------------
 
-To install sequence, run this command in your terminal:
+Installing `sequence` from the `conda-forge` channel can be achieved
+by adding `conda-forge` to your channels with:
 
 .. code-block:: console
 
-    $ pip install sequence
+    $ conda config --add channels conda-forge
 
-This is the preferred method to install sequence, as it will always install the most recent stable release.
+Once the `conda-forge` channel has been enabled, `sequence` can be
+installed with:
 
-If you don't have `pip`_ installed, this `Python installation guide`_ can guide
-you through the process.
+.. code-block:: console
 
-.. _pip: https://pip.pypa.io
-.. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
+    $ conda install sequence
 
+It is possible to list all of the versions of `sequence` available
+on your platform with:
+
+.. code-block:: console
+
+    $ conda search sequence --channel conda-forge
+
+If you don't have `conda`_ installed, the `Anaconda installation guide`_ can
+help you through the process.
+
+.. _conda: https://conda.io/docs/
+.. _Anaconda installation guide: http://docs.anaconda.com/anaconda/install/
 
 From sources
 ------------
@@ -32,13 +44,13 @@ You can either clone the public repository:
 
 .. code-block:: console
 
-    $ git clone git://github.com/mcflugen/sequence
+    $ git clone git://github.com/sequence-dev/sequence
 
 Or download the `tarball`_:
 
 .. code-block:: console
 
-    $ curl  -OL https://github.com/mcflugen/sequence/tarball/master
+    $ curl  -OL https://github.com/sequence-dev/sequence/tarball/master
 
 Once you have a copy of the source, you can install it with:
 
@@ -47,5 +59,5 @@ Once you have a copy of the source, you can install it with:
     $ python setup.py install
 
 
-.. _Github repo: https://github.com/mcflugen/sequence
-.. _tarball: https://github.com/mcflugen/sequence/tarball/master
+.. _Github repo: https://github.com/sequence-dev/sequence
+.. _tarball: https://github.com/sequence-dev/sequence/tarball/master

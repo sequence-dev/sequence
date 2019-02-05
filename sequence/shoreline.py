@@ -2,7 +2,7 @@
 import numpy as np
 
 
-def interp_shoreline_point(x, z, sea_level=0., kind="cubic"):
+def find_shoreline(x, z, sea_level=0.0, kind="cubic"):
     """Find the shoreline of a profile.
 
     Parameters
@@ -65,12 +65,11 @@ def interp_shoreline_point(x, z, sea_level=0., kind="cubic"):
     else:
         func = interp1d(x, z - sea_level, kind=kind)
         x_of_shoreline = bisect(func, x[index_at_shore - 1], x[index_at_shore])
-        
-        
+
     return x_of_shoreline
 
 
-def find_shoreline(x, z, sea_level=0.):
+def find_shoreline_polyfit(x, z, sea_level=0.):
     try:
         index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
     except ValueError:
@@ -78,7 +77,6 @@ def find_shoreline(x, z, sea_level=0.):
             index_at_shore = 0
         else:
             index_at_shore = len(x)-1
-   
 
     p_land = np.polyfit(
         x[index_at_shore - 3 : index_at_shore],
@@ -111,15 +109,11 @@ def find_shoreline(x, z, sea_level=0.):
         x_of_shoreline = np.real(x_sea)
     else:
         x_of_shoreline = (np.real(x_land) + np.real(x_sea))/2
-            
-    # print (index_at_shore,z[index_at_shore - 3:index_at_shore+3] - sea_level, x[index_at_shore], x_land,  x_sea, x_of_shoreline)
-    
-    #x_of_shoreline = x_of_shoreline + 250.
-        
+
     return x_of_shoreline
 
 
-def insert_shoreline_point(x, z, sea_level=0.):
+def insert_shoreline_point(x, z, sea_level=0.0):
     from bisect import bisect
 
     (x_shore, z_shore) = interp_shoreline_point(x, z, sea_level=sea_level)
@@ -128,7 +122,7 @@ def insert_shoreline_point(x, z, sea_level=0.):
     return np.insert(x, index, x_shore), np.insert(z, index, z_shore)
 
 
-def find_shoreline_index(x, z, sea_level=0.):
+def find_shoreline_index(x, z, sea_level=0.0):
     """Find the landward-index of the shoreline.
 
     Parameters

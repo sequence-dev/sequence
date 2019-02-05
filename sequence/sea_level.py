@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from landlab import Component
 from numpy import arange, pi, sin
 from scipy import interpolate
 from scipy.interpolate import interp1d
+
+from landlab import Component
 
 
 class SeaLevelTimeSeries(Component):
@@ -22,7 +23,7 @@ class SeaLevelTimeSeries(Component):
 
     _var_doc = {"sea_level__elevation": "Sea level elevation"}
 
-    def __init__(self, grid, filepath, kind="linear", start=0., **kwds):
+    def __init__(self, grid, filepath, kind="linear", start=0.0, **kwds):
         """Generate sea level values.
 
         Parameters
@@ -61,7 +62,15 @@ class SeaLevelTimeSeries(Component):
 
 class SinusoidalSeaLevel(SeaLevelTimeSeries):
     def __init__(
-        self, grid, wave_length=1., amplitude=1., phase=0., mean=0., start=0., linear=0., **kwds
+        self,
+        grid,
+        wave_length=1.0,
+        amplitude=1.0,
+        phase=0.0,
+        mean=0.0,
+        start=0.0,
+        linear=0.0,
+        **kwds
     ):
         """Generate sea level values.
 
@@ -70,7 +79,7 @@ class SinusoidalSeaLevel(SeaLevelTimeSeries):
         grid: ModelGrid
             A landlab grid.
         """
-        wave_length /= 2. * np.pi
+        wave_length /= 2.0 * np.pi
         super(SeaLevelTimeSeries, self).__init__(grid, **kwds)
 
         self._sea_level = (
