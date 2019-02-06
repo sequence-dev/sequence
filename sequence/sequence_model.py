@@ -12,7 +12,7 @@ from .fluvial import Fluvial
 from .raster_model import RasterModel
 from .sea_level import SinusoidalSeaLevel
 from .sediment_flexure import SedimentFlexure
-from .shoreline import find_shoreline, find_shoreline_index
+from .shoreline import ShorelineFinder
 from .submarine import SubmarineDiffuser
 from .subsidence import SubsidenceTimeSeries
 
@@ -95,14 +95,15 @@ class SequenceModel(RasterModel):
         z0 = self.grid.add_empty("bedrock_surface__elevation", at="node")
         z0[:] = z - 100.0
 
+        self.grid.at_grid["x_of_shore"] = np.nan
+        self.grid.at_grid["x_of_shelf_edge"] = np.nan
+
         self.grid.event_layers.add(
             100.0,
             age=self.clock.start,
             water_depth=-z0[self.grid.core_nodes],
             t0=10.0,
             percent_sand=0.5,
-            shoreline=0.0,
-            shelfedge=0.0,
         )
 
         self._sea_level = SinusoidalSeaLevel(
@@ -120,6 +121,7 @@ class SequenceModel(RasterModel):
             plain_slope=submarine_diffusion["plain_slope"],
         )
         self._flexure = SedimentFlexure(self.grid, **flexure)
+        self._shoreline = ShorelineFinder(self.grid)
 
         self._components += (
             self._sea_level,
@@ -127,6 +129,7 @@ class SequenceModel(RasterModel):
             self._submarine_diffusion,
             self._fluvial,
             self._flexure,
+            self._shoreline,
         )
 
     def advance_components(self, dt):
@@ -134,30 +137,11 @@ class SequenceModel(RasterModel):
             component.run_one_step(dt)
 
         dz = self.grid.at_node["sediment_deposit__thickness"]
+        percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
         water_depth = (
             self.grid.at_grid["sea_level__elevation"]
             - self.grid.at_node["topographic__elevation"]
         )
-        percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
-
-        x = self.grid.x_of_node
-        dx = x[1] - x[0]
-        z = self.grid.at_node["topographic__elevation"].copy()
-        shore = find_shoreline(
-            self.grid.x_of_node[self.grid.node_at_cell],
-            z[self.grid.node_at_cell],
-            sea_level=self.grid.at_grid["sea_level__elevation"],
-        )
-
-        under_water = water_depth > 0.0
-        slope = np.gradient(under_water)
-        curv = np.gradient(slope)
-        edge = (
-            np.argmax(curv)
-            + find_shoreline_index(
-                x, z, sea_level=self.grid.at_grid["sea_level__elevation"]
-            )
-        ) * dx
 
         self.grid.event_layers.add(
             dz[self.grid.node_at_cell],
@@ -165,8 +149,6 @@ class SequenceModel(RasterModel):
             water_depth=water_depth[self.grid.node_at_cell],
             t0=dz[self.grid.node_at_cell].clip(0.0),
             percent_sand=percent_sand[self.grid.node_at_cell],
-            shoreline=shore,
-            shelfedge=edge,
         )
 
 
@@ -200,7 +182,7 @@ def main(file, with_citations, verbose, dry_run):
         try:
             with click.progressbar(
                 length=int(model.clock.stop // model.clock.step),
-                label=os.path.basename(file),
+                label=" ".join(["🚀", os.path.basename(file)]),
             ) as bar:
                 while 1:
                     model.run_one_step()
