@@ -126,7 +126,7 @@ class Fluvial(Component):
             * epsilon
         )
         dz = (
-            self.grid.at_node["bedrock_surface__elevation_increment"]
+            self.grid.at_node["bedrock_surface__increment_of_elevation"]
             .reshape(self.grid.shape)[1]
             .copy()
         )
