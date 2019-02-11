@@ -169,7 +169,7 @@ class SubmarineDiffuser(LinearDiffuser):
         # set elevation at upstream boundary to ensure proper sediment influx
         z = self._grid.at_node["topographic__elevation"].reshape(self.grid.shape)
         x = self.grid.x_of_node.reshape(self.grid.shape)
-        k = self._grid.at_node["kd"].reshape(self.grid.shape)
+        # k = self._grid.at_node["kd"].reshape(self.grid.shape)
         # z[1, 0] = z[1,1] + self._load / k[1, 0] * (x[1,1]-x[1,0])
         z[1, 0] = z[1, 1] + self._plain_slope * (x[1, 1] - x[1, 0])
 
