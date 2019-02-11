@@ -69,6 +69,7 @@ class SinusoidalSeaLevel(SeaLevelTimeSeries):
         phase=0.0,
         mean=0.0,
         start=0.0,
+        linear=0.0,
         **kwds
     ):
         """Generate sea level values.
@@ -82,7 +83,13 @@ class SinusoidalSeaLevel(SeaLevelTimeSeries):
         super(SeaLevelTimeSeries, self).__init__(grid, **kwds)
 
         self._sea_level = (
-            lambda time: np.sin((time - phase) / wave_length) * amplitude + mean
+            lambda time: (
+                np.sin((time - phase) / wave_length)
+                + 0.3 * np.sin((2 * time - phase) / wave_length)
+            )
+            * amplitude
+            + mean
+            + linear * time
         )
 
         self._time = start
@@ -100,33 +107,32 @@ def sea_level_type(dictionary):
 
 
 def sea_level_function(dictionary):
-    """
-    t is an array of x values (ex. arange(0,1000, pi/4))
-    a is the amplitude of the sin function
-    p is th phase shift
-    t is the title of the graph (String)
-    xt is the title of the x axis (string)
-    xy is the title of the y axis (STRING)
-    Function starts at 0 or P.
-    Fs is the period of the function. (10,000)
-    """
-    p = dictionary["sea_level_phase"]
-    a = dictionary["sea_level_amplitude"]
+    # time is an array of x values (ex. arange(0,1000, pi/4))
+    # amplitude is the amplitude of the sin function
+    # phase is th phase shift
+    # t is the title of the graph (String)
+    # xt is the title of the x axis (string)
+    # xy is the title of the y axis (STRING)
+    # Function starts at 0 or P.
+    # Fs is the period of the function. (10,000)
+    phase = dictionary["sea_level_phase"]
+    amplitude = dictionary["sea_level_amplitude"]
+    slope = dictionary["sea_level_linear"]
     Fs = dictionary["sea_level_period"]
     start_time = dictionary["start_time"]
     run_duration = dictionary["run_duration"]
     dt = dictionary["dt"]
-    t = arange(start_time, start_time + run_duration, dt)
-    sl_array = a * sin((2 * pi * (p + t)) / Fs)
-    """
-    fig = plt.figure()
-    plt.plot(t, sl_array)
-    fig.suptitle(ti)
-    plt.xlabel(xt)
-    plt.ylabel(xy)
-    plt.show()
-    """
-    return t, sl_array
+
+    time = arange(start_time, start_time + run_duration, dt)
+    sl_array = (
+        amplitude
+        * (
+            sin((2 * pi * (phase + time)) / Fs)
+            + 0.3 * sin((2 * pi * (phase + 2 * time)) / Fs)
+        )
+        + slope * time
+    )
+    return time, sl_array
 
 
 def sea_level_file(filename, dictionary):

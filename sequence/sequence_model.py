@@ -2,6 +2,7 @@
 import os
 
 import click
+import numpy as np
 import yaml
 
 from landlab.core import load_params
@@ -11,6 +12,7 @@ from .fluvial import Fluvial
 from .raster_model import RasterModel
 from .sea_level import SinusoidalSeaLevel, SeaLevelTimeSeries
 from .sediment_flexure import SedimentFlexure
+from .shoreline import ShorelineFinder
 from .submarine import SubmarineDiffuser
 from .subsidence import SubsidenceTimeSeries
 
@@ -34,7 +36,12 @@ class SequenceModel(RasterModel):
             "shelf_slope": 0.001,
             "sediment_load": 3.0,
         },
-        "sea_level": {"amplitude": 10.0, "wave_length": 1000.0, "phase": 0.0},
+        "sea_level": {
+            "amplitude": 10.0,
+            "wave_length": 1000.0,
+            "phase": 0.0,
+            "linear": 0.0,
+        },
         "subsidence": {"filepath": "subsidence.csv"},
         "flexure": {"method": "flexure", "rho_mantle": 3300.0},
         "sediments": {
@@ -64,14 +71,35 @@ class SequenceModel(RasterModel):
     ):
         RasterModel.__init__(self, grid=grid, clock=clock, output=output)
 
+        # z0 = self.grid.add_empty("bedrock_surface__elevation", at="node")
+        # z = self.grid.add_empty("topographic__elevation", at="node")
+        # percent_sand = self.grid.add_empty("sand_frac", at="node")
+
+        # shoreface_height=submarine_diffusion["shoreface_height"]
+        # alpha=submarine_diffusion["alpha"]
+        # spacing=grid["spacing"]
+
+        # z[:] = -.001 * self.grid.x_of_node + 120.
+        # shore = 120./.001
+
+        # shore = 30/(.001 * spacing )*1000
+        # under_water = z < 0.
+        # z[under_water] = z[under_water] - shoreface_height*(
+        #    1 - np.exp(-1*alpha*(self.grid.x_of_node[under_water] - shore))
+        # )
+
+        # z0[:] = z - 100.
         BathymetryReader(self.grid, **bathymetry).run_one_step()
 
         z = self.grid.at_node["topographic__elevation"]
         z0 = self.grid.add_empty("bedrock_surface__elevation", at="node")
-        z0[:] = z - 10.0
+        z0[:] = z - 100.0
+
+        self.grid.at_grid["x_of_shore"] = np.nan
+        self.grid.at_grid["x_of_shelf_edge"] = np.nan
 
         self.grid.event_layers.add(
-            10.0,
+            100.0,
             age=self.clock.start,
             water_depth=-z0[self.grid.core_nodes],
             t0=10.0,
@@ -98,6 +126,7 @@ class SequenceModel(RasterModel):
             plain_slope=submarine_diffusion["plain_slope"],
         )
         self._flexure = SedimentFlexure(self.grid, **flexure)
+        self._shoreline = ShorelineFinder(self.grid)
 
         self._components += (
             self._sea_level,
@@ -105,6 +134,7 @@ class SequenceModel(RasterModel):
             self._submarine_diffusion,
             self._fluvial,
             self._flexure,
+            self._shoreline,
         )
 
     def advance_components(self, dt):
@@ -112,11 +142,11 @@ class SequenceModel(RasterModel):
             component.run_one_step(dt)
 
         dz = self.grid.at_node["sediment_deposit__thickness"]
+        percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
         water_depth = (
             self.grid.at_grid["sea_level__elevation"]
             - self.grid.at_node["topographic__elevation"]
         )
-        percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
 
         self.grid.event_layers.add(
             dz[self.grid.node_at_cell],
@@ -157,7 +187,7 @@ def main(file, with_citations, verbose, dry_run):
         try:
             with click.progressbar(
                 length=int(model.clock.stop // model.clock.step),
-                label=os.path.basename(file),
+                label=" ".join(["🚀", os.path.basename(file)]),
             ) as bar:
                 while 1:
                     model.run_one_step()

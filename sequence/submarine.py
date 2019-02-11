@@ -139,8 +139,7 @@ class SubmarineDiffuser(LinearDiffuser):
         k = self.grid.at_node["kd"]
 
         x = self.grid.x_of_node
-        b = ((self._shoreface_height * self._alpha + self._shelf_slope)
-             * self.grid.dx)
+        b = (self._shoreface_height * self._alpha + self._shelf_slope) * self.grid.dx
 
         k[under_water] = (
             self._load
@@ -166,6 +165,13 @@ class SubmarineDiffuser(LinearDiffuser):
         )
 
         self.calc_diffusion_coef(shore)
+
+        # set elevation at upstream boundary to ensure proper sediment influx
+        z = self._grid.at_node["topographic__elevation"].reshape(self.grid.shape)
+        x = self.grid.x_of_node.reshape(self.grid.shape)
+        # k = self._grid.at_node["kd"].reshape(self.grid.shape)
+        # z[1, 0] = z[1,1] + self._load / k[1, 0] * (x[1,1]-x[1,0])
+        z[1, 0] = z[1, 1] + self._plain_slope * (x[1, 1] - x[1, 0])
 
         super(SubmarineDiffuser, self).run_one_step(dt)
 
