@@ -33,11 +33,15 @@ def _create_grid_dimension(root, grid, at="node", ids=None):
     """"Create grid dimensions for a netcdf file."""
     if ids is None:
         ids = Ellipsis
-    if at not in ("node", "link", "patch", "corner", "face", "cell"):
+
+    if at not in ("node", "link", "patch", "corner", "face", "cell", "grid"):
         raise ValueError("unknown grid location {0}".format(at))
 
     if at not in root.dimensions:
-        number_of_elements = len(getattr(grid, "x_of_{0}".format(at))[ids])
+        if at == "grid":
+            number_of_elements = 1
+        else:
+            number_of_elements = len(getattr(grid, "x_of_{0}".format(at))[ids])
         root.createDimension(at, number_of_elements)
 
     return root
@@ -47,22 +51,27 @@ def _create_grid_coordinates(root, grid, at="node", ids=None):
     """Create x and y coordinates for a field location."""
     _create_grid_dimension(root, grid, at=at, ids=ids)
 
-    root.createVariable("x_of_{0}".format(at), "f8", (at,))
-    root.createVariable("y_of_{0}".format(at), "f8", (at,))
+    if at != "grid":
+        root.createVariable("x_of_{0}".format(at), "f8", (at,))
+        root.createVariable("y_of_{0}".format(at), "f8", (at,))
 
-    for coord in ("x", "y"):
-        name = "{coord}_of_{at}".format(coord=coord, at=at)
-        if name not in root.variables:
-            root.createVariable(name, "f8", (at,))
+        for coord in ("x", "y"):
+            name = "{coord}_of_{at}".format(coord=coord, at=at)
+            if name not in root.variables:
+                root.createVariable(name, "f8", (at,))
 
     return root
 
 
 def _set_grid_coordinates(root, grid, at="node", ids=None):
+
     """Set the values for the coordinates of a field location."""
     if ids is None:
         ids = Ellipsis
     _create_grid_coordinates(root, grid, at=at, ids=ids)
+
+    if at == "grid":
+        return
 
     for coord in ("x", "y"):
         name = "{coord}_of_{at}".format(coord=coord, at=at)
@@ -176,7 +185,7 @@ def to_netcdf(
     if with_layers and format != "NETCDF4":
         raise ValueError("Grid layers are only available with the NETCDF4 format.")
 
-    at = at or {"node", "link", "face", "cell"}
+    at = at or {"node", "link", "face", "cell", "grid"}
     if isinstance(at, six.string_types):
         at = [at]
 

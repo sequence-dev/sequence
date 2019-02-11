@@ -1,6 +1,6 @@
-from pytest import approx
 import numpy as np
 import xarray as xr
+from pytest import approx
 
 from landlab import RasterModelGrid
 from sequence.netcdf import to_netcdf
@@ -20,7 +20,7 @@ def test_no_fields(tmpdir):
         ds = xr.open_dataset("test.nc")
     assert np.all(ds.x_of_node == approx(grid.x_of_node))
     assert np.all(ds.y_of_node == approx(grid.y_of_node))
-    assert ds["time"] == approx([0.])
+    assert ds["time"] == approx([0.0])
 
 
 def test_with_node_fields(tmpdir):
@@ -30,7 +30,7 @@ def test_with_node_fields(tmpdir):
         to_netcdf(grid, "test.nc")
         ds = xr.open_dataset("test.nc")
     assert np.all(ds["at_node:z"] == grid.at_node["z"][None, :])
-    assert ds["time"] == approx([0.])
+    assert ds["time"] == approx([0.0])
 
 
 def test_append(tmpdir):
@@ -39,10 +39,10 @@ def test_append(tmpdir):
     with tmpdir.as_cwd():
         to_netcdf(grid, "test.nc")
         grid.at_node["z"] *= 10
-        to_netcdf(grid, "test.nc", mode="a", time=1.)
+        to_netcdf(grid, "test.nc", mode="a", time=1.0)
         ds = xr.open_dataset("test.nc")
     assert ds["at_node:z"].shape == (2, 12)
-    assert np.all(ds["time"] == approx([0., 1.]))
+    assert np.all(ds["time"] == approx([0.0, 1.0]))
 
 
 def test_float_var(tmpdir):
@@ -85,37 +85,37 @@ def test_without_layers(tmpdir):
     with tmpdir.as_cwd():
         to_netcdf(grid, "test.nc")
         ds = xr.open_dataset("test.nc")
-    assert np.all(ds["at_layer:thickness"] == [approx([0., 0.])])
+    assert np.all(ds["at_layer:thickness"] == [approx([0.0, 0.0])])
 
 
 def test_with_layers(tmpdir):
     grid = RasterModelGrid((3, 4))
-    grid.event_layers.add(10., age=0., water_depth=np.arange(2))
+    grid.event_layers.add(10.0, age=0.0, water_depth=np.arange(2))
     with tmpdir.as_cwd():
         to_netcdf(grid, "test.nc")
         ds = xr.open_dataset("test.nc")
     assert ds.dims["layer"] == 1
-    assert np.all(ds["at_layer:thickness"] == np.array([[10., 10.]]))
-    assert np.all(ds["at_layer:age"] == np.array([[0., 0.]]))
-    assert np.all(ds["at_layer:water_depth"] == np.array([[0., 1.]]))
+    assert np.all(ds["at_layer:thickness"] == np.array([[10.0, 10.0]]))
+    assert np.all(ds["at_layer:age"] == np.array([[0.0, 0.0]]))
+    assert np.all(ds["at_layer:water_depth"] == np.array([[0.0, 1.0]]))
 
 
 def test_formats(tmpdir, format):
     grid = RasterModelGrid((3, 4))
-    grid.at_node["z"] = np.arange(12.)
+    grid.at_node["z"] = np.arange(12.0)
     with tmpdir.as_cwd():
         to_netcdf(grid, "test.nc", with_layers=False, format=format)
         ds = xr.open_dataset("test.nc")
     assert np.all(ds["at_node:z"] == approx(grid.at_node["z"][None, :]))
-    assert ds["time"] == approx([0.])
+    assert ds["time"] == approx([0.0])
 
 
 def test_one_location(tmpdir):
     grid = RasterModelGrid((3, 4))
-    grid.at_node["var0"] = np.arange(12.)
-    grid.at_node["var1"] = np.arange(12.) * 10.
+    grid.at_node["var0"] = np.arange(12.0)
+    grid.at_node["var1"] = np.arange(12.0) * 10.0
     with tmpdir.as_cwd():
         to_netcdf(grid, "test.nc", with_layers=False, at="node", names="var0")
         ds = xr.open_dataset("test.nc")
     assert np.all(ds["at_node:var0"] == approx(grid.at_node["var0"][None, :]))
-    assert ds["time"] == approx([0.])
+    assert ds["time"] == approx([0.0])

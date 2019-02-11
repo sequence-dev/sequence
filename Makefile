@@ -54,8 +54,8 @@ lint: ## check style with flake8
 	flake8 sequence tests
 
 pretty: ## reformat files to make them look pretty
-	find sequence -name '*.py' | xargs isort
-	black setup.py sequence
+	find sequence tests -name '*.py' | xargs isort
+	black setup.py sequence tests
 
 test: ## run tests quickly with the default Python
 	pytest --cov=sequence

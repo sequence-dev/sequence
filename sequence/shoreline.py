@@ -1,6 +1,99 @@
 #! /usr/bin/env python
 import numpy as np
 
+from landlab import Component
+
+
+class ShorelineFinder(Component):
+
+    _name = "Shoreline finder"
+
+    _input_var_names = ("topographic__elevation", "sea_level__elevation")
+
+    _output_var_names = (
+        "x_of_shore",
+    )
+
+    _var_units = {
+        "topographic__elevation": "m",
+        "sea_level__elevation": "m",
+        "x_of_shore": "m",
+        "x_of_shelf_edge": "m",
+    }
+
+    _var_mapping = {
+        "topographic__elevation": "node",
+        "sea_level__elevation": "grid",
+        "x_of_shore": "grid",
+        "x_of_shelf_edge": "grid",
+    }
+
+    _var_doc = {
+        "topographic__elevation": "Elevation of the land and sea floor",
+        "sea_level__elevation": "Elevation of sea level",
+        "x_of_shore": "Position of the shore line",
+        "x_of_shelf_edge": "Position of the shelf edge",
+    }
+
+    def __init__(self, grid):
+        super(ShorelineFinder, self).__init__(grid)
+
+        self.grid.at_grid["x_of_shore"] = 0.0
+        self.grid.at_grid["x_of_shelf_edge"] = 0.0
+
+    def update(self):
+        x = self.grid.x_of_node[self.grid.node_at_cell]
+        z = self.grid.at_node["topographic__elevation"][self.grid.node_at_cell]
+        sea_level = self.grid.at_grid["sea_level__elevation"]
+
+        x_of_shore = find_shoreline(x, z, sea_level=sea_level)
+        x_of_shelf_edge = find_shelf_edge(x, z, sea_level=sea_level)
+
+        if x_of_shelf_edge <= x_of_shore:
+            raise RuntimeError((x_of_shelf_edge, x_of_shore))
+
+        self.grid.at_grid["x_of_shore"] = x_of_shore
+        self.grid.at_grid["x_of_shelf_edge"] = x_of_shelf_edge
+
+        self.grid.at_cell["curvature"] = np.gradient(np.gradient(z, x), x)
+
+    def run_one_step(self, dt=None):
+        self.update()
+
+
+def find_shelf_edge(x, z, sea_level=0.0):
+    """Find the x-coordinate of the shelf edge.
+
+    The shelf edge is the location where the curvature of *sea-floor elevations*
+    is a *minimum*.
+
+    Parameters
+    ----------
+    x : ndarray of float
+        x-positions of the profile.
+    z : ndarray of float
+        Elevations of the profile.
+    sea_level : float, optional
+        Elevation of sea level.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from sequence.shoreline import find_shelf_edge
+
+    >>> x = np.arange(50.)
+    >>> z = - np.arctan(x / 5.0 - 5.0)
+    >>> find_shelf_edge(x, z, sea_level=z.max())
+    22.0
+    """
+    under_water = np.where(z <= sea_level)
+    x, z = x[under_water], z[under_water]
+    curvature = np.gradient(np.gradient(z, x), x)
+
+    index_at_shelf_edge = np.argmin(curvature)
+
+    return x[index_at_shelf_edge]
+
 
 def find_shoreline(x, z, sea_level=0.0, kind="cubic"):
     """Find the shoreline of a profile.
@@ -69,35 +162,47 @@ def find_shoreline(x, z, sea_level=0.0, kind="cubic"):
     return x_of_shoreline
 
 
-def interp_shoreline_point(x, z, sea_level=0.0):
-    index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
+def find_shoreline_polyfit(x, z, sea_level=0.0):
+    try:
+        index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
+    except ValueError:
+        if z[0] < sea_level:
+            index_at_shore = 0
+        else:
+            index_at_shore = len(x) - 1
 
     p_land = np.polyfit(
-        x[index_at_shore - 2 : index_at_shore],
-        z[index_at_shore - 2 : index_at_shore],
-        1,
+        x[index_at_shore - 3 : index_at_shore],
+        z[index_at_shore - 3 : index_at_shore],
+        2,
     )
     p_sea = np.polyfit(
-        x[index_at_shore : index_at_shore + 2],
-        z[index_at_shore : index_at_shore + 2],
-        1,
+        x[index_at_shore : index_at_shore + 3],
+        z[index_at_shore : index_at_shore + 3],
+        2,
     )
 
-    if np.isclose(p_land[0], p_sea[0]):
-        raise ValueError("lines are parallel")
+    root_land = np.roots(p_land)
+    root_sea = np.roots(p_sea)
+
+    i = np.argmin(np.abs(root_sea - x[index_at_shore]))
+    x_sea = root_sea[i]
+    x_sea = np.clip(x_sea, x[index_at_shore - 1], x[index_at_shore])
+
+    i = np.argmin(np.abs(root_land - x[index_at_shore]))
+    x_land = root_land[i]
+    x_land = np.clip(x_land, x[index_at_shore - 1], x[index_at_shore])
+
+    if np.isreal(x_land) and np.isreal(x_sea):
+        x_of_shoreline = (x_sea + x_land) / 2
+    elif np.isreal(x_land) and not np.isreal(x_sea):
+        x_of_shoreline = np.real(x_land)
+    elif not np.isreal(x_land) and np.isreal(x_sea):
+        x_of_shoreline = np.real(x_sea)
     else:
-        x_int = (p_sea[1] - p_land[1]) / (p_land[0] - p_sea[0])
-        z_int = p_land[0] * x_int + p_land[1]
-        return x_int, z_int
+        x_of_shoreline = (np.real(x_land) + np.real(x_sea)) / 2
 
-
-def insert_shoreline_point(x, z, sea_level=0.0):
-    from bisect import bisect
-
-    (x_shore, z_shore) = interp_shoreline_point(x, z, sea_level=sea_level)
-    index = bisect(x, x_shore)
-
-    return np.insert(x, index, x_shore), np.insert(z, index, z_shore)
+    return x_of_shoreline
 
 
 def find_shoreline_index(x, z, sea_level=0.0):
