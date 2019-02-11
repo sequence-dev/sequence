@@ -24,10 +24,11 @@ bathymetry:
   filepath: marmara_bathymetry.csv
   kind: linear
 sea_level:
-  amplitude: 15.
-  wave_length: 10000.
-  phase: 5000.
-  mean: 0.
+  filepath: marmara_sea_level.csv
+#   amplitude: 15.
+#   wave_length: 10000.
+#   phase: 5000.
+#   mean: 0.
 submarine_diffusion:
   alpha: 0.0005
   sediment_load: 50.
