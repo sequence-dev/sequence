@@ -205,15 +205,6 @@ def find_shoreline_polyfit(x, z, sea_level=0.0):
     return x_of_shoreline
 
 
-def insert_shoreline_point(x, z, sea_level=0.0):
-    from bisect import bisect
-
-    (x_shore, z_shore) = interp_shoreline_point(x, z, sea_level=sea_level)
-    index = bisect(x, x_shore)
-
-    return np.insert(x, index, x_shore), np.insert(z, index, z_shore)
-
-
 def find_shoreline_index(x, z, sea_level=0.0):
     """Find the landward-index of the shoreline.
 
