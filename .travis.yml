@@ -4,11 +4,8 @@ os:
 - osx
 env:
   matrix:
-  - TRAVIS_PYTHON_VERSION="3.6"
-  - TRAVIS_PYTHON_VERSION="3.7"
-  global:
-  - CONDA_PREFIX=$HOME/miniconda
-  - MINICONDA_URL_BASE="https://repo.continuum.io/miniconda/Miniconda3-latest"
+  - CONDA_ENV=py36
+  - CONDA_ENV=py37
 sudo: false
 before_install:
 - |
@@ -20,21 +17,18 @@ before_install:
 install:
 - |
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    OS="MacOSX-x86_64"
+    curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh > $HOME/miniconda.sh
   else
-    OS="Linux-x86_64"
+    curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh > $HOME/miniconda.sh
   fi
-- curl $MINICONDA_URL_BASE-$OS.sh > $HOME/minconda.sh
-- bash $HOME/minconda.sh -b -p $CONDA_PREFIX
-- export PATH="$CONDA_PREFIX/bin:$PATH"
+- bash $HOME/miniconda.sh -b -p $HOME/anaconda
+- export PATH="$HOME/anaconda/bin:$PATH"
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
-- conda create -n _testing python=$TRAVIS_PYTHON_VERSION
-- source activate _testing
-- conda install -q coveralls
-- conda install -q --file=requirements_dev.txt -c conda-forge
+- conda env create -n test_env --file ci/requirements-$CONDA_ENV.yml
+- source activate test_env
 script:
-- pytest --cov=sequence --cov-report= --cov-report=xml
+- pytest --cov=sequence --cov-report= --cov-report=xml -vvv
 - make lint install
 - cd data/marmara && sequence marmara.yaml
 after_success:
