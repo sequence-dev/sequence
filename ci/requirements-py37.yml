@@ -14,4 +14,5 @@ dependencies:
   - six
   - pytest
   - pytest-cov
+  - pytest-datadir
   - pytest-runner
