@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import os
 
 import click
@@ -10,7 +12,7 @@ from landlab.core import load_params
 from .bathymetry import BathymetryReader
 from .fluvial import Fluvial
 from .raster_model import RasterModel
-from .sea_level import SinusoidalSeaLevel
+from .sea_level import SinusoidalSeaLevel, SeaLevelTimeSeries
 from .sediment_flexure import SedimentFlexure
 from .shoreline import ShorelineFinder
 from .submarine import SubmarineDiffuser
@@ -106,9 +108,14 @@ class SequenceModel(RasterModel):
             percent_sand=0.5,
         )
 
-        self._sea_level = SinusoidalSeaLevel(
-            self.grid, start=clock["start"], **sea_level
-        )
+        if "filepath" in sea_level:
+            self._sea_level = SeaLevelTimeSeries(
+                self.grid, sea_level.pop("filepath"), start=clock["start"], **sea_level
+            )
+        else:
+            self._sea_level = SinusoidalSeaLevel(
+                self.grid, start=clock["start"], **sea_level
+            )
 
         self._subsidence = SubsidenceTimeSeries(self.grid, **subsidence)
 
