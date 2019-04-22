@@ -1,5 +1,5 @@
 from landlab.components.flexure import Flexure1D
-
+import numpy as np
 
 class SedimentFlexure(Flexure1D):
 
@@ -33,10 +33,18 @@ class SedimentFlexure(Flexure1D):
     def __init__(self, grid, rho_sediment=1600.0, **kwds):
         self._rho_sediment = rho_sediment
 
+        isostasytime = 7000. #flexure["isostasytime"]
+        if isostasytime > 0.:
+            isostasyfrac = (1 - np.exp(-1.*dt/isostasytime))
+        else:
+            isostasyfrac = 1.
+
         Flexure1D.__init__(self, grid, **kwds)
 
         self.grid.add_zeros("lithosphere__increment_of_overlying_pressure", at="node")
         self.grid.add_zeros("lithosphere_surface__increment_of_elevation", at="node")
+        subs_pool = self.grid.add_zeros('node','subsidence_pool')
+
 
     @property
     def rho_sediment(self):
@@ -53,6 +61,11 @@ class SedimentFlexure(Flexure1D):
         Flexure1D.update(self)
 
         dz = self.grid.at_node["lithosphere_surface__increment_of_elevation"]
+        subs_pool[:] += dz
+        dz = subs_pool[:] * isostasyfrac
+        sub_pool[:] = subs_pool[:] - dz
+        
+	
         self.grid.at_node["bedrock_surface__increment_of_elevation"][:] = dz
 
         self.grid.at_node["bedrock_surface__elevation"] -= dz
