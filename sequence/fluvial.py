@@ -12,27 +12,40 @@ class Fluvial(Component):
 
     _time_units = "y"
 
-    _input_var_names = ()
+    _input_var_names = ("topographic__elevation", "sea_level__elevation")
 
-    _output_var_names = ("delta_sediment_sand__volume_fraction",)
+    _output_var_names = ("delta_sediment_sand__volume_fraction")
 
-    _var_units = {"delta_sediment_sand__volume_fraction": "%"}
+    _var_units = {"delta_sediment_sand__volume_fraction": "%",
+        "topographic__elevation": "m",
+        "sea_level__elevation": "m",
+    }
 
-    _var_mapping = {"delta_sediment_sand__volume_fraction": "node"}
+    _var_mapping = {"delta_sediment_sand__volume_fraction": "node",
+        "topographic__elevation": "node",
+        "sea_level__elevation": "grid"
+    }
 
-    _var_doc = {"delta_sediment_sand__volume_fraction": "delta sand fraction"}
+    _var_doc = {"delta_sediment_sand__volume_fraction": "delta sand fraction",
+        "topographic__elevation": "land and ocean bottom elevation, positive up",
+        "sea_level__elevation": "Position of sea level",
+    }
 
     def __init__(
         self,
         grid,
         sand_frac,
         start=0.0,
+        wave_base=60.0,
         sediment_load=3.0,
         sand_density=2650.0,
         plain_slope=0.0008,
+        hemipelagic=0.0,
+        sea_level=0.0,
         **kwds
     ):
         """Generate percent sand/mud for fluvial section.
+        Add hemipelagic mud to seaward end of section.
 
         Parameters
         ----------
@@ -40,7 +53,13 @@ class Fluvial(Component):
             A landlab grid.
         sand_frac: str
             Name of csv-formatted sea-level file.
+        sea_level: float, optional
+            The current sea level (m).
+        wave_base: float, optional
+            Wave base (m).
+
         """
+
         super(Fluvial, self).__init__(grid, **kwds)
 
         # fixed parameters
@@ -55,11 +74,14 @@ class Fluvial(Component):
         self.basin_length = (
             100000.0
         )  # length for downstream increase in diffusion */ was 500000.
+        self.hemi_taper = 100000.  # taper out hemipelagic deposition over 100 km
 
         self.sand_frac = sand_frac
         self.sediment_load = sediment_load
         self.sand_density = sand_density
         self.plain_slope = plain_slope
+        self.wave_base = float(wave_base)
+        self.hemi = float(hemipelagic)
 
         grid.add_zeros("delta_sediment_sand__volume_fraction", at="node")
 
@@ -92,6 +114,7 @@ class Fluvial(Component):
         )
 
         land = x < shore
+        water = x >= shore
         # land = self.grid.x_of_node[self.grid.node_at_cell] < shore
         # slope = np.gradient(z[1, land]) / self.grid.dx
         slope = np.gradient(z) / self.grid.dx
@@ -186,6 +209,9 @@ class Fluvial(Component):
                     percent_sand[i] = 1.0 - np.exp(
                         -1.0 * width_cb / self.basin_width * bigN
                     )
+                if percent_sand[i]>1.: percent_sand[i]=1.
+                if percent_sand[i]<0.: percent_sand[i]=0.
+
             else:
                 percent_sand[i] = 0.0
                 # NULL;*/
@@ -212,3 +238,52 @@ class Fluvial(Component):
             channel_depth[i] = (
                 (self.sand_density - 1000.0) / 1000.0 * self.sand_grain / slope[i]
             )
+
+        #Add mud layer increasing from 0 at wave_base to hemipelagic at 2*wave_base
+
+        water_depth = (
+            self.grid.at_grid["sea_level__elevation"]
+            - self.grid.at_node["topographic__elevation"]
+        )
+        add_mud = np.zeros(self.grid.shape[1])
+
+        for i in np.where(water)[0]:
+            if water_depth[i] < self.wave_base:
+                 add_mud[i] = 0.
+            if water_depth[i] > self.wave_base and water_depth[i] < 2*self.wave_base:
+                 add_mud[i] = (water_depth[i] - self.wave_base)/(self.wave_base)*(
+                 self.hemi*dt)
+                 taper = i
+            elif water_depth[i] >= 2*self.wave_base:
+                 add_mud[i] = (self.hemi * dt) * (1- (x[i]-x[taper])/self.hemi_taper)
+                 if add_mud[i] < 0.:  add_mud[i] = 0.
+        
+        thickness = (
+            self.grid.at_node["sediment_deposit__thickness"]
+            .reshape(self.grid.shape)[1].copy()
+            )
+        thickness[water] += add_mud[water]
+        try:
+            percent_sand[water] = (thickness[water]-add_mud[water])/thickness[water]
+        except ValueError:
+            if thickness[water] <= 0.:
+                 percent_sand[water] = 0.
+        for i in np.where(water)[0]:
+            if percent_sand[i] <0.: 
+                percent_sand[i] = 0.
+            if percent_sand[i] >1.: 
+                percent_sand[i] = 1.
+
+        plus_mud = np.zeros(self.grid.shape)
+        plus_mud[1] = add_mud
+        sdt = self.grid.at_node["sediment_deposit__thickness"].reshape(plus_mud.shape)
+        sdt[1][:] += plus_mud[1]
+        te = self.grid.at_node["topographic__elevation"].reshape(plus_mud.shape)
+        te[1][:] -= plus_mud[1]
+            
+        
+        
+        
+
+            
+
