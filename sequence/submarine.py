@@ -44,6 +44,7 @@ class SubmarineDiffuser(LinearDiffuser):
         alpha=0.0005,
         shelf_slope=0.001,
         sediment_load=3.0,
+        #load_sealevel: 0.0,
         **kwds
     ):
         """Diffuse the ocean bottom.
@@ -74,9 +75,11 @@ class SubmarineDiffuser(LinearDiffuser):
         self._load = float(sediment_load)
         self._sea_level = sea_level
         self._ksh = self._load / self._plain_slope
+        #self._load = self._load - self._sea_level * load_sealevel
 
         grid.at_grid["sea_level__elevation"] = sea_level
         self._sea_level = grid.at_grid["sea_level__elevation"]
+        grid.at_grid["sediment_load"] = self._load
 
         grid.add_zeros("kd", at="node")
         grid.add_zeros("sediment_deposit__thickness", at="node")
@@ -171,7 +174,8 @@ class SubmarineDiffuser(LinearDiffuser):
         x = self.grid.x_of_node.reshape(self.grid.shape)
         # k = self._grid.at_node["kd"].reshape(self.grid.shape)
         # z[1, 0] = z[1,1] + self._load / k[1, 0] * (x[1,1]-x[1,0])
-        z[1, 0] = z[1, 1] + self._plain_slope * (x[1, 1] - x[1, 0])
+        z[1, 0] = z[1, 1] + self._plain_slope * (x[1, 1] - x[1, 0]) 
+            #self._load/sediment_load)
 
         super(SubmarineDiffuser, self).run_one_step(dt)
 
