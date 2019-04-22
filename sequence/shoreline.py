@@ -41,6 +41,13 @@ class ShorelineFinder(Component):
         self.grid.at_grid["x_of_shore"] = 0.0
         self.grid.at_grid["x_of_shelf_edge"] = 0.0
 
+        x = self.grid.x_of_node[self.grid.node_at_cell]
+        z = self.grid.at_node["topographic__elevation"][self.grid.node_at_cell]
+        sea_level = self.grid.at_grid["sea_level__elevation"]
+
+        x_of_shore = find_shoreline(x, z, sea_level=sea_level)
+        x_of_shelf_edge = find_shelf_edge(x, z, sea_level=sea_level)
+
     def update(self):
         x = self.grid.x_of_node[self.grid.node_at_cell]
         z = self.grid.at_node["topographic__elevation"][self.grid.node_at_cell]
