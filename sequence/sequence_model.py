@@ -37,6 +37,7 @@ class SequenceModel(RasterModel):
             "alpha": 0.0005,
             "shelf_slope": 0.001,
             "sediment_load": 3.0,
+            "load_sealevel": 0.,
         },
         "sea_level": {
             "amplitude": 10.0,
@@ -45,7 +46,10 @@ class SequenceModel(RasterModel):
             "linear": 0.0,
         },
         "subsidence": {"filepath": "subsidence.csv"},
-        "flexure": {"method": "flexure", "rho_mantle": 3300.0},
+        "flexure": {
+	    "method": "flexure", 
+	    "rho_mantle": 3300.0,
+	    "isostasytime": 0},
         "sediments": {
             "layers": 2,
             "sand": 1.0,
@@ -53,6 +57,7 @@ class SequenceModel(RasterModel):
             "sand_density": 2650.0,
             "mud_density": 2720.0,
             "sand_frac": 0.5,
+            "hemipelagic": 0.0
         },
         "bathymetry": {"filepath": "bathymetry.csv", "kind": "linear"},
     }
@@ -99,6 +104,7 @@ class SequenceModel(RasterModel):
 
         self.grid.at_grid["x_of_shore"] = np.nan
         self.grid.at_grid["x_of_shelf_edge"] = np.nan
+        #self.grid.at_grid["sediment_load"] = np.nan
 
         self.grid.event_layers.add(
             100.0,
@@ -126,8 +132,11 @@ class SequenceModel(RasterModel):
             start=0,
             sediment_load=submarine_diffusion["sediment_load"],
             plain_slope=submarine_diffusion["plain_slope"],
+            hemipelagic = sediments["hemipelagic"],
         )
-        self._flexure = SedimentFlexure(self.grid, **flexure)
+        self._flexure = SedimentFlexure(
+            self.grid, 
+            **flexure)
         self._shoreline = ShorelineFinder(self.grid)
 
         self._components += (
