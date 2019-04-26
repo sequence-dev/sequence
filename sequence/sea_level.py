@@ -85,7 +85,7 @@ class SinusoidalSeaLevel(SeaLevelTimeSeries):
         self._sea_level = (
             lambda time: (
                 np.sin((time - phase) / wave_length)
-                + 0.3 * np.sin((2 * time - phase) / wave_length)
+                + 0.3 * np.sin((2 * (time - phase)) / wave_length)
             )
             * amplitude
             + mean
@@ -128,7 +128,7 @@ def sea_level_function(dictionary):
         amplitude
         * (
             sin((2 * pi * (phase + time)) / Fs)
-            + 0.3 * sin((2 * pi * (phase + 2 * time)) / Fs)
+            + 0.3 * sin((2 * pi * (2 * phase + 2 * time)) / Fs)
         )
         + slope * time
     )
