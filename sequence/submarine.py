@@ -44,7 +44,8 @@ class SubmarineDiffuser(LinearDiffuser):
         alpha=0.0005,
         shelf_slope=0.001,
         sediment_load=3.0,
-        #load_sealevel: 0.0,
+        load_sealevel=0.0,
+        basin_width=500000.,
         **kwds
     ):
         """Diffuse the ocean bottom.
@@ -66,20 +67,26 @@ class SubmarineDiffuser(LinearDiffuser):
             Slope of the shelf (m / m).
         sediment_load: float, optional
             Sediment load entering the profile (m2 / y).
-        """
+        load_sealevel: float, optional
+            Fractional variation of sediment load with sea level (m2/y/m_sl).
+            i.e., .003 =0.3% increase/decrease with sea level rise/fall (30% with 100m)
+        basin_width: length of drainage basin upstream of model.  Creates increase in 
+            diffusivity downstream by (basin_width + x)/basin_width from increase river flow
+         """
         self._plain_slope = float(plain_slope)
         self._wave_base = float(wave_base)
         self._shoreface_height = float(shoreface_height)
         self._alpha = float(alpha)
         self._shelf_slope = float(shelf_slope)
-        self._load = float(sediment_load)
+        self._load0 = float(sediment_load)
+        self._load_sl = float(load_sealevel)
         self._sea_level = sea_level
+        self._load = self._load0 *(1 + self._sea_level * self._load_sl)
         self._ksh = self._load / self._plain_slope
-        #self._load = self._load - self._sea_level * load_sealevel
-
+        self._bw = float(basin_width)
         grid.at_grid["sea_level__elevation"] = sea_level
         self._sea_level = grid.at_grid["sea_level__elevation"]
-        grid.at_grid["sediment_load"] = self._load
+        grid.at_grid["sediment_load"] = self._load 
 
         grid.add_zeros("kd", at="node")
         grid.add_zeros("sediment_deposit__thickness", at="node")
@@ -92,6 +99,10 @@ class SubmarineDiffuser(LinearDiffuser):
     @property
     def k0(self):
         return self._k0
+
+    @property
+    def load0(self):
+        return self._load0
 
     @property
     def k_land(self):
@@ -154,7 +165,9 @@ class SubmarineDiffuser(LinearDiffuser):
             -(water_depth[deep_water] - self._wave_base) / self._wave_base
         )
 
-        k[land] = self.k_land
+        self._load = self._load0 *(1 + sea_level * self._load_sl)
+        self._ksh = self._load / self._plain_slope
+        k[land] = self._ksh * (self._bw + x[land])/self._bw
 
         return k
 
@@ -170,12 +183,12 @@ class SubmarineDiffuser(LinearDiffuser):
         self.calc_diffusion_coef(shore)
 
         # set elevation at upstream boundary to ensure proper sediment influx
-        z = self._grid.at_node["topographic__elevation"].reshape(self.grid.shape)
         x = self.grid.x_of_node.reshape(self.grid.shape)
+        z = self._grid.at_node["topographic__elevation"].reshape(self.grid.shape)
         # k = self._grid.at_node["kd"].reshape(self.grid.shape)
         # z[1, 0] = z[1,1] + self._load / k[1, 0] * (x[1,1]-x[1,0])
         z[1, 0] = z[1, 1] + self._plain_slope * (x[1, 1] - x[1, 0]) 
-            #self._load/sediment_load)
+            #self._load/self._load0) 
 
         super(SubmarineDiffuser, self).run_one_step(dt)
 
