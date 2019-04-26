@@ -167,7 +167,10 @@ class SubmarineDiffuser(LinearDiffuser):
 
         self._load = self._load0 *(1 + sea_level * self._load_sl)
         self._ksh = self._load / self._plain_slope
-        k[land] = self._ksh * (self._bw + x[land])/self._bw
+        if self_bw > 0.:
+            k[land] = self._ksh * (self._bw + x[land])/self._bw
+        else:
+            k[land] = self._ksh
 
         return k
 
