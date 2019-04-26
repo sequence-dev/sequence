@@ -38,6 +38,7 @@ class SequenceModel(RasterModel):
             "shelf_slope": 0.001,
             "sediment_load": 3.0,
             "load_sealevel": 0.,
+            "basin_width": 500000.,
         },
         "sea_level": {
             "amplitude": 10.0,
