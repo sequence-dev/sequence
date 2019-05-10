@@ -46,7 +46,7 @@ class ShorelineFinder(Component):
         sea_level = self.grid.at_grid["sea_level__elevation"]
 
         x_of_shore = find_shoreline(x, z, sea_level=sea_level)
-        x_of_shelf_edge = find_shelf_edge(x, z, sea_level=sea_level)
+        x_of_shelf_edge = find_shelf_edge(self, x, z, x_of_shore, sea_level=sea_level)
 
     def update(self):
         x = self.grid.x_of_node[self.grid.node_at_cell]
@@ -54,7 +54,7 @@ class ShorelineFinder(Component):
         sea_level = self.grid.at_grid["sea_level__elevation"]
 
         x_of_shore = find_shoreline(x, z, sea_level=sea_level)
-        x_of_shelf_edge = find_shelf_edge(x, z, sea_level=sea_level)
+        x_of_shelf_edge = find_shelf_edge(self, x, z, x_of_shore, sea_level=sea_level)
 
         if x_of_shelf_edge <= x_of_shore:
             raise RuntimeError((x_of_shelf_edge, x_of_shore))
@@ -62,17 +62,18 @@ class ShorelineFinder(Component):
         self.grid.at_grid["x_of_shore"] = x_of_shore
         self.grid.at_grid["x_of_shelf_edge"] = x_of_shelf_edge
 
-        self.grid.at_cell["curvature"] = np.gradient(np.gradient(z, x), x)
+        #self.grid.at_cell["curvature"] = np.gradient(np.gradient(z, x), x)
 
     def run_one_step(self, dt=None):
         self.update()
 
 
-def find_shelf_edge(x, z, sea_level=0.0):
+def find_shelf_edge(self, x, z, x_of_shore, sea_level=0.0):
     """Find the x-coordinate of the shelf edge.
 
     The shelf edge is the location where the curvature of *sea-floor elevations*
     is a *minimum*.
+    Revised: now maximum of deposit_thickness*wd
 
     Parameters
     ----------
@@ -93,12 +94,21 @@ def find_shelf_edge(x, z, sea_level=0.0):
     >>> find_shelf_edge(x, z, sea_level=z.max())
     22.0
     """
-    under_water = np.where(z <= sea_level)
-    x, z = x[under_water], z[under_water]
-    curvature = np.gradient(np.gradient(z, x), x)
+    
+  
+    #curvature = np.gradient(np.gradient(z, x), x)
+    dz = self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell].copy()
+    sf = x_of_shore + 6000  #3 / self._alpha
+    offshore = x > sf
+    onshore = x <= sf
+    dz[onshore] = 0.
+    dz *= -z
+    
 
-    index_at_shelf_edge = np.argmin(curvature)
-
+    index_at_shelf_edge = np.argmax(dz[offshore])
+    if x[index_at_shelf_edge] < x_of_shore:
+        x[index_at_shelf_edge] = x_of_shore + 6000
+    
     return x[index_at_shelf_edge]
 
 
