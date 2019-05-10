@@ -84,7 +84,7 @@ class SequenceModel(RasterModel):
         # percent_sand = self.grid.add_empty("sand_frac", at="node")
 
         # shoreface_height=submarine_diffusion["shoreface_height"]
-        # alpha=submarine_diffusion["alpha"]
+        alpha=submarine_diffusion["alpha"]
         # spacing=grid["spacing"]
 
         # z[:] = -.001 * self.grid.x_of_node + 120.
@@ -106,6 +106,7 @@ class SequenceModel(RasterModel):
         self.grid.at_grid["x_of_shore"] = np.nan
         self.grid.at_grid["x_of_shelf_edge"] = np.nan
         #self.grid.at_grid["sediment_load"] = np.nan
+        self._alpha = alpha
 
         self.grid.event_layers.add(
             100.0,
@@ -137,7 +138,7 @@ class SequenceModel(RasterModel):
         )
         self._flexure = SedimentFlexure(
             self.grid, 
-            **flexure)
+            **flexure, **sediments)
         self._shoreline = ShorelineFinder(self.grid)
 
         self._components += (
