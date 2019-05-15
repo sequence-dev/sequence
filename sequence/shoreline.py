@@ -35,26 +35,38 @@ class ShorelineFinder(Component):
         "x_of_shelf_edge": "Position of the shelf edge",
     }
 
-    def __init__(self, grid):
+    def __init__(self, grid, alpha = 0.0005):
         super(ShorelineFinder, self).__init__(grid)
 
+        self._alpha = alpha
         self.grid.at_grid["x_of_shore"] = 0.0
         self.grid.at_grid["x_of_shelf_edge"] = 0.0
 
         x = self.grid.x_of_node[self.grid.node_at_cell]
         z = self.grid.at_node["topographic__elevation"][self.grid.node_at_cell]
         sea_level = self.grid.at_grid["sea_level__elevation"]
+        wd = sea_level - z
 
         x_of_shore = find_shoreline(x, z, sea_level=sea_level)
-        x_of_shelf_edge = find_shelf_edge(self, x, z, x_of_shore, sea_level=sea_level)
+        x_of_shelf_edge = find_shelf_edge(
+            self.grid, x, wd, x_of_shore, 
+            sea_level=sea_level, alpha = self._alpha
+        )
+
+        self.grid.at_grid["x_of_shore"] = x_of_shore
+        self.grid.at_grid["x_of_shelf_edge"] = x_of_shelf_edge
 
     def update(self):
         x = self.grid.x_of_node[self.grid.node_at_cell]
         z = self.grid.at_node["topographic__elevation"][self.grid.node_at_cell]
         sea_level = self.grid.at_grid["sea_level__elevation"]
+        wd = sea_level - z
 
         x_of_shore = find_shoreline(x, z, sea_level=sea_level)
-        x_of_shelf_edge = find_shelf_edge(self, x, z, x_of_shore, sea_level=sea_level)
+        x_of_shelf_edge = find_shelf_edge(
+            self.grid, x, wd, x_of_shore, 
+            sea_level=sea_level, alpha = self._alpha
+        )
 
         if x_of_shelf_edge <= x_of_shore:
             raise RuntimeError((x_of_shelf_edge, x_of_shore))
@@ -68,12 +80,12 @@ class ShorelineFinder(Component):
         self.update()
 
 
-def find_shelf_edge(self, x, z, x_of_shore, sea_level=0.0):
+def find_shelf_edge(grid, x, wd, x_of_shore, sea_level=0.0, alpha = 0.0005):
     """Find the x-coordinate of the shelf edge.
 
     The shelf edge is the location where the curvature of *sea-floor elevations*
     is a *minimum*.
-    Revised: now maximum of deposit_thickness*wd
+    Revised: now maximum of deposit_thickness * wd
 
     Parameters
     ----------
@@ -97,17 +109,18 @@ def find_shelf_edge(self, x, z, x_of_shore, sea_level=0.0):
     
   
     #curvature = np.gradient(np.gradient(z, x), x)
-    dz = self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell].copy()
-    sf = x_of_shore + 6000  #3 / self._alpha
-    offshore = x > sf
-    onshore = x <= sf
+    dz = grid.at_node["sediment_deposit__thickness"][grid.node_at_cell].copy()
+    sf = x_of_shore + 3 / alpha
+    offshore = np.where(x > sf)
+    onshore  = np.where(x <= sf)
     dz[onshore] = 0.
-    dz *= -z
+    dz *= wd
     
 
-    index_at_shelf_edge = np.argmax(dz[offshore])
-    if x[index_at_shelf_edge] < x_of_shore:
-        x[index_at_shelf_edge] = x_of_shore + 6000
+    index_at_shelf_edge = np.argmax(dz)
+    if x[index_at_shelf_edge] < x_of_shore +3 / alpha:
+        print(index_at_shelf_edge)
+        x[index_at_shelf_edge] = x_of_shore + 3 / alpha
     
     return x[index_at_shelf_edge]
 
@@ -165,13 +178,13 @@ def find_shoreline(x, z, sea_level=0.0, kind="cubic"):
     x = np.asarray(x)
     z = np.asarray(z)
 
-    try:
-        index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
-    except ValueError:
+    index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
+    if index_at_shore is None:
         if z[0] < sea_level:
             x_of_shoreline = x[0]
         else:
             x_of_shoreline = x[-1]
+        print (sea_level, x_of_shoreline, z[0], z[-1])
     else:
         func = interp1d(x, z - sea_level, kind=kind)
         x_of_shoreline = bisect(func, x[index_at_shore - 1], x[index_at_shore])
@@ -278,6 +291,7 @@ def find_shoreline_index(x, z, sea_level=0.0):
     (below_water,) = np.where(z < sea_level)
 
     if len(below_water) == 0 or len(below_water) == len(x):
-        raise ValueError("profile does not contain shoreline")
+    #    raise ValueError("profile does not contain shoreline")
+        return None
     else:
         return below_water[0]
