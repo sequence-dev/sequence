@@ -246,6 +246,7 @@ class Fluvial(Component):
             - self.grid.at_node["topographic__elevation"]
         )
         add_mud = np.zeros(self.grid.shape[1])
+        taper = 1
 
         for i in np.where(water)[0]:
             if water_depth[i] < self.wave_base:
