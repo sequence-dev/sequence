@@ -78,7 +78,8 @@ class SedimentFlexure(Flexure1D):
 
         # load underwater displaces water
         z = self.grid.at_node["topographic__elevation"].reshape(self.grid.shape)[1]
-        under_water = z < 0.0
+        sea_level = self.grid.at_grid["sea_level__elevation"]
+        under_water = z < sea_level
         rho_sediment[under_water] = rho_sediment[under_water] - 1030.0
 
         dz = self.grid.at_node["sediment_deposit__thickness"].reshape(self.grid.shape)[
