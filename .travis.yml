@@ -4,8 +4,8 @@ os:
 - osx
 env:
   matrix:
-  - CONDA_ENV=py36
-  - CONDA_ENV=py37
+  - PYTHON="3.6"
+  - PYTHON="3.7"
 sudo: false
 before_install:
 - |
@@ -14,7 +14,6 @@ before_install:
     brew cleanup -s
     rm -rf $(brew --cache)
   fi
-install:
 - |
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh > $HOME/miniconda.sh
@@ -25,8 +24,12 @@ install:
 - export PATH="$HOME/anaconda/bin:$PATH"
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
-- conda env create -n test_env --file ci/requirements-$CONDA_ENV.yml
+- conda env create -n test_env python=$PYTHON
 - source activate test_env
+- conda info -a && conda list
+install:
+- pip install -e .
+- pip install -r requirements-testing.txt
 script:
 - pytest --cov=sequence --cov-report= --cov-report=xml -vvv
 - make lint install
