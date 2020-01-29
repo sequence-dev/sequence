@@ -49,6 +49,7 @@ sediments:
   sand_density: 2650.
   mud_density: 2720.
   sand_frac: 0.5
+  hemipelagic: 0.0
 # plume:
 #   river_velocity: 1.5
 #   river_width: 100.
