@@ -1,8 +1,7 @@
 #! /usr/bin/env python
 import numpy as np
-from scipy.interpolate import interp1d
-
 from landlab import Component
+from scipy.interpolate import interp1d
 
 
 class BathymetryReader(Component):

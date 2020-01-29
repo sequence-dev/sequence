@@ -1,10 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from landlab import Component
 from numpy import arange, pi, sin
 from scipy import interpolate
 from scipy.interpolate import interp1d
-
-from landlab import Component
 
 
 class SeaLevelTimeSeries(Component):

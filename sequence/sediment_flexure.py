@@ -1,5 +1,5 @@
-from landlab.components.flexure import Flexure1D
 import numpy as np
+from landlab.components.flexure import Flexure1D
 
 
 class SedimentFlexure(Flexure1D):

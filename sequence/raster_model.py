@@ -2,7 +2,6 @@
 import argparse
 
 import yaml
-
 from landlab import RasterModelGrid
 from landlab.bmi.bmi_bridge import TimeStepper
 from landlab.core import load_params

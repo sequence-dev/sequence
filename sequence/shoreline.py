@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 import bisect
-import numpy as np
 
+import numpy as np
 from landlab import Component
 
-from .errors import ShorelineError, ShelfEdgeError
+from .errors import ShelfEdgeError, ShorelineError
 
 
 class ShorelineFinder(Component):
@@ -13,9 +13,7 @@ class ShorelineFinder(Component):
 
     _input_var_names = ("topographic__elevation", "sea_level__elevation")
 
-    _output_var_names = (
-        "x_of_shore",
-    )
+    _output_var_names = ("x_of_shore",)
 
     _var_units = {
         "topographic__elevation": "m",
@@ -76,8 +74,8 @@ class ShorelineFinder(Component):
             )
         except ShelfEdgeError:
             x_of_shelf_edge = np.nan
-
-        assert(x_of_shelf_edge > x_of_shore)
+        else:
+            assert x_of_shelf_edge > x_of_shore
 
         self.grid.at_grid["x_of_shore"] = x_of_shore
         self.grid.at_grid["x_of_shelf_edge"] = x_of_shelf_edge

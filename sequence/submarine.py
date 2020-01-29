@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 import numpy as np
-
 from landlab.components import LinearDiffuser
 
 from .shoreline import find_shoreline
@@ -83,7 +82,7 @@ class SubmarineDiffuser(LinearDiffuser):
         self._load0 = float(sediment_load)
         self._load_sl = float(load_sealevel)
         self._sea_level = sea_level
-        self._load = self._load0 *(1 + self._sea_level * self._load_sl)
+        self._load = self._load0 * (1 + self._sea_level * self._load_sl)
         self._ksh = self._load / self._plain_slope
         self._basin_width = float(basin_width)
         grid.at_grid["sea_level__elevation"] = sea_level
@@ -176,7 +175,7 @@ class SubmarineDiffuser(LinearDiffuser):
             -(water_depth[deep_water] - self._wave_base) / self._wave_base
         )
 
-        self._load = self._load0 *(1 + sea_level * self._load_sl)
+        self._load = self._load0 * (1 + sea_level * self._load_sl)
         self._ksh = self._load / self._plain_slope
         if self._basin_width > 0.0:
             k[land] = self._ksh * (self._basin_width + x[land]) / self._basin_width
@@ -202,7 +201,7 @@ class SubmarineDiffuser(LinearDiffuser):
         # k = self._grid.at_node["kd"].reshape(self.grid.shape)
         # z[1, 0] = z[1,1] + self._load / k[1, 0] * (x[1,1]-x[1,0])
         z[1, 0] = z[1, 1] + self._plain_slope * (x[1, 1] - x[1, 0])
-            #self._load/self._load0)
+        # self._load/self._load0)
 
         super(SubmarineDiffuser, self).run_one_step(dt)
 
