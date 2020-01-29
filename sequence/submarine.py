@@ -134,7 +134,7 @@ class SubmarineDiffuser(LinearDiffuser):
         >>> from landlab import RasterModelGrid
         >>> import numpy as np
 
-        >>> grid = RasterModelGrid((3, 6), spacing=200.0)
+        >>> grid = RasterModelGrid((3, 6), xy_spacing=200.0)
         >>> z = grid.add_zeros("topographic__elevation", at="node")
         >>> z[6:12] = np.array([3., 3., 1., -1., -85., -85.])
         >>> z.reshape((3, 6))

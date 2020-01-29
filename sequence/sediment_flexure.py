@@ -45,11 +45,11 @@ class SedimentFlexure(Flexure1D):
         self._isostasytime = isostasytime
         self._dt = 100.0  # default timestep = 100 y
 
+        grid.add_zeros("lithosphere__increment_of_overlying_pressure", at="node")
+
         Flexure1D.__init__(self, grid, **kwds)
 
-        self.grid.add_zeros("lithosphere__increment_of_overlying_pressure", at="node")
-        self.grid.add_zeros("lithosphere_surface__increment_of_elevation", at="node")
-        self.subs_pool = self.grid.add_zeros("node", "subsidence_pool")
+        self.subs_pool = self.grid.zeros(at="node")
 
     @property
     def sand_density(self):

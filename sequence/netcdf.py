@@ -41,7 +41,7 @@ def _create_grid_dimension(root, grid, at="node", ids=None):
         if at == "grid":
             number_of_elements = 1
         else:
-            number_of_elements = len(getattr(grid, "x_of_{0}".format(at))[ids])
+            number_of_elements = len(getattr(grid, "xy_of_{0}".format(at))[ids])
         root.createDimension(at, number_of_elements)
 
     return root
@@ -73,9 +73,9 @@ def _set_grid_coordinates(root, grid, at="node", ids=None):
     if at == "grid":
         return
 
-    for coord in ("x", "y"):
-        name = "{coord}_of_{at}".format(coord=coord, at=at)
-        root.variables[name][:] = getattr(grid, name)[ids]
+    coords = getattr(grid, f"xy_of_{at}")
+    root.variables[f"x_of_{at}"][:] = coords[ids, 0]
+    root.variables[f"y_of_{at}"][:] = coords[ids, 1]
 
 
 def _create_field(root, grid, at="node", names=None):

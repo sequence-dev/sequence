@@ -3,11 +3,11 @@ clock:
   step: 100.0
   stop: 40000.0
 grid:
-  origin: [0.0, 0.0]
+  xy_of_lower_left: [0.0, 0.0]
   shape:
   - 3
   - 200
-  spacing: [250., 500.0]
+  xy_spacing: [250., 500.0]
   bc:
     top: closed
     bottom: closed

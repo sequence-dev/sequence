@@ -132,7 +132,7 @@ class SequenceModel(RasterModel):
             plain_slope=submarine_diffusion["plain_slope"],
             hemipelagic=sediments["hemipelagic"],
         )
-        self._flexure = SedimentFlexure(self.grid, **flexure, **sediments)
+        self._flexure = SedimentFlexure(self.grid, **flexure)
         self._shoreline = ShorelineFinder(self.grid, alpha=submarine_diffusion["alpha"])
 
         self._components += (
