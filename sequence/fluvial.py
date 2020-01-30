@@ -275,16 +275,15 @@ class Fluvial(Component):
             .copy()
         )
         thickness[water] += add_mud[water]
-        try:
-            percent_sand[water] = (thickness[water] - add_mud[water]) / thickness[water]
-        except ValueError:
-            if thickness[water] <= 0.0:
-                percent_sand[water] = 0.0
-        for i in np.where(water)[0]:
-            if percent_sand[i] < 0.0:
-                percent_sand[i] = 0.0
-            if percent_sand[i] > 1.0:
-                percent_sand[i] = 1.0
+
+        np.divide(
+            thickness[water] - add_mud[water],
+            thickness[water],
+            where=thickness[water] > 0.0,
+            out=percent_sand[water],
+        )
+
+        np.clip(percent_sand[water], 0.0, 1.0, out=percent_sand[water])
 
         plus_mud = np.zeros(self.grid.shape)
         plus_mud[1] = add_mud
