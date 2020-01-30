@@ -2,7 +2,7 @@ import os
 from collections import defaultdict
 
 import netCDF4 as nc
-import six
+
 
 _NUMPY_TO_NETCDF_TYPE = {
     "float32": "f4",
@@ -93,7 +93,7 @@ def _create_field(root, grid, at="node", names=None):
 
 def _set_field(root, grid, at="node", ids=None, names=None):
     """Set values for variables at a field location(s)."""
-    if isinstance(names, six.string_types):
+    if isinstance(names, str):
         names = [names]
     names = names or grid[at]
 
@@ -126,7 +126,7 @@ def _create_layers(root, grid, names=None):
 
 def _set_layers(root, grid, names=None):
     """Set values for variables at a grid layers."""
-    if isinstance(names, six.string_types):
+    if isinstance(names, str):
         names = [names]
     names = names or grid.event_layers.tracking
 
@@ -186,7 +186,7 @@ def to_netcdf(
         raise ValueError("Grid layers are only available with the NETCDF4 format.")
 
     at = at or {"node", "link", "face", "cell", "grid"}
-    if isinstance(at, six.string_types):
+    if isinstance(at, str):
         at = [at]
 
     if len(at) == 1:
