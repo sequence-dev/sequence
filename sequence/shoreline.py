@@ -47,7 +47,6 @@ class ShorelineFinder(Component):
         z = self.grid.at_node["topographic__elevation"][self.grid.node_at_cell]
         dz = self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell]
         sea_level = self.grid.at_grid["sea_level__elevation"]
-        wd = sea_level - z
 
         x_of_shore = find_shoreline(x, z, sea_level=sea_level)
         try:
@@ -65,7 +64,6 @@ class ShorelineFinder(Component):
         z = self.grid.at_node["topographic__elevation"][self.grid.node_at_cell]
         dz = self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell]
         sea_level = self.grid.at_grid["sea_level__elevation"]
-        wd = sea_level - z
 
         x_of_shore = find_shoreline(x, z, sea_level=sea_level)
         try:
