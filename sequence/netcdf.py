@@ -121,7 +121,7 @@ def _create_layers(root, grid, names=None):
 
     netcdf_name = _netcdf_var_name("thickness", "layer")
     if netcdf_name not in root.variables:
-        root.createVariable(netcdf_name, "f8", ("layer", "cell"), fill_value=0.0)
+        root.createVariable(netcdf_name, "f8", ("layer", "cell"))
 
 
 def _set_layers(root, grid, names=None):
