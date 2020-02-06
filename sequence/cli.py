@@ -39,6 +39,7 @@ def _contents_of_input_file(infile, set):
 
 
 @click.group()
+@click.version_option()
 def sequence():
     pass
 
@@ -56,6 +57,7 @@ def sequence():
     type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
 )
 def run(config_file, with_citations, verbose, dry_run):
+    """Run a simulation."""
     config_file = pathlib.Path(config_file)
     rundir = config_file.parent.resolve()
 
@@ -105,6 +107,7 @@ def run(config_file, with_citations, verbose, dry_run):
     "--set", multiple=True, help="Set model parameters",
 )
 def show(infile, set):
+    """Show example input files."""
     click.secho(_contents_of_input_file(infile, set), err=False)
 
 
@@ -117,6 +120,7 @@ def show(infile, set):
     "--set", multiple=True, help="Set model parameters",
 )
 def setup(destination, set):
+    """Setup a folder of input files for a simulation."""
     folder = pathlib.Path(destination)
 
     files = [
