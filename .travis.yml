@@ -6,6 +6,7 @@ env:
   matrix:
   - PYTHON="3.6"
   - PYTHON="3.7"
+  - PYTHON="3.8"
 sudo: false
 before_install:
 - |
@@ -28,11 +29,12 @@ before_install:
 - source activate test_env
 - conda info -a && conda list
 install:
+- conda install landlab -c conda-forge
 - pip install -e .
 - pip install -r requirements-testing.txt
 script:
 - pytest --cov=sequence --cov-report= --cov-report=xml -vvv
 - make lint install
-- cd data/marmara && sequence marmara.yaml
+- sequence run data/marmara/marmara.yml
 after_success:
 - coveralls --verbose
