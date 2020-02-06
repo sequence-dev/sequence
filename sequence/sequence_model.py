@@ -1,12 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-
-import click
 import numpy as np
-import yaml
-from landlab.core import load_params
 
 from .bathymetry import BathymetryReader
 from .fluvial import Fluvial
@@ -23,12 +18,18 @@ class SequenceModel(RasterModel):
     DEFAULT_PARAMS = {
         "grid": {
             "shape": [3, 100],
-            "spacing": 100.0,
-            "origin": 0.0,
+            "xy_spacing": 100.0,
+            "xy_of_lower_left": [0.0, 0.0],
             "bc": {"top": "closed", "bottom": "closed"},
         },
-        "clock": {"start": -20000.0, "stop": 0.0, "step": 100.0},
-        "output": None,
+        "clock": {"start": 0.0, "stop": 20000.0, "step": 100.0},
+        "output": {
+            "interval": 10,
+            "filepath": "sequence.nc",
+            "clobber": True,
+            "rows": [1],
+            "fields": ["sediment_deposit__thickness"],
+        },
         "submarine_diffusion": {
             "plain_slope": 0.0008,
             "wave_base": 60.0,
@@ -75,24 +76,8 @@ class SequenceModel(RasterModel):
     ):
         RasterModel.__init__(self, grid=grid, clock=clock, output=output)
 
-        # z0 = self.grid.add_empty("bedrock_surface__elevation", at="node")
-        # z = self.grid.add_empty("topographic__elevation", at="node")
-        # percent_sand = self.grid.add_empty("sand_frac", at="node")
-
-        # shoreface_height=submarine_diffusion["shoreface_height"]
         alpha = submarine_diffusion["alpha"]
-        # spacing=grid["spacing"]
 
-        # z[:] = -.001 * self.grid.x_of_node + 120.
-        # shore = 120./.001
-
-        # shore = 30/(.001 * spacing )*1000
-        # under_water = z < 0.
-        # z[under_water] = z[under_water] - shoreface_height*(
-        #    1 - np.exp(-1*alpha*(self.grid.x_of_node[under_water] - shore))
-        # )
-
-        # z0[:] = z - 100.
         BathymetryReader(self.grid, **bathymetry).run_one_step()
 
         z = self.grid.at_node["topographic__elevation"]
@@ -101,7 +86,6 @@ class SequenceModel(RasterModel):
 
         self.grid.at_grid["x_of_shore"] = np.nan
         self.grid.at_grid["x_of_shelf_edge"] = np.nan
-        # self.grid.at_grid["sediment_load"] = np.nan
         self._alpha = alpha
 
         self.grid.event_layers.add(
@@ -162,50 +146,3 @@ class SequenceModel(RasterModel):
             t0=dz[self.grid.node_at_cell].clip(0.0),
             percent_sand=percent_sand[self.grid.node_at_cell],
         )
-
-
-@click.command()
-@click.option("--dry-run", is_flag=True, help="do not actually run the model")
-@click.option(
-    "-v", "--verbose", is_flag=True, help="Also emit status messages to stderr."
-)
-@click.option(
-    "--with-citations", is_flag=True, help="print citations for components used"
-)
-@click.argument(
-    "file", type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True)
-)
-def main(file, with_citations, verbose, dry_run):
-    params = load_params(file)
-
-    if verbose:
-        click.secho(yaml.dump(params, default_flow_style=False), err=True)
-
-    model = SequenceModel(**params)
-
-    if with_citations:
-        from landlab.core.model_component import registry
-
-        click.secho("👇👇👇These are the citations to use👇👇👇", err=True)
-        click.secho(registry.format_citations())
-        click.secho("👆👆👆These are the citations to use👆👆👆", err=True)
-
-    if not dry_run:
-        try:
-            with click.progressbar(
-                length=int(model.clock.stop // model.clock.step),
-                label=" ".join(["🚀", os.path.basename(file)]),
-            ) as bar:
-                while 1:
-                    model.run_one_step()
-                    bar.update(1)
-        except StopIteration:
-            pass
-
-        click.secho("💥 Finished! 💥", err=True, fg="green")
-        if "output" in params:
-            click.secho(
-                "Output written to {0}".format(params["output"]["filepath"]), fg="green"
-            )
-    else:
-        click.secho("Nothing to do. 😴", fg="green")
