@@ -41,6 +41,19 @@ def _contents_of_input_file(infile, set):
 @click.group()
 @click.version_option()
 def sequence():
+    """The Steckler Sequence model.
+
+    \b
+    Examples:
+
+      Create a folder with example input files,
+
+        $ sequence setup sequence-example
+
+      Run a simulation using the examples input files,
+
+        $ sequence run sequence-example/config.yaml
+    """
     pass
 
 
