@@ -35,6 +35,6 @@ install:
 script:
 - pytest --cov=sequence --cov-report= --cov-report=xml -vvv
 - make lint install
-- sequence run data/marmara/marmara.yml
+- sequence run data/marmara/marmara.yaml
 after_success:
 - coveralls --verbose
