@@ -2,7 +2,6 @@ import os
 from collections import defaultdict
 
 import netCDF4 as nc
-import six
 
 _NUMPY_TO_NETCDF_TYPE = {
     "float32": "f4",
@@ -41,7 +40,7 @@ def _create_grid_dimension(root, grid, at="node", ids=None):
         if at == "grid":
             number_of_elements = 1
         else:
-            number_of_elements = len(getattr(grid, "x_of_{0}".format(at))[ids])
+            number_of_elements = len(getattr(grid, "xy_of_{0}".format(at))[ids])
         root.createDimension(at, number_of_elements)
 
     return root
@@ -73,9 +72,9 @@ def _set_grid_coordinates(root, grid, at="node", ids=None):
     if at == "grid":
         return
 
-    for coord in ("x", "y"):
-        name = "{coord}_of_{at}".format(coord=coord, at=at)
-        root.variables[name][:] = getattr(grid, name)[ids]
+    coords = getattr(grid, f"xy_of_{at}")
+    root.variables[f"x_of_{at}"][:] = coords[ids, 0]
+    root.variables[f"y_of_{at}"][:] = coords[ids, 1]
 
 
 def _create_field(root, grid, at="node", names=None):
@@ -93,7 +92,7 @@ def _create_field(root, grid, at="node", names=None):
 
 def _set_field(root, grid, at="node", ids=None, names=None):
     """Set values for variables at a field location(s)."""
-    if isinstance(names, six.string_types):
+    if isinstance(names, str):
         names = [names]
     names = names or grid[at]
 
@@ -121,12 +120,12 @@ def _create_layers(root, grid, names=None):
 
     netcdf_name = _netcdf_var_name("thickness", "layer")
     if netcdf_name not in root.variables:
-        root.createVariable(netcdf_name, "f8", ("layer", "cell"), fill_value=0.0)
+        root.createVariable(netcdf_name, "f8", ("layer", "cell"))
 
 
 def _set_layers(root, grid, names=None):
     """Set values for variables at a grid layers."""
-    if isinstance(names, six.string_types):
+    if isinstance(names, str):
         names = [names]
     names = names or grid.event_layers.tracking
 
@@ -186,7 +185,7 @@ def to_netcdf(
         raise ValueError("Grid layers are only available with the NETCDF4 format.")
 
     at = at or {"node", "link", "face", "cell", "grid"}
-    if isinstance(at, six.string_types):
+    if isinstance(at, str):
         at = [at]
 
     if len(at) == 1:

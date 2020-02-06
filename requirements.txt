@@ -1,0 +1,7 @@
+click
+landlab
+matplotlib
+netcdf4
+numpy
+pyyaml
+scipy

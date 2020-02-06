@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 import numpy as np
-
 from landlab.components import LinearDiffuser
 
 from .shoreline import find_shoreline
@@ -45,7 +44,7 @@ class SubmarineDiffuser(LinearDiffuser):
         shelf_slope=0.001,
         sediment_load=3.0,
         load_sealevel=0.0,
-        basin_width=500000.,
+        basin_width=500000.0,
         **kwds
     ):
         """Diffuse the ocean bottom.
@@ -70,8 +69,10 @@ class SubmarineDiffuser(LinearDiffuser):
         load_sealevel: float, optional
             Fractional variation of sediment load with sea level (m2/y/m_sl).
             i.e., .003 =0.3% increase/decrease with sea level rise/fall (30% with 100m)
-        basin_width: length of drainage basin upstream of model.  Creates increase in 
-            diffusivity downstream by (basin_width + x)/basin_width from increase river flow
+        basin_width: float, optional
+            Length of drainage basin upstream of model.  Creates increase in
+            diffusivity downstream by (basin_width + x) / basin_width
+            from increase river flow (m).
          """
         self._plain_slope = float(plain_slope)
         self._wave_base = float(wave_base)
@@ -81,12 +82,12 @@ class SubmarineDiffuser(LinearDiffuser):
         self._load0 = float(sediment_load)
         self._load_sl = float(load_sealevel)
         self._sea_level = sea_level
-        self._load = self._load0 *(1 + self._sea_level * self._load_sl)
+        self._load = self._load0 * (1 + self._sea_level * self._load_sl)
         self._ksh = self._load / self._plain_slope
-        self._bw = float(basin_width)
+        self._basin_width = float(basin_width)
         grid.at_grid["sea_level__elevation"] = sea_level
         self._sea_level = grid.at_grid["sea_level__elevation"]
-        grid.at_grid["sediment_load"] = self._load 
+        grid.at_grid["sediment_load"] = self._load
 
         grid.add_zeros("kd", at="node")
         grid.add_zeros("sediment_deposit__thickness", at="node")
@@ -123,25 +124,34 @@ class SubmarineDiffuser(LinearDiffuser):
     def calc_diffusion_coef(self, x_of_shore):
         """Calculate and store diffusion coefficient values.
 
+        Examples
+        --------
+
         The example below tests the result with 3 of the middle-row nodes above
         sea level and three below, two of which are in deep water (below the
         default 60 m wave base).
 
-        Examples
-        --------
         >>> from landlab import RasterModelGrid
         >>> import numpy as np
-        >>> grid = RasterModelGrid((3, 6), spacing=200.0)
-        >>> z = grid.add_zeros('node', 'topographic__elevation')
+
+        >>> grid = RasterModelGrid((3, 6), xy_spacing=200.0)
+        >>> z = grid.add_zeros("topographic__elevation", at="node")
         >>> z[6:12] = np.array([3., 3., 1., -1., -85., -85.])
-        >>> sd = SubmarineDiffuser(grid)
-        >>> len(sd._kd)  # one diffusivity value per grid node
-        18
-        >>> len(grid.at_node["kd"])  # "kd" field should exist and be the same
-        18
-        >>> kd = sd.calc_diffusion_coef(x_of_shore=500.0)
-        >>> np.round(kd[6:12])
-        array([ 3750.,  3750.,  3750.,   333.,  11.,  16.])
+        >>> z.reshape((3, 6))
+        array([[  0.,   0.,   0.,   0.,   0.,   0.],
+               [  3.,   3.,   1.,  -1., -85., -85.],
+               [  0.,   0.,   0.,   0.,   0.,   0.]])
+
+        >>> submarine_diffuser = SubmarineDiffuser(grid, basin_width=0.0)
+        >>> diffusion_coef = submarine_diffuser.calc_diffusion_coef(x_of_shore=500.0)
+
+        >>> np.round(diffusion_coef.reshape((3, 6))[1])
+        array([ 3750.,  3750.,  3750.,   333.,    11.,    16.])
+
+        The calculated diffusion coefficient is also saved as an *at-node* field.
+
+        >>> diffusion_coef is grid.at_node["kd"]
+        True
         """
         sea_level = self.grid.at_grid["sea_level__elevation"]
         water_depth = sea_level - self._grid.at_node["topographic__elevation"]
@@ -165,10 +175,10 @@ class SubmarineDiffuser(LinearDiffuser):
             -(water_depth[deep_water] - self._wave_base) / self._wave_base
         )
 
-        self._load = self._load0 *(1 + sea_level * self._load_sl)
+        self._load = self._load0 * (1 + sea_level * self._load_sl)
         self._ksh = self._load / self._plain_slope
-        if self._bw > 0.:
-            k[land] = self._ksh * (self._bw + x[land])/self._bw
+        if self._basin_width > 0.0:
+            k[land] = self._ksh * (self._basin_width + x[land]) / self._basin_width
         else:
             k[land] = self._ksh
 
@@ -190,8 +200,8 @@ class SubmarineDiffuser(LinearDiffuser):
         z = self._grid.at_node["topographic__elevation"].reshape(self.grid.shape)
         # k = self._grid.at_node["kd"].reshape(self.grid.shape)
         # z[1, 0] = z[1,1] + self._load / k[1, 0] * (x[1,1]-x[1,0])
-        z[1, 0] = z[1, 1] + self._plain_slope * (x[1, 1] - x[1, 0]) 
-            #self._load/self._load0) 
+        z[1, 0] = z[1, 1] + self._plain_slope * (x[1, 1] - x[1, 0])
+        # self._load/self._load0)
 
         super(SubmarineDiffuser, self).run_one_step(dt)
 

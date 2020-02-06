@@ -3,11 +3,11 @@ clock:
   step: 100.0
   stop: 40000.0
 grid:
-  origin: [0.0, 0.0]
+  xy_of_lower_left: [0.0, 0.0]
   shape:
   - 3
   - 200
-  spacing: [250., 500.0]
+  xy_spacing: [250., 500.0]
   bc:
     top: closed
     bottom: closed
@@ -49,6 +49,7 @@ sediments:
   sand_density: 2650.
   mud_density: 2720.
   sand_frac: 0.5
+  hemipelagic: 0.0
 # plume:
 #   river_velocity: 1.5
 #   river_width: 100.

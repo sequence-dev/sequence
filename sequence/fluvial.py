@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 import numpy as np
-
 from landlab import Component
 
 from .shoreline import find_shoreline
@@ -14,19 +13,22 @@ class Fluvial(Component):
 
     _input_var_names = ("topographic__elevation", "sea_level__elevation")
 
-    _output_var_names = ("delta_sediment_sand__volume_fraction")
+    _output_var_names = "delta_sediment_sand__volume_fraction"
 
-    _var_units = {"delta_sediment_sand__volume_fraction": "%",
+    _var_units = {
+        "delta_sediment_sand__volume_fraction": "%",
         "topographic__elevation": "m",
         "sea_level__elevation": "m",
     }
 
-    _var_mapping = {"delta_sediment_sand__volume_fraction": "node",
+    _var_mapping = {
+        "delta_sediment_sand__volume_fraction": "node",
         "topographic__elevation": "node",
-        "sea_level__elevation": "grid"
+        "sea_level__elevation": "grid",
     }
 
-    _var_doc = {"delta_sediment_sand__volume_fraction": "delta sand fraction",
+    _var_doc = {
+        "delta_sediment_sand__volume_fraction": "delta sand fraction",
         "topographic__elevation": "land and ocean bottom elevation, positive up",
         "sea_level__elevation": "Position of sea level",
     }
@@ -65,16 +67,16 @@ class Fluvial(Component):
         # fixed parameters
         self.sand_grain = 0.001  # grain size = 1 mm
         self.alpha = (
-            10.0
-        )  # ratio of channel depth to channel belt thickness  */ was 10.
+            10.0  # ratio of channel depth to channel belt thickness  */ was 10.
+        )
         self.beta = 0.1  # beta*h is flow depth of flood, beta = .1 to .5   */
         # lambdap = .30
         self.flood_period = 10.0  # recurrence time of floods ~1-10 y  */
         self.basin_width = 10000.0  # Basin width or river spacing of 20 km */ was 5000.
         self.basin_length = (
-            100000.0
-        )  # length for downstream increase in diffusion */ was 500000.
-        self.hemi_taper = 100000.  # taper out hemipelagic deposition over 100 km
+            100000.0  # length for downstream increase in diffusion */ was 500000.
+        )
+        self.hemi_taper = 100000.0  # taper out hemipelagic deposition over 100 km
 
         self.sand_frac = sand_frac
         self.sediment_load = sediment_load
@@ -209,8 +211,10 @@ class Fluvial(Component):
                     percent_sand[i] = 1.0 - np.exp(
                         -1.0 * width_cb / self.basin_width * bigN
                     )
-                if percent_sand[i]>1.: percent_sand[i]=1.
-                if percent_sand[i]<0.: percent_sand[i]=0.
+                if percent_sand[i] > 1.0:
+                    percent_sand[i] = 1.0
+                if percent_sand[i] < 0.0:
+                    percent_sand[i] = 0.0
 
             else:
                 percent_sand[i] = 0.0
@@ -239,7 +243,7 @@ class Fluvial(Component):
                 (self.sand_density - 1000.0) / 1000.0 * self.sand_grain / slope[i]
             )
 
-        #Add mud layer increasing from 0 at wave_base to hemipelagic at 2*wave_base
+        # Add mud layer increasing from 0 at wave_base to hemipelagic at 2*wave_base
 
         water_depth = (
             self.grid.at_grid["sea_level__elevation"]
@@ -250,30 +254,36 @@ class Fluvial(Component):
 
         for i in np.where(water)[0]:
             if water_depth[i] < self.wave_base:
-                 add_mud[i] = 0.
-            if water_depth[i] > self.wave_base and water_depth[i] < 2*self.wave_base:
-                 add_mud[i] = (water_depth[i] - self.wave_base)/(self.wave_base)*(
-                 self.hemi*dt)
-                 taper = i
-            elif water_depth[i] >= 2*self.wave_base:
-                 add_mud[i] = (self.hemi * dt) * (1- (x[i]-x[taper])/self.hemi_taper)
-                 if add_mud[i] < 0.:  add_mud[i] = 0.
-        
+                add_mud[i] = 0.0
+            if water_depth[i] > self.wave_base and water_depth[i] < 2 * self.wave_base:
+                add_mud[i] = (
+                    (water_depth[i] - self.wave_base)
+                    / (self.wave_base)
+                    * (self.hemi * dt)
+                )
+                taper = i
+            elif water_depth[i] >= 2 * self.wave_base:
+                add_mud[i] = (self.hemi * dt) * (
+                    1 - (x[i] - x[taper]) / self.hemi_taper
+                )
+                if add_mud[i] < 0.0:
+                    add_mud[i] = 0.0
+
         thickness = (
             self.grid.at_node["sediment_deposit__thickness"]
-            .reshape(self.grid.shape)[1].copy()
-            )
+            .reshape(self.grid.shape)[1]
+            .copy()
+        )
         thickness[water] += add_mud[water]
-        try:
-            percent_sand[water] = (thickness[water]-add_mud[water])/thickness[water]
-        except ValueError:
-            if thickness[water] <= 0.:
-                 percent_sand[water] = 0.
-        for i in np.where(water)[0]:
-            if percent_sand[i] <0.: 
-                percent_sand[i] = 0.
-            if percent_sand[i] >1.: 
-                percent_sand[i] = 1.
+
+        np.divide(
+            thickness[water] - add_mud[water],
+            thickness[water],
+            where=thickness[water] > 0.0,
+            out=percent_sand[water],
+        )
+
+        np.clip(percent_sand[water], 0.0, 1.0, out=percent_sand[water])
 
         plus_mud = np.zeros(self.grid.shape)
         plus_mud[1] = add_mud
@@ -281,10 +291,3 @@ class Fluvial(Component):
         sdt[1][:] += plus_mud[1]
         te = self.grid.at_node["topographic__elevation"].reshape(plus_mud.shape)
         te[1][:] -= plus_mud[1]
-            
-        
-        
-        
-
-            
-
