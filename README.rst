@@ -10,11 +10,6 @@ sequence
         :target: https://sequence.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://pyup.io/repos/github/sequence-dev/sequence/shield.svg
-     :target: https://pyup.io/repos/github/sequence-dev/sequence/
-     :alt: Updates
-
-
 
 Python version of the Steckler Sequence model
 
