@@ -10,7 +10,7 @@ setup(
     author_email="mcflugen@gmail.com",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
-        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
@@ -27,7 +27,7 @@ setup(
     test_suite="tests",
     url="https://github.com/sequence-dev/sequence",
     version=versioneer.get_version(),
-    entry_points={"console_scripts": ["sequence=sequence.sequence_model:main"]},
+    entry_points={"console_scripts": ["sequence=sequence.cli:sequence"]},
     cmdclass=versioneer.get_cmdclass(),
     zip_safe=False,
 )
