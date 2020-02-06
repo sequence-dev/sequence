@@ -29,5 +29,5 @@ install:
 build: false
 
 test_script:
-  - "pip install -e ."
+  - "pip install -e . --pre"
   - "pytest -vvv"
