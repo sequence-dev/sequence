@@ -29,8 +29,7 @@ before_install:
 - source activate test_env
 - conda info -a && conda list
 install:
-- conda install landlab -c conda-forge
-- pip install -e .
+- pip install -e . --pre
 - pip install -r requirements-testing.txt
 script:
 - pytest --cov=sequence --cov-report= --cov-report=xml -vvv
