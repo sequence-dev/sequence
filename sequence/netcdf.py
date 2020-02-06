@@ -3,7 +3,6 @@ from collections import defaultdict
 
 import netCDF4 as nc
 
-
 _NUMPY_TO_NETCDF_TYPE = {
     "float32": "f4",
     "float64": "f8",

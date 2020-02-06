@@ -119,7 +119,7 @@ def load_params_from_strings(values):
     params = dict()
     for param in values:
         dotted_name, value = param.split("=")
-        params.update(dots_to_dict(dotted_name, yaml.load(value)))
+        params.update(dots_to_dict(dotted_name, yaml.safe_load(value)))
 
     return params
 
