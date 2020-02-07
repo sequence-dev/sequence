@@ -1,0 +1,33 @@
+environment:
+
+  matrix:
+
+    - TARGET_ARCH: x64
+      PYTHON: "C:\\Python38-x64"
+
+    - TARGET_ARCH: x64
+      PYTHON: "C:\\Python37-x64"
+
+    - TARGET_ARCH: x64
+      PYTHON: "C:\\Python36-x64"
+
+platform:
+  - x64
+
+# os: Previous Visual Studio 2015
+# os: Visual Studio 2013
+
+init:
+  - "ECHO %PYTHON% %HOME% %PLATFORM%"
+  - "ECHO %APPVEYOR_REPO_BRANCH%"
+
+install:
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "pip install twine -r requirements-testing.txt"
+  - "python -VV"
+
+build: false
+
+test_script:
+  - "pip install -e . --pre"
+  - "pytest -vvv"
