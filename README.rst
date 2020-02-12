@@ -11,23 +11,32 @@ sequence
         :alt: Documentation Status
 
 
-Python version of the Steckler Sequence model
-
+Sequence is a modular 2D (i.e., profile) sequence stratigraphic model
+that is written in Python and implemented within the Landlab framework.
+Sequence represents time-averaged fluvial and marine sediment transport
+via differential equations. The modular code includes components to deal
+with sea level changes, sediment compaction, local or flexural isostasy,
+and tectonic subsidence and uplift.
 
 Requirements
 ------------
 
-*Sequence* has a number of requirements, all of which can be installed with
-either *pip* or *conda*, the main one being *Python 3*. The rest are listed
-in *requirements.txt*.
+*Sequence* requires Python 3.
+
+Apart from Python, *Sequence* has a number of other requirements, all of which
+can be obtained through either *pip* or *conda*, that will be automatically
+installed when you install *Sequence*.
+
+To see a full listing of the requirements, have a look at the project's
+*requirements.txt* file.
 
 If you are a developer of *Sequence* you will also want to install
 additional dependencies for running *Sequence*'s tests to make sure
 that things are working as they should. These dependencies are listed
 in *requirements-testing.txt*.
 
-Installation Instructions
--------------------------
+Installation
+------------
 
 To install *Sequence* from source, first create a new environment in
 which *Sequence* will be installed. This, although not necessary, will
@@ -37,7 +46,7 @@ base *Python* installation. This can be done with *conda* as::
   $ conda create -n sequence python=3
   $ conda activate sequence
 
-To install *Sequence* into this environment::
+To then install *Sequence* into this environment::
 
   $ pip install -e .
 
@@ -49,9 +58,9 @@ Parameter File
 
 The main *Sequence* input file is a yaml-formatted text file that lists
 parameter values for the various components. Running the following will
-print an sample *Sequence* parameter file::
+print a sample *Sequence* parameter file::
 
-  $ sequence-sample params
+  $ sequence show params
 
 Bathymetry File
 +++++++++++++++
@@ -115,4 +124,4 @@ need to create a set of sample files::
 
 You can now run the simulation::
 
-  $ sequence example/sequence.yaml
+  $ sequence run example/sequence.yaml
