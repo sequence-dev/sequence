@@ -1,8 +1,9 @@
 .. image:: _static/sequence-logo-text-lowercase.png
     :align: center
     :scale: 100%
-    :alt: Python Modeling Tool
-    :target: https://pymt.readthedocs.org/
+    :alt: Sequence
+    :target: https://sequence.readthedocs.org/
+
 
 Sequence is a modular 2D (i.e., profile) sequence stratigraphic model
 that is written in Python and implemented within the Landlab framework.
@@ -12,14 +13,23 @@ with sea level changes, sediment compaction, local or flexural isostasy,
 and tectonic subsidence and uplift.
 
 
+.. image:: _static/sequence.png
+    :align: center
+    :scale: 50%
+    :alt: Sequence
+    :target: https://sequence.readthedocs.org/
+
+
+Getting Started
+---------------
+
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 3
 
-   usage
    readme
-   installation
 
+..   usage
+..   installation
 
 API Reference
 -------------
@@ -41,7 +51,6 @@ Miscellaneous Pages
 
    contributing
    authors
-   history
    license
 
 

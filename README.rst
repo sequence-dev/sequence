@@ -1,7 +1,6 @@
-========
-sequence
-========
-
+=====================================================
+sequence: Sequence-stratigraphic modeling with Python
+=====================================================
 
 .. image:: https://img.shields.io/travis/sequence-dev/sequence.svg
         :target: https://travis-ci.org/sequence-dev/sequence
@@ -10,8 +9,10 @@ sequence
         :target: https://sequence.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
+About
+-----
 
-Sequence is a modular 2D (i.e., profile) sequence stratigraphic model
+*Sequence* is a modular 2D (i.e., profile) sequence stratigraphic model
 that is written in Python and implemented within the Landlab framework.
 Sequence represents time-averaged fluvial and marine sediment transport
 via differential equations. The modular code includes components to deal
@@ -110,7 +111,7 @@ Output File
 -----------
 
 The output file of *Sequence* is a netcdf-formatted file that records the
-generated stratigraphy. Output parameters is controlled through the
+generated stratigraphy. Output parameters are controlled through the
 *output* section of the parameter file.
 
 Examples
