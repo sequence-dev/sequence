@@ -1,8 +1,5 @@
-import matplotlib.pyplot as plt
 import numpy as np
 from landlab import Component
-from numpy import arange, pi, sin
-from scipy import interpolate
 from scipy.interpolate import interp1d
 
 
@@ -122,12 +119,12 @@ def sea_level_function(dictionary):
     run_duration = dictionary["run_duration"]
     dt = dictionary["dt"]
 
-    time = arange(start_time, start_time + run_duration, dt)
+    time = np.arange(start_time, start_time + run_duration, dt)
     sl_array = (
         amplitude
         * (
-            sin((2 * pi * (phase + time)) / Fs)
-            + 0.3 * sin((2 * pi * (2 * phase + 2 * time)) / Fs)
+            np.sin((2 * np.pi * (phase + time)) / Fs)
+            + 0.3 * np.sin((2 * np.pi * (2 * phase + 2 * time)) / Fs)
         )
         + slope * time
     )
@@ -165,9 +162,7 @@ def sea_level_file(filename, dictionary):
     for item in ys:
         y.append(float(item))
 
-    f = interpolate.interp1d(x, y, kind="cubic")
-    times = arange(start_time, start_time + run_duration, dt)
+    f = interp1d(x, y, kind="cubic")
+    times = np.arange(start_time, start_time + run_duration, dt)
     sl_array = f(times)
-    plt.plot(x, y, "o", times, sl_array, "-")
-    plt.show()
     return times, sl_array
