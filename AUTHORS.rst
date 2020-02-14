@@ -6,7 +6,7 @@ Development Lead
 ----------------
 
 * Mike Steckler
-* Eric Hutton <mcflugen@gmail.com>
+* Eric Hutton (@mcflugen)
 
 Contributors
 ------------

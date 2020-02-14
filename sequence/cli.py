@@ -34,6 +34,10 @@ def _contents_of_input_file(infile, set):
             header="Time [y], Subsidence Rate [m / y]",
         ),
     }
+    for section, section_params in params.items():
+        contents[f"config.{section}"] = yaml.dump(
+            section_params, default_flow_style=False
+        )
 
     return contents[infile]
 
@@ -114,7 +118,13 @@ def run(config_file, with_citations, verbose, dry_run):
 
 @sequence.command()
 @click.argument(
-    "infile", type=click.Choice(["bathymetry", "config", "sealevel", "subsidence"])
+    "infile",
+    type=click.Choice(
+        sorted(
+            ["bathymetry", "config", "config.output", "sealevel", "subsidence"]
+            + [f"config.{name}" for name in SequenceModel.DEFAULT_PARAMS]
+        )
+    ),
 )
 @click.option(
     "--set", multiple=True, help="Set model parameters",

@@ -1,6 +1,5 @@
 name: sequence
 channels:
-  - conda-forge/label/dev
   - conda-forge
 dependencies:
 - python=3
