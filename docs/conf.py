@@ -75,8 +75,8 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
-    "IPython.sphinxext.ipython_console_highlighting",
-    "sphinxcontrib_github_alt",
+    # "IPython.sphinxext.ipython_console_highlighting",
+    # "sphinxcontrib_github_alt",
 
 ]
 
