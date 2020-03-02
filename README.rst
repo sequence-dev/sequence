@@ -54,14 +54,14 @@ To then install *Sequence* into this environment::
 Input Files
 -----------
 
-Parameter File
-++++++++++++++
+Sequence Parameter File
++++++++++++++++++++++++
 
 The main *Sequence* input file is a yaml-formatted text file that lists
 parameter values for the various components. Running the following will
 print a sample *Sequence* parameter file::
 
-  $ sequence show params
+  $ sequence show sequence
 
 Bathymetry File
 +++++++++++++++
@@ -121,8 +121,8 @@ To run a simulation using the sample input files described above, you first
 need to create a set of sample files::
 
   $ sequence setup example
-  example/sequence.yaml
+  example
 
 You can now run the simulation::
 
-  $ sequence run example/sequence.yaml
+  $ sequence run example

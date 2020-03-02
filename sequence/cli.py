@@ -27,7 +27,7 @@ def _contents_of_input_file(infile, set):
         return contents
 
     contents = {
-        "config": yaml.dump(params, default_flow_style=False),
+        "sequence": yaml.dump(params, default_flow_style=False),
         "bathymetry": as_csv(
             [[0.0, 20.0], [100000.0, -80.0]], header="X [m], Elevation [m]"
         ),
@@ -40,7 +40,7 @@ def _contents_of_input_file(infile, set):
         ),
     }
     for section, section_params in params.items():
-        contents[f"config.{section}"] = yaml.dump(
+        contents[f"sequence.{section}"] = yaml.dump(
             section_params, default_flow_style=False
         )
 
@@ -85,7 +85,7 @@ def sequence():
 
       Run a simulation using the examples input files,
 
-        $ sequence run sequence-example/config.yaml
+        $ sequence run sequence-example
     """
     pass
 
@@ -142,8 +142,8 @@ def run(run_dir, with_citations, verbose, dry_run):
     "infile",
     type=click.Choice(
         sorted(
-            ["bathymetry", "config", "config.output", "sealevel", "subsidence"]
-            + [f"config.{name}" for name in SequenceModel.DEFAULT_PARAMS]
+            ["bathymetry", "sequence", "sequence.output", "sealevel", "subsidence"]
+            + [f"sequence.{name}" for name in SequenceModel.DEFAULT_PARAMS]
         )
     ),
 )
@@ -165,7 +165,7 @@ def setup(destination, set):
 
     files = [
         pathlib.Path(fname)
-        for fname in ["bathymetry.csv", "config.yaml", "sealevel.csv", "subsidence.csv"]
+        for fname in ["bathymetry.csv", "sequence.yaml", "sealevel.csv", "subsidence.csv"]
     ]
 
     existing_files = [folder / name for name in files if (folder / name).exists()]
@@ -178,6 +178,6 @@ def setup(destination, set):
         for fname in files:
             with open(folder / fname, "w") as fp:
                 print(_contents_of_input_file(fname.stem, set), file=fp)
-        print(str(folder / "config.yaml"))
+        print(str(folder))
 
     sys.exit(len(existing_files))
