@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 import numpy as np
-from landlab import Component
 from scipy.interpolate import interp1d
+
+from landlab import Component
 
 
 class SubsidenceTimeSeries(Component):
