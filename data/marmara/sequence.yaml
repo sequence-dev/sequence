@@ -57,3 +57,9 @@ sediments:
 #   river_concentration: .1
 #   sediment_removal_rate: 2.
 #   sediment_bulk_density: 1600.
+compaction:
+  c: 5.0e-08
+  porosity_max: 0.5
+  porosity_min: 0.01
+  rho_grain: 2650.0
+  rho_void: 1000.0
