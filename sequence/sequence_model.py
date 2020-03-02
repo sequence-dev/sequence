@@ -1,11 +1,19 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+from collections import OrderedDict
 
 import numpy as np
+import yaml
+
+from compaction.landlab import Compact
+from landlab import RasterModelGrid
+from landlab.bmi.bmi_bridge import TimeStepper
 
 from .bathymetry import BathymetryReader
 from .fluvial import Fluvial
-from .raster_model import RasterModel
+
+# from .raster_model import RasterModel
+from .output_writer import OutputWriter
 from .sea_level import SeaLevelTimeSeries, SinusoidalSeaLevel
 from .sediment_flexure import SedimentFlexure
 from .shoreline import ShorelineFinder
@@ -13,7 +21,7 @@ from .submarine import SubmarineDiffuser
 from .subsidence import SubsidenceTimeSeries
 
 
-class SequenceModel(RasterModel):
+class SequenceModel:
 
     DEFAULT_PARAMS = {
         "grid": {
@@ -58,6 +66,13 @@ class SequenceModel(RasterModel):
             "hemipelagic": 0.0,
         },
         "bathymetry": {"filepath": "bathymetry.csv", "kind": "linear"},
+        "compaction": {
+            "c": 5.0e-08,
+            "porosity_max": 0.5,
+            "porosity_min": 0.01,
+            "rho_grain": 2650.0,
+            "rho_void": 1000.0,
+        },
     }
 
     LONG_NAME = {"z": "topographic__elevation", "z0": "bedrock_surface__elevation"}
@@ -73,10 +88,35 @@ class SequenceModel(RasterModel):
         flexure=None,
         sediments=None,
         bathymetry=None,
+        compaction=None,
     ):
-        RasterModel.__init__(self, grid=grid, clock=clock, output=output)
+        config = {
+            "grid": grid,
+            "clock": clock,
+            "output": output,
+            "submarine_diffusion": submarine_diffusion,
+            "sea_level": sea_level,
+            "subsidence": subsidence,
+            "flexure": flexure,
+            "sediments": sediments,
+            "bathymetry": bathymetry,
+            "compaction": compaction,
+        }
+        missing_kwds = [kwd for kwd, value in config.items() if value is None]
+        if missing_kwds:
+            raise ValueError(
+                "missing required config parameters for SequenceModel ({0})".format(
+                    ", ".join(missing_kwds)
+                )
+            )
 
-        alpha = submarine_diffusion["alpha"]
+        self._clock = TimeStepper(**clock)
+        self._grid = RasterModelGrid.from_dict(grid)
+
+        self._components = OrderedDict()
+        if output:
+            self._output = OutputWriter(self._grid, **output)
+            self._components["output"] = self._output
 
         BathymetryReader(self.grid, **bathymetry).run_one_step()
 
@@ -86,7 +126,6 @@ class SequenceModel(RasterModel):
 
         self.grid.at_grid["x_of_shore"] = np.nan
         self.grid.at_grid["x_of_shelf_edge"] = np.nan
-        self._alpha = alpha
 
         self.grid.event_layers.add(
             100.0,
@@ -94,6 +133,7 @@ class SequenceModel(RasterModel):
             water_depth=-z0[self.grid.core_nodes],
             t0=10.0,
             percent_sand=0.5,
+            porosity=0.5,
         )
 
         if "filepath" in sea_level:
@@ -118,18 +158,56 @@ class SequenceModel(RasterModel):
         )
         self._flexure = SedimentFlexure(self.grid, **flexure)
         self._shoreline = ShorelineFinder(self.grid, alpha=submarine_diffusion["alpha"])
+        self._compaction = Compact(self.grid, **compaction)
 
-        self._components += (
-            self._sea_level,
-            self._subsidence,
-            self._submarine_diffusion,
-            self._fluvial,
-            self._flexure,
-            self._shoreline,
+        self._components.update(
+            sea_level=self._sea_level,
+            subsidence=self._subsidence,
+            compaction=self._compaction,
+            submarine_diffusion=self._submarine_diffusion,
+            fluvial=self._fluvial,
+            flexure=self._flexure,
+            shoreline=self._shoreline,
         )
 
+    @property
+    def grid(self):
+        return self._grid
+
+    @property
+    def clock(self):
+        return self._clock
+
+    @classmethod
+    def from_path(cls, filepath):
+        with open(filepath, "r") as fp:
+            params = yaml.safe_load(fp)
+        return cls(**params)
+
+    def set_params(self, params):
+        for component, values in params.items():
+            c = self._components[component]
+            for param, value in values.items():
+                setattr(c, param, value)
+
+    def run_one_step(self, dt=None, output=None):
+        """Run each component for one time step."""
+        dt = dt or self.clock.step
+        self.clock.dt = dt
+        self.clock.advance()
+
+        self.advance_components(dt)
+
+    def run(self, output=None):
+        """Run the model until complete."""
+        try:
+            while 1:
+                self.run_one_step()
+        except StopIteration:
+            pass
+
     def advance_components(self, dt):
-        for component in self._components:
+        for component in self._components.values():
             component.run_one_step(dt)
 
         dz = self.grid.at_node["sediment_deposit__thickness"]
@@ -145,4 +223,24 @@ class SequenceModel(RasterModel):
             water_depth=water_depth[self.grid.node_at_cell],
             t0=dz[self.grid.node_at_cell].clip(0.0),
             percent_sand=percent_sand[self.grid.node_at_cell],
+            porosity=self._compaction.porosity_max,
         )
+
+        try:
+            self._n_archived_layers
+        except AttributeError:
+            self._n_archived_layers = 0
+
+        if (
+            self.grid.event_layers.number_of_layers - self._n_archived_layers
+        ) % 20 == 0:
+            self.grid.event_layers.reduce(
+                self._n_archived_layers,
+                self._n_archived_layers + 10,
+                age=np.max,
+                percent_sand=np.mean,
+                porosity=np.mean,
+                t0=np.sum,
+                water_depth=np.mean,
+            )
+            self._n_archived_layers += 1
