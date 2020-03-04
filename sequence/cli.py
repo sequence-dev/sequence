@@ -126,9 +126,7 @@ def run(config_file, with_citations, verbose, dry_run):
         )
     ),
 )
-@click.option(
-    "--set", multiple=True, help="Set model parameters",
-)
+@click.option("--set", multiple=True, help="Set model parameters")
 def show(infile, set):
     """Show example input files."""
     click.secho(_contents_of_input_file(infile, set), err=False)
@@ -139,9 +137,7 @@ def show(infile, set):
     "destination",
     type=click.Path(exists=True, file_okay=False, dir_okay=True, readable=True),
 )
-@click.option(
-    "--set", multiple=True, help="Set model parameters",
-)
+@click.option("--set", multiple=True, help="Set model parameters")
 def setup(destination, set):
     """Setup a folder of input files for a simulation."""
     folder = pathlib.Path(destination)

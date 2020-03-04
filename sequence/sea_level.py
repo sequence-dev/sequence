@@ -1,6 +1,6 @@
 import numpy as np
 from landlab import Component
-from scipy.interpolate import interp1d
+from scipy import interpolate
 
 
 class SeaLevelTimeSeries(Component):
@@ -36,7 +36,7 @@ class SeaLevelTimeSeries(Component):
         super(SeaLevelTimeSeries, self).__init__(grid, **kwds)
 
         data = np.loadtxt(filepath, delimiter=",")
-        self._sea_level = interp1d(
+        self._sea_level = interpolate.interp1d(
             data[:, 0],
             data[:, 1],
             kind=kind,
@@ -162,7 +162,7 @@ def sea_level_file(filename, dictionary):
     for item in ys:
         y.append(float(item))
 
-    f = interp1d(x, y, kind="cubic")
+    f = interpolate.interp1d(x, y, kind="cubic")
     times = np.arange(start_time, start_time + run_duration, dt)
     sl_array = f(times)
     return times, sl_array
