@@ -5,6 +5,9 @@ sequence: Sequence-stratigraphic modeling with Python
 .. image:: https://img.shields.io/travis/sequence-dev/sequence.svg
         :target: https://travis-ci.org/sequence-dev/sequence
 
+.. image:: https://ci.appveyor.com/api/projects/status/380ox1dv8hekefq9?svg=true
+    :target: https://ci.appveyor.com/project/mcflugen/sequence/branch/develop
+
 .. image:: https://readthedocs.org/projects/sequence/badge/?version=latest
         :target: https://sequence.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
