@@ -5,5 +5,10 @@ dependencies:
 - python=3
 - pip
 - click
-- notebook
+- compaction
 - landlab
+- netcdf4
+- notebook
+- numpy
+- pyyaml
+- scipy
