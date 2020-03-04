@@ -2,6 +2,7 @@ import os
 import shutil
 
 from landlab.core import load_params
+
 from sequence.sequence_model import SequenceModel
 
 

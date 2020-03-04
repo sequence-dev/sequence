@@ -1,7 +1,6 @@
 click
 compaction
 landlab>=2.0.0b7
-matplotlib
 netcdf4
 numpy
 pyyaml

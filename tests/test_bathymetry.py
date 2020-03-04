@@ -2,9 +2,9 @@ import os
 
 import numpy as np
 import pytest
+from landlab import RasterModelGrid
 from pytest import approx, raises
 
-from landlab import RasterModelGrid
 from sequence.bathymetry import BathymetryReader
 
 

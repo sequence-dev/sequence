@@ -2,7 +2,6 @@
 import bisect
 
 import numpy as np
-
 from landlab import Component
 
 from .errors import ShelfEdgeError, ShorelineError

@@ -1,8 +1,7 @@
 #! /usr/bin/env python
 import numpy as np
-from scipy.interpolate import interp1d
-
 from landlab import Component
+from scipy import interpolate
 
 
 class BathymetryReader(Component):
@@ -36,7 +35,7 @@ class BathymetryReader(Component):
         super(BathymetryReader, self).__init__(grid, **kwds)
 
         data = np.loadtxt(filepath, delimiter=",", comments="#")
-        self._bathymetry = interp1d(
+        self._bathymetry = interpolate.interp1d(
             data[:, 0],
             data[:, 1],
             kind=kind,
