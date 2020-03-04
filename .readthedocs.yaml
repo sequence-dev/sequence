@@ -13,10 +13,9 @@ python:
   install:
     - requirements: requirements-docs.txt
     - requirements: requirements.txt
+    - method: pip
+      path: .
   system_packages: false
-  packages:
-    method: pip
-    path: .
 
 build:
   image: latest
