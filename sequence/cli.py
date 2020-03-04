@@ -1,15 +1,20 @@
 import os
 import pathlib
+import re
 import sys
+from functools import partial
 from io import StringIO
 
 import click
 import numpy as np
 import yaml
-from landlab.core import load_params
 
+from .input_reader import TimeVaryingConfig
 from .raster_model import load_model_params
 from .sequence_model import SequenceModel
+
+out = partial(click.secho, bold=True, err=True)
+err = partial(click.secho, fg="red", err=True)
 
 
 def _contents_of_input_file(infile, set):
@@ -22,7 +27,7 @@ def _contents_of_input_file(infile, set):
         return contents
 
     contents = {
-        "config": yaml.dump(params, default_flow_style=False),
+        "sequence": yaml.dump(params, default_flow_style=False),
         "bathymetry": as_csv(
             [[0.0, 20.0], [100000.0, -80.0]], header="X [m], Elevation [m]"
         ),
@@ -35,11 +40,35 @@ def _contents_of_input_file(infile, set):
         ),
     }
     for section, section_params in params.items():
-        contents[f"config.{section}"] = yaml.dump(
+        contents[f"sequence.{section}"] = yaml.dump(
             section_params, default_flow_style=False
         )
 
     return contents[infile]
+
+
+def _time_from_filename(name):
+    name = pathlib.Path(name).name
+
+    int_parts = [int(t) for t in re.split("([0-9]+)", name) if t.isdigit()]
+
+    try:
+        return int_parts[0]
+    except IndexError:
+        return None
+
+
+def _find_config_files(pathname):
+    pathname = pathlib.Path(pathname)
+
+    items = []
+    for index, config_file in enumerate(pathname.glob("sequence*.yaml")):
+        time = _time_from_filename(config_file)
+        if time is None:
+            time = index
+        items.append((time, str(config_file)))
+
+    return zip(*sorted(items))
 
 
 @click.group()
@@ -56,7 +85,7 @@ def sequence():
 
       Run a simulation using the examples input files,
 
-        $ sequence run sequence-example/config.yaml
+        $ sequence run sequence-example
     """
     pass
 
@@ -69,51 +98,43 @@ def sequence():
 @click.option(
     "--with-citations", is_flag=True, help="print citations for components used"
 )
-@click.argument(
-    "config_file",
-    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
-)
-def run(config_file, with_citations, verbose, dry_run):
+@click.argument("run_dir", type=click.Path(exists=True, file_okay=False, dir_okay=True))
+def run(run_dir, with_citations, verbose, dry_run):
     """Run a simulation."""
-    config_file = pathlib.Path(config_file)
-    rundir = config_file.parent.resolve()
+    os.chdir(run_dir)
 
-    params = load_params(config_file)
+    times, names = _find_config_files(".")
+    params = TimeVaryingConfig.from_files(names, times=times)
 
     if verbose:
-        click.secho(yaml.dump(params, default_flow_style=False), err=True)
+        out(params.dump())
 
-    os.chdir(rundir)
-
-    model = SequenceModel(**params)
+    model = SequenceModel(**params.as_dict())
 
     if with_citations:
         from landlab.core.model_component import registry
 
-        click.secho("👇👇👇These are the citations to use👇👇👇", err=True)
-        click.secho(registry.format_citations())
-        click.secho("👆👆👆These are the citations to use👆👆👆", err=True)
+        out("👇👇👇These are the citations to use👇👇👇")
+        out(registry.format_citations())
+        out("👆👆👆These are the citations to use👆👆👆")
 
     if not dry_run:
         try:
             with click.progressbar(
                 length=int(model.clock.stop // model.clock.step),
-                label=" ".join(["🚀", config_file.name]),
+                label=" ".join(["🚀", run_dir]),
             ) as bar:
                 while 1:
                     model.run_one_step()
+                    model.set_params(params.update(1))
                     bar.update(1)
         except StopIteration:
             pass
 
-        click.secho("💥 Finished! 💥", err=True, fg="green")
-        if "output" in params:
-            click.secho(
-                "Output written to {0}".format(rundir / params["output"]["filepath"]),
-                fg="green",
-            )
+        out("💥 Finished! 💥")
+        out("Output written to {0}".format(run_dir))
     else:
-        click.secho("Nothing to do. 😴", fg="green")
+        out("Nothing to do. 😴")
 
 
 @sequence.command()
@@ -121,15 +142,15 @@ def run(config_file, with_citations, verbose, dry_run):
     "infile",
     type=click.Choice(
         sorted(
-            ["bathymetry", "config", "config.output", "sealevel", "subsidence"]
-            + [f"config.{name}" for name in SequenceModel.DEFAULT_PARAMS]
+            ["bathymetry", "sequence", "sequence.output", "sealevel", "subsidence"]
+            + [f"sequence.{name}" for name in SequenceModel.DEFAULT_PARAMS]
         )
     ),
 )
 @click.option("--set", multiple=True, help="Set model parameters")
 def show(infile, set):
     """Show example input files."""
-    click.secho(_contents_of_input_file(infile, set), err=False)
+    print(_contents_of_input_file(infile, set))
 
 
 @sequence.command()
@@ -144,20 +165,19 @@ def setup(destination, set):
 
     files = [
         pathlib.Path(fname)
-        for fname in ["bathymetry.csv", "config.yaml", "sealevel.csv", "subsidence.csv"]
+        for fname in ["bathymetry.csv", "sequence.yaml", "sealevel.csv", "subsidence.csv"]
     ]
 
     existing_files = [folder / name for name in files if (folder / name).exists()]
     if existing_files:
         for name in existing_files:
-            click.secho(
-                f"{name}: File exists. Either remove and then rerun or choose a different destination folder",
-                err=True,
+            err(
+                f"{name}: File exists. Either remove and then rerun or choose a different destination folder"
             )
     else:
         for fname in files:
             with open(folder / fname, "w") as fp:
                 print(_contents_of_input_file(fname.stem, set), file=fp)
-        click.secho(str(folder / "config.yaml"), err=False)
+        print(str(folder))
 
     sys.exit(len(existing_files))

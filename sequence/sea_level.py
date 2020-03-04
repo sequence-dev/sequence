@@ -1,6 +1,9 @@
 import numpy as np
+
 from landlab import Component
 from scipy import interpolate
+
+from landlab import Component
 
 
 class SeaLevelTimeSeries(Component):
@@ -35,8 +38,17 @@ class SeaLevelTimeSeries(Component):
         """
         super(SeaLevelTimeSeries, self).__init__(grid, **kwds)
 
-        data = np.loadtxt(filepath, delimiter=",")
-        self._sea_level = interpolate.interp1d(
+        self._filepath = filepath
+        self._kind = kind
+
+        self._sea_level = SeaLevelTimeSeries._sea_level_interpolator(
+            np.loadtxt(self._filepath, delimiter=","), kind=self._kind
+        )
+        self._time = start
+
+    @staticmethod
+    def _sea_level_interpolator(data, kind="linear"):
+        return interpolate.interp1d(
             data[:, 0],
             data[:, 1],
             kind=kind,
@@ -45,7 +57,16 @@ class SeaLevelTimeSeries(Component):
             bounds_error=True,
         )
 
-        self._time = start
+    @property
+    def filepath(self):
+        return self._filepath
+
+    @filepath.setter
+    def filepath(self, new_path):
+        self._filepath = new_path
+        self._sea_level = SeaLevelTimeSeries._sea_level_interpolator(
+            np.loadtxt(self._filepath, delimiter=","), kind=self._kind
+        )
 
     @property
     def time(self):
