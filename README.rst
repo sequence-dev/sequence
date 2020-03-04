@@ -5,6 +5,9 @@ sequence: Sequence-stratigraphic modeling with Python
 .. image:: https://img.shields.io/travis/sequence-dev/sequence.svg
         :target: https://travis-ci.org/sequence-dev/sequence
 
+.. image:: https://ci.appveyor.com/api/projects/status/380ox1dv8hekefq9?svg=true
+    :target: https://ci.appveyor.com/project/mcflugen/sequence/branch/develop
+
 .. image:: https://readthedocs.org/projects/sequence/badge/?version=latest
         :target: https://sequence.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
@@ -39,7 +42,7 @@ in *requirements-testing.txt*.
 Installation
 ------------
 
-To install *Sequence* from source, first create a new environment in
+To install *Sequence*, first create a new environment in
 which *Sequence* will be installed. This, although not necessary, will
 isolate the installation so that there won't be conflicts with your
 base *Python* installation. This can be done with *conda* as::
@@ -47,9 +50,26 @@ base *Python* installation. This can be done with *conda* as::
   $ conda create -n sequence python=3
   $ conda activate sequence
 
-To then install *Sequence* into this environment::
+Stable Release
+++++++++++++++
 
-  $ pip install -e .
+*Sequence*, and its dependencies, can be installed either with *pip*
+or *conda*. Using *pip*::
+
+    $ pip install sequence
+
+Using *conda*::
+
+    $ conda install sequence -c conda-forge
+
+From Source
++++++++++++
+
+After downloading the *Sequence* source code, run the following from
+*Sequence*'s top-level folder (the one that contains *setup.py*) to
+install *Sequence* into the current environment::
+
+  $ pip install -e . --pre
 
 Input Files
 -----------
