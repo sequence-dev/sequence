@@ -1,9 +1,6 @@
 import numpy as np
-
 from landlab import Component
 from scipy import interpolate
-
-from landlab import Component
 
 
 class SeaLevelTimeSeries(Component):

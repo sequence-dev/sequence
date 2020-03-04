@@ -165,7 +165,12 @@ def setup(destination, set):
 
     files = [
         pathlib.Path(fname)
-        for fname in ["bathymetry.csv", "sequence.yaml", "sealevel.csv", "subsidence.csv"]
+        for fname in [
+            "bathymetry.csv",
+            "sequence.yaml",
+            "sealevel.csv",
+            "subsidence.csv",
+        ]
     ]
 
     existing_files = [folder / name for name in files if (folder / name).exists()]

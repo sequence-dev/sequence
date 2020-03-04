@@ -1,8 +1,8 @@
 import numpy as np
 import xarray as xr
+from landlab import RasterModelGrid
 from pytest import approx, raises
 
-from landlab import RasterModelGrid
 from sequence import OutputWriter
 
 
