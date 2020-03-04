@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 import numpy as np
+
 from landlab import Component
 
 from .shoreline import find_shoreline
