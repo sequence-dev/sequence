@@ -74,7 +74,7 @@ class Fluvial(Component):
         self.basin_length = (
             100000.0
         )  # length for downstream increase in diffusion */ was 500000.
-        self.hemi_taper = 100000.  # taper out hemipelagic deposition over 100 km
+        self.hemi_taper = 40000.  # taper out hemipelagic deposition e-folding 40 km
 
         self.sand_frac = sand_frac
         self.sediment_load = sediment_load
@@ -256,8 +256,8 @@ class Fluvial(Component):
                  self.hemi*dt)
                  taper = i
             elif water_depth[i] >= 2*self.wave_base:
-                 add_mud[i] = (self.hemi * dt) * (1- (x[i]-x[taper])/self.hemi_taper)
-                 if add_mud[i] < 0.:  add_mud[i] = 0.
+                 add_mud[i] = (self.hemi*dt) * np.exp((x[taper]-x[i])/self.hemi_taper)
+                 if add_mud[i] <= 0.:  add_mud[i] = self.hemi * dt/100.
         
         thickness = (
             self.grid.at_node["sediment_deposit__thickness"]
@@ -269,6 +269,7 @@ class Fluvial(Component):
         except ValueError:
             if thickness[water] <= 0.:
                  percent_sand[water] = 0.
+        percent_sand[np.isnan(percent_sand)] = 0.0
         for i in np.where(water)[0]:
             if percent_sand[i] <0.: 
                 percent_sand[i] = 0.
