@@ -2,14 +2,15 @@ sequence: Sequence-stratigraphic modeling with Python
 =====================================================
 
 .. image:: https://img.shields.io/travis/sequence-dev/sequence.svg
-        :target: https://travis-ci.org/sequence-dev/sequence
+  :target: https://travis-ci.org/sequence-dev/sequence
 
 .. image:: https://ci.appveyor.com/api/projects/status/380ox1dv8hekefq9?svg=true
-    :target: https://ci.appveyor.com/project/mcflugen/sequence/branch/develop
+  :target: https://ci.appveyor.com/project/mcflugen/sequence/branch/develop
 
-.. image:: https://readthedocs.org/projects/sequence/badge/?version=latest
-        :target: https://sequence.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
+.. image:: https://readthedocs.org/projects/sequence/badge/?version=develop
+  :target: https://sequence.readthedocs.io/en/develop/?badge=develop
+  :alt: Documentation Status
+
 
 About
 -----
@@ -80,7 +81,7 @@ The main *Sequence* input file is a yaml-formatted text file that lists
 parameter values for the various components. Running the following will
 print a sample *Sequence* parameter file::
 
-  $ sequence show sequence
+  $ sequence generate sequence.yaml
 
 Bathymetry File
 +++++++++++++++
@@ -88,7 +89,7 @@ Bathymetry File
 The *Sequence* bathymetry file defines initial sea-floor elevations in
 a two-column CSV file. A sample bathymetry file can be obtained with::
 
-  $ sequence show bathymetry
+  $ sequence generate bathymetry.csv
   # X [m], Elevation [m]
   0.0,20.0
   100000.0,-80.0
@@ -103,7 +104,7 @@ The *Sequence* sea-level file defines sea-level elevations with simulation
 time. It consists of two (comma separated) columns of time and sea-level
 elevation, respectively. For a sample sea-level file::
 
-  $ sequence show sealevel
+  $ sequence generate sealevel.csv
   # Time [y], Sea-Level Elevation [m]
   0.0,0.0
   200000.0,-10.0
@@ -116,7 +117,7 @@ the profile. It consists of two (comma separated) columns that give position
 along the profile and subsidence rate, respectively. For a sample subsidence
 file::
 
-  $ sequence show subsidence
+  $ sequence generate subsidence.csv
   # Time [y], Subsidence Rate [m / y]
   0.0,0.0
   30000.0,0.0
