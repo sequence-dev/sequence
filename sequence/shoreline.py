@@ -11,29 +11,41 @@ class ShorelineFinder(Component):
 
     _name = "Shoreline finder"
 
-    _input_var_names = ("topographic__elevation", "sea_level__elevation")
+    _unit_agnostic = True
 
-    _output_var_names = ("x_of_shore",)
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "sea_level__elevation": "m",
-        "x_of_shore": "m",
-        "x_of_shelf_edge": "m",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "sea_level__elevation": "grid",
-        "x_of_shore": "grid",
-        "x_of_shelf_edge": "grid",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Elevation of the land and sea floor",
-        "sea_level__elevation": "Elevation of sea level",
-        "x_of_shore": "Position of the shore line",
-        "x_of_shelf_edge": "Position of the shelf edge",
+    _info = {
+        "topographic__elevation": {
+            "dtype": "float",
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Elevation of the land and sea floor",
+        },
+        "sea_level__elevation": {
+            "dtype": "float",
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "grid",
+            "doc": "Elevation of sea level",
+        },
+        "x_of_shore": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "grid",
+            "doc": "Position of the shore line",
+        },
+        "x_of_shelf_edge": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "grid",
+            "doc": "Position of the shelf edge",
+        },
     }
 
     def __init__(self, grid, alpha=0.0005):

@@ -10,26 +10,23 @@ class SubsidenceTimeSeries(Component):
 
     _time_units = "y"
 
-    _input_var_names = ()
-
-    _output_var_names = (
-        "bedrock_surface__increment_of_elevation",
-        "bedrock_surface__elevation",
-    )
-
-    _var_units = {
-        "bedrock_surface__increment_of_elevation": "m",
-        "bedrock_surface__elevation": "m",
-    }
-
-    _var_mapping = {
-        "bedrock_surface__increment_of_elevation": "node",
-        "bedrock_surface__elevation": "node",
-    }
-
-    _var_doc = {
-        "bedrock_surface__increment_of_elevation": "Increment of elevation",
-        "bedrock_surface__elevation": "Surface elevation",
+    _info = {
+        "bedrock_surface__increment_of_elevation": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Increment of elevation",
+        },
+        "bedrock_surface__elevation": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Surface elevation",
+        },
     }
 
     def __init__(self, grid, filepath=None, kind="linear", **kwds):

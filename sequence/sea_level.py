@@ -9,15 +9,18 @@ class SeaLevelTimeSeries(Component):
 
     _time_units = "y"
 
-    _input_var_names = ()
+    _unit_agnostic = True
 
-    _output_var_names = ("sea_level__elevation",)
-
-    _var_units = {"sea_level__elevation": "m"}
-
-    _var_mapping = {"sea_level__elevation": "grid"}
-
-    _var_doc = {"sea_level__elevation": "Sea level elevation"}
+    _info = {
+        "sea_level__elevation": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "grid",
+            "doc": "Sea level elevation",
+        }
+    }
 
     def __init__(self, grid, filepath, kind="linear", start=0.0, **kwds):
         """Generate sea level values.
