@@ -69,7 +69,7 @@ Ready to contribute? Here's how to set up `sequence` for local development.
 
     $ conda create -n sequence
     $ conda activate sequence
-    $ conda install --file=requirements_dev.txt
+    $ conda install --file=requirements-develop.txt
     $ python setup.py develop
 
 4. Create a branch for local development::
