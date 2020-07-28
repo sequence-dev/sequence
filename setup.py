@@ -2,8 +2,20 @@ from setuptools import find_packages, setup
 
 import versioneer
 
-with open("README.rst") as readme_file:
-    readme = readme_file.read()
+
+def read(filename):
+    with open(filename, "r", encoding="utf-8") as fp:
+        return fp.read()
+
+
+long_description = u'\n\n'.join(
+    [
+        read('README.rst'),
+        read('AUTHORS.rst'),
+        read('CHANGES.rst'),
+    ]
+)
+
 
 setup(
     author="Eric Hutton",
@@ -16,12 +28,14 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
     ],
     description="Python version of the Steckler Sequence model",
+    long_description=long_description,
     install_requires=open("requirements.txt", "r").read().splitlines(),
     license="MIT license",
     include_package_data=True,
-    keywords="sequence",
+    keywords=["sequence", "landlab"],
     name="sequence",
     packages=find_packages(include=["sequence"]),
     test_suite="tests",
