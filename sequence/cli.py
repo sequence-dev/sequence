@@ -196,7 +196,7 @@ def generate(infile, set):
 def setup(set):
     """Setup a folder of input files for a simulation."""
     # folder = pathlib.Path(destination)
-    cwd = pathlib.Path.cwd()
+    folder = pathlib.Path.cwd()
 
     files = [
         pathlib.Path(fname)

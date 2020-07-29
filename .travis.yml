@@ -50,8 +50,8 @@ script:
 - pytest --cov=sequence --cov-report= --cov-report=xml -vvv
 - make lint install
 - mkdir example
-- sequence setup example
-- sequence run example
-- sequence run data/marmara/
+- sequence --cd=example setup
+- sequence --cd=example run
+- cd data/marmara && sequence run
 after_success:
 - coveralls --verbose
