@@ -21,7 +21,7 @@ class SubsidenceTimeSeries(Component):
         },
         "bedrock_surface__elevation": {
             "dtype": "float",
-            "intent": "out",
+            "intent": "inout",
             "optional": False,
             "units": "m",
             "mapping": "node",
@@ -29,7 +29,7 @@ class SubsidenceTimeSeries(Component):
         },
     }
 
-    def __init__(self, grid, filepath=None, kind="linear"):  #, **kwds):
+    def __init__(self, grid, filepath=None, kind="linear"):
         """Generate subsidence rates.
 
         Parameters
@@ -43,20 +43,12 @@ class SubsidenceTimeSeries(Component):
             'nearest', 'zero', 'slinear', 'quadratic', 'cubic').
             Default is 'linear'.
         """
-        super(SubsidenceTimeSeries, self).__init__(grid)  # , **kwds)
+        super(SubsidenceTimeSeries, self).__init__(grid)
 
         self._filepath = filepath
         self._kind = kind
 
         data = np.loadtxt(filepath, delimiter=",", comments="#")
-        # subsidence = interpolate.interp1d(
-        #     data[:, 0],
-        #     data[:, 1],
-        #     kind=kind,
-        #     copy=True,
-        #     assume_sorted=True,
-        #     bounds_error=True,
-        # )
         subsidence = SubsidenceTimeSeries._subsidence_interpolator(
             data, kind=self._kind
         )
@@ -91,12 +83,13 @@ class SubsidenceTimeSeries(Component):
     def filepath(self, new_path):
         self._filepath = new_path
         subsidence = SubsidenceTimeSeries._subsidence_interpolator(
-            np.loadtxt(self._filepath, delimiter=","), kind=self._kind
+            np.loadtxt(self._filepath, delimiter=",", comments="#"), kind=self._kind
         )
         inc = self.grid.at_node["bedrock_surface__increment_of_elevation"].reshape(
             self.grid.shape
         )
         inc[:] = subsidence(self.grid.x_of_node[self.grid.nodes_at_bottom_edge])
+        self._dz = inc.copy()
 
     def run_one_step(self, dt):
         dz = self.grid.at_node["bedrock_surface__increment_of_elevation"]
