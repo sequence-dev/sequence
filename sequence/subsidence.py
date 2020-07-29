@@ -32,7 +32,7 @@ class SubsidenceTimeSeries(Component):
         "bedrock_surface__elevation": "Surface elevation",
     }
 
-    def __init__(self, grid, filepath=None, kind="linear", **kwds):
+    def __init__(self, grid, filepath=None, kind="linear"):  #, **kwds):
         """Generate subsidence rates.
 
         Parameters
@@ -46,16 +46,22 @@ class SubsidenceTimeSeries(Component):
             'nearest', 'zero', 'slinear', 'quadratic', 'cubic').
             Default is 'linear'.
         """
-        super(SubsidenceTimeSeries, self).__init__(grid, **kwds)
+        super(SubsidenceTimeSeries, self).__init__(grid)  # , **kwds)
+
+        self._filepath = filepath
+        self._kind = kind
 
         data = np.loadtxt(filepath, delimiter=",", comments="#")
-        subsidence = interpolate.interp1d(
-            data[:, 0],
-            data[:, 1],
-            kind=kind,
-            copy=True,
-            assume_sorted=True,
-            bounds_error=True,
+        # subsidence = interpolate.interp1d(
+        #     data[:, 0],
+        #     data[:, 1],
+        #     kind=kind,
+        #     copy=True,
+        #     assume_sorted=True,
+        #     bounds_error=True,
+        # )
+        subsidence = SubsidenceTimeSeries._subsidence_interpolator(
+            data, kind=self._kind
         )
         inc = self.grid.add_empty(
             "bedrock_surface__increment_of_elevation", at="node"
@@ -65,9 +71,35 @@ class SubsidenceTimeSeries(Component):
         self._dz = inc.copy()
         self._time = 0.0
 
+    @staticmethod
+    def _subsidence_interpolator(data, kind="linear"):
+        return interpolate.interp1d(
+            data[:, 0],
+            data[:, 1],
+            kind=kind,
+            copy=True,
+            assume_sorted=True,
+            bounds_error=True,
+        )
+
     @property
     def time(self):
         return self._time
+
+    @property
+    def filepath(self):
+        return self._filepath
+
+    @filepath.setter
+    def filepath(self, new_path):
+        self._filepath = new_path
+        subsidence = SubsidenceTimeSeries._subsidence_interpolator(
+            np.loadtxt(self._filepath, delimiter=","), kind=self._kind
+        )
+        inc = self.grid.at_node["bedrock_surface__increment_of_elevation"].reshape(
+            self.grid.shape
+        )
+        inc[:] = subsidence(self.grid.x_of_node[self.grid.nodes_at_bottom_edge])
 
     def run_one_step(self, dt):
         dz = self.grid.at_node["bedrock_surface__increment_of_elevation"]
