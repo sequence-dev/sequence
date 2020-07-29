@@ -71,9 +71,15 @@ def _find_config_files(pathname):
     return zip(*sorted(items))
 
 
-@click.group()
+@click.group(chain=True)
 @click.version_option()
-def sequence():
+@click.option(
+    "--cd",
+    default=".",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, readable=True),
+    help="chage to directory, then execute",
+)
+def sequence(cd) -> None:
     """The Steckler Sequence model.
 
     \b
@@ -87,7 +93,7 @@ def sequence():
 
         $ sequence run sequence-example
     """
-    pass
+    os.chdir(cd)
 
 
 @sequence.command()
@@ -98,10 +104,9 @@ def sequence():
 @click.option(
     "--with-citations", is_flag=True, help="print citations for components used"
 )
-@click.argument("run_dir", type=click.Path(exists=True, file_okay=False, dir_okay=True))
-def run(run_dir, with_citations, verbose, dry_run):
+def run(with_citations, verbose, dry_run):
     """Run a simulation."""
-    os.chdir(run_dir)
+    run_dir = pathlib.Path.cwd()
 
     times, names = _find_config_files(".")
     params = TimeVaryingConfig.from_files(names, times=times)
@@ -122,7 +127,7 @@ def run(run_dir, with_citations, verbose, dry_run):
         try:
             with click.progressbar(
                 length=int(model.clock.stop // model.clock.step),
-                label=" ".join(["🚀", run_dir]),
+                label=" ".join(["🚀", str(run_dir)]),
             ) as bar:
                 while 1:
                     model.run_one_step()
@@ -154,14 +159,11 @@ def show(infile, set):
 
 
 @sequence.command()
-@click.argument(
-    "destination",
-    type=click.Path(exists=True, file_okay=False, dir_okay=True, readable=True),
-)
 @click.option("--set", multiple=True, help="Set model parameters")
-def setup(destination, set):
+def setup(set):
     """Setup a folder of input files for a simulation."""
-    folder = pathlib.Path(destination)
+    # folder = pathlib.Path(destination)
+    cwd = pathlib.Path.cwd()
 
     files = [
         pathlib.Path(fname)
@@ -173,7 +175,7 @@ def setup(destination, set):
         ]
     ]
 
-    existing_files = [folder / name for name in files if (folder / name).exists()]
+    existing_files = [name for name in files if name.exists()]
     if existing_files:
         for name in existing_files:
             err(
@@ -181,8 +183,9 @@ def setup(destination, set):
             )
     else:
         for fname in files:
-            with open(folder / fname, "w") as fp:
+            with open(fname, "w") as fp:
                 print(_contents_of_input_file(fname.stem, set), file=fp)
-        print(str(folder))
+                out(str(cwd / fname))
 
-    sys.exit(len(existing_files))
+    if existing_files:
+        raise click.Abort()
