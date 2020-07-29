@@ -15,7 +15,7 @@ def test_command_line_interface():
     assert "version" in result.output
 
 
-@pytest.mark.parametrize("subcommand", ("run", "show", "setup"))
+@pytest.mark.parametrize("subcommand", ("run", "generate", "setup"))
 def test_subcommand_help(subcommand):
     runner = CliRunner()
     result = runner.invoke(sequence, [subcommand, "--help"])

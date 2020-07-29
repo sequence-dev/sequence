@@ -8,15 +8,18 @@ class BathymetryReader(Component):
 
     _name = "Bathymetry"
 
-    _input_var_names = ()
+    _unit_agnostic = True
 
-    _output_var_names = ("topographic__elevation",)
-
-    _var_units = {"topographic__elevation": "m"}
-
-    _var_mapping = {"topographic__elevation": "node"}
-
-    _var_doc = {"topographic__elevation": "Surface elevation"}
+    _info = {
+        "topographic__elevation": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Surface elevation",
+        }
+    }
 
     def __init__(self, grid, filepath=None, kind="linear", **kwds):
         """Generate a bathymetric profile from a file.
