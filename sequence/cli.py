@@ -183,7 +183,7 @@ def setup(destination, set):
     else:
         for fname in files:
             with open(folder / fname, "w") as fp:
-                print(_contents_of_input_file(fname.stem, set), file=fp)
+                print(_contents_of_input_file(str(fname), set), file=fp)
         print(str(folder))
 
     sys.exit(len(existing_files))
