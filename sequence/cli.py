@@ -48,6 +48,26 @@ def _contents_of_input_file(infile, set):
 
 
 def _time_from_filename(name):
+    """Parse a time stamp from a file name.
+
+    Parameters
+    ----------
+    name : str
+        File name that contains a time stamp.
+
+    Returns
+    -------
+    int
+        Time stamp from the file name, or ``None`` if no time stamp exists.
+
+    Examples
+    --------
+    >>> from sequence.cli import _time_from_filename
+    >>> _time_from_filename("subsidence-0010.csv")
+    10
+    >>> _time_from_filename("subsidence.csv") is None
+    True
+    """
     name = pathlib.Path(name).name
 
     int_parts = [int(t) for t in re.split("([0-9]+)", name) if t.isdigit()]
@@ -59,6 +79,18 @@ def _time_from_filename(name):
 
 
 def _find_config_files(pathname):
+    """Find all of the time-varying config files for a simulation.
+
+    Parameters
+    ----------
+    pathname : str
+        Path to a folder that contains input files for a simulation.
+
+    Returns
+    -------
+    list of tuple
+        List of tuples of time stamp and file name.
+    """
     pathname = pathlib.Path(pathname)
 
     items = []
