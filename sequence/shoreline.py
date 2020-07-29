@@ -3,6 +3,7 @@ import bisect
 
 import numpy as np
 from landlab import Component
+from scipy import interpolate
 
 from .errors import ShelfEdgeError, ShorelineError
 
@@ -203,7 +204,6 @@ def find_shoreline(x, z, sea_level=0.0, kind="cubic"):
     >>> find_shoreline(x, z, sea_level=-100., kind='linear')
     9.0
     """
-    from scipy.interpolate import interp1d
     from scipy.optimize import bisect
 
     x, z = np.asarray(x), np.asarray(z)
@@ -216,7 +216,7 @@ def find_shoreline(x, z, sea_level=0.0, kind="cubic"):
         else:
             x_of_shoreline = x[-1]
     else:
-        func = interp1d(x, z - sea_level, kind=kind)
+        func = interpolate.interp1d(x, z - sea_level, kind=kind)
         x_of_shoreline = bisect(func, x[index_at_shore - 1], x[index_at_shore])
 
     return x_of_shoreline
