@@ -27,14 +27,14 @@ def _contents_of_input_file(infile, set):
         return contents
 
     contents = {
-        "sequence": yaml.dump(params, default_flow_style=False),
-        "bathymetry": as_csv(
+        "sequence.yaml": yaml.dump(params, default_flow_style=False),
+        "bathymetry.csv": as_csv(
             [[0.0, 20.0], [100000.0, -80.0]], header="X [m], Elevation [m]"
         ),
-        "sealevel": as_csv(
+        "sealevel.csv": as_csv(
             [[0.0, 0.0], [200000, -10]], header="Time [y], Sea-Level Elevation [m]"
         ),
-        "subsidence": as_csv(
+        "subsidence.csv": as_csv(
             [[0.0, 0], [30000.0, 0], [35000.0, 0], [50000.0, 0], [100000.0, 0]],
             header="Time [y], Subsidence Rate [m / y]",
         ),
@@ -142,14 +142,15 @@ def run(run_dir, with_citations, verbose, dry_run):
     "infile",
     type=click.Choice(
         sorted(
-            ["bathymetry", "sequence", "sequence.output", "sealevel", "subsidence"]
-            + [f"sequence.{name}" for name in SequenceModel.DEFAULT_PARAMS]
+            ["bathymetry.csv", "sequence.yaml", "sealevel.csv", "subsidence.csv"]
+            # ["bathymetry.csv", "sequence.yaml", "sequence.output", "sealevel.csv", "subsidence.csv"]
+            # + [f"sequence.{name}" for name in SequenceModel.DEFAULT_PARAMS]
         )
     ),
 )
-@click.option("--set", multiple=True, help="Set model parameters")
-def show(infile, set):
-    """Show example input files."""
+@click.option("--set", metavar="KEY=VALUE", multiple=True, help="Set model parameters")
+def generate(infile, set):
+    """Generate example input files."""
     print(_contents_of_input_file(infile, set))
 
 
@@ -182,7 +183,7 @@ def setup(destination, set):
     else:
         for fname in files:
             with open(folder / fname, "w") as fp:
-                print(_contents_of_input_file(fname.stem, set), file=fp)
+                print(_contents_of_input_file(str(fname), set), file=fp)
         print(str(folder))
 
     sys.exit(len(existing_files))

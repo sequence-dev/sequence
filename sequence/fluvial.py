@@ -11,26 +11,31 @@ class Fluvial(Component):
 
     _time_units = "y"
 
-    _input_var_names = ("topographic__elevation", "sea_level__elevation")
-
-    _output_var_names = "delta_sediment_sand__volume_fraction"
-
-    _var_units = {
-        "delta_sediment_sand__volume_fraction": "%",
-        "topographic__elevation": "m",
-        "sea_level__elevation": "m",
-    }
-
-    _var_mapping = {
-        "delta_sediment_sand__volume_fraction": "node",
-        "topographic__elevation": "node",
-        "sea_level__elevation": "grid",
-    }
-
-    _var_doc = {
-        "delta_sediment_sand__volume_fraction": "delta sand fraction",
-        "topographic__elevation": "land and ocean bottom elevation, positive up",
-        "sea_level__elevation": "Position of sea level",
+    _info = {
+        "topographic__elevation": {
+            "dtype": "float",
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "land and ocean bottom elevation, positive up",
+        },
+        "sea_level__elevation": {
+            "dtype": "float",
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "grid",
+            "doc": "Position of sea level",
+        },
+        "delta_sediment_sand__volume_fraction": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "noe",
+            "doc": "delta sand fraction",
+        },
     }
 
     def __init__(
