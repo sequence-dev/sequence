@@ -1,7 +1,6 @@
 import os
 import pathlib
 import re
-import sys
 from functools import partial
 from io import StringIO
 
