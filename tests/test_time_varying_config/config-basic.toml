@@ -1,0 +1,7 @@
+[sequence]
+
+[sequence.foo]
+bar = "baz"
+
+[sequence.constant]
+pi = 3.14

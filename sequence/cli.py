@@ -1,12 +1,12 @@
 import os
 import pathlib
 import re
-import sys
 from functools import partial
 from io import StringIO
 
 import click
 import numpy as np
+import tomlkit as toml
 import yaml
 
 from .input_reader import TimeVaryingConfig
@@ -28,6 +28,7 @@ def _contents_of_input_file(infile, set):
 
     contents = {
         "sequence.yaml": yaml.dump(params, default_flow_style=False),
+        "sequence.toml": toml.dumps(dict(sequence=dict(_time=0.0, **params))),
         "bathymetry.csv": as_csv(
             [[0.0, 20.0], [100000.0, -80.0]], header="X [m], Elevation [m]"
         ),
@@ -48,6 +49,26 @@ def _contents_of_input_file(infile, set):
 
 
 def _time_from_filename(name):
+    """Parse a time stamp from a file name.
+
+    Parameters
+    ----------
+    name : str
+        File name that contains a time stamp.
+
+    Returns
+    -------
+    int
+        Time stamp from the file name, or ``None`` if no time stamp exists.
+
+    Examples
+    --------
+    >>> from sequence.cli import _time_from_filename
+    >>> _time_from_filename("subsidence-0010.csv")
+    10
+    >>> _time_from_filename("subsidence.csv") is None
+    True
+    """
     name = pathlib.Path(name).name
 
     int_parts = [int(t) for t in re.split("([0-9]+)", name) if t.isdigit()]
@@ -59,10 +80,27 @@ def _time_from_filename(name):
 
 
 def _find_config_files(pathname):
+    """Find all of the time-varying config files for a simulation.
+
+    Parameters
+    ----------
+    pathname : str
+        Path to a folder that contains input files for a simulation.
+
+    Returns
+    -------
+    list of tuple
+        List of tuples of time stamp and file name.
+    """
     pathname = pathlib.Path(pathname)
 
+    toml_files = list(pathname.glob("sequence*.toml"))
+    yaml_files = list(pathname.glob("sequence*.yaml"))
+
+    config_files = toml_files if toml_files else yaml_files
+
     items = []
-    for index, config_file in enumerate(pathname.glob("sequence*.yaml")):
+    for index, config_file in enumerate(config_files):
         time = _time_from_filename(config_file)
         if time is None:
             time = index
@@ -71,9 +109,15 @@ def _find_config_files(pathname):
     return zip(*sorted(items))
 
 
-@click.group()
+@click.group(chain=True)
 @click.version_option()
-def sequence():
+@click.option(
+    "--cd",
+    default=".",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, readable=True),
+    help="chage to directory, then execute",
+)
+def sequence(cd) -> None:
     """The Steckler Sequence model.
 
     \b
@@ -81,13 +125,14 @@ def sequence():
 
       Create a folder with example input files,
 
-        $ sequence setup sequence-example
+        $ mkdir sequence-example && cd sequence-example
+        $ sequence setup
 
       Run a simulation using the examples input files,
 
-        $ sequence run sequence-example
+        $ sequence run
     """
-    pass
+    os.chdir(cd)
 
 
 @sequence.command()
@@ -98,10 +143,9 @@ def sequence():
 @click.option(
     "--with-citations", is_flag=True, help="print citations for components used"
 )
-@click.argument("run_dir", type=click.Path(exists=True, file_okay=False, dir_okay=True))
-def run(run_dir, with_citations, verbose, dry_run):
+def run(with_citations, verbose, dry_run):
     """Run a simulation."""
-    os.chdir(run_dir)
+    run_dir = pathlib.Path.cwd()
 
     times, names = _find_config_files(".")
     params = TimeVaryingConfig.from_files(names, times=times)
@@ -122,7 +166,7 @@ def run(run_dir, with_citations, verbose, dry_run):
         try:
             with click.progressbar(
                 length=int(model.clock.stop // model.clock.step),
-                label=" ".join(["🚀", run_dir]),
+                label=" ".join(["🚀", str(run_dir)]),
             ) as bar:
                 while 1:
                     model.run_one_step()
@@ -142,7 +186,7 @@ def run(run_dir, with_citations, verbose, dry_run):
     "infile",
     type=click.Choice(
         sorted(
-            ["bathymetry.csv", "sequence.yaml", "sealevel.csv", "subsidence.csv"]
+            ["bathymetry.csv", "sequence.yaml", "sequence.toml", "sealevel.csv", "subsidence.csv"]
             # ["bathymetry.csv", "sequence.yaml", "sequence.output", "sealevel.csv", "subsidence.csv"]
             # + [f"sequence.{name}" for name in SequenceModel.DEFAULT_PARAMS]
         )
@@ -155,26 +199,23 @@ def generate(infile, set):
 
 
 @sequence.command()
-@click.argument(
-    "destination",
-    type=click.Path(exists=True, file_okay=False, dir_okay=True, readable=True),
-)
 @click.option("--set", multiple=True, help="Set model parameters")
-def setup(destination, set):
+def setup(set):
     """Setup a folder of input files for a simulation."""
-    folder = pathlib.Path(destination)
+    # folder = pathlib.Path(destination)
+    folder = pathlib.Path.cwd()
 
     files = [
         pathlib.Path(fname)
         for fname in [
             "bathymetry.csv",
-            "sequence.yaml",
+            "sequence.toml",
             "sealevel.csv",
             "subsidence.csv",
         ]
     ]
 
-    existing_files = [folder / name for name in files if (folder / name).exists()]
+    existing_files = [name for name in files if name.exists()]
     if existing_files:
         for name in existing_files:
             err(
@@ -186,4 +227,5 @@ def setup(destination, set):
                 print(_contents_of_input_file(str(fname), set), file=fp)
         print(str(folder))
 
-    sys.exit(len(existing_files))
+    if existing_files:
+        raise click.Abort()

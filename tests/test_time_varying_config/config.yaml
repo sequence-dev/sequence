@@ -1,0 +1,9 @@
+- _time: 1
+  foo:
+    bar: baz
+  constant:
+    pi: 3.14
+
+- _time: 2
+  foo:
+    bar: foobar

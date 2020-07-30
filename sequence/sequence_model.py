@@ -3,7 +3,6 @@
 from collections import OrderedDict
 
 import numpy as np
-import yaml
 from landlab import RasterModelGrid
 from landlab.bmi.bmi_bridge import TimeStepper
 
@@ -13,6 +12,7 @@ from .bathymetry import BathymetryReader
 from .fluvial import Fluvial
 
 # from .raster_model import RasterModel
+from .input_reader import load_config
 from .output_writer import OutputWriter
 from .sea_level import SeaLevelTimeSeries, SinusoidalSeaLevel
 from .sediment_flexure import SedimentFlexure
@@ -179,10 +179,8 @@ class SequenceModel:
         return self._clock
 
     @classmethod
-    def from_path(cls, filepath):
-        with open(filepath, "r") as fp:
-            params = yaml.safe_load(fp)
-        return cls(**params)
+    def from_path(cls, filepath, fmt=None):
+        return cls(**load_config(filepath, fmt=fmt))
 
     def set_params(self, params):
         for component, values in params.items():

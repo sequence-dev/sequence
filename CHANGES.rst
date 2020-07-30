@@ -4,9 +4,15 @@ Changelog for sequence
 0.2.0 (unreleased)
 ------------------ 
 
+- Added support for toml-formatted input files and is now the default
+
+- Allow subsidence to vary with time
+
 - Changed to use landlab v2 components
 
 - Fixed CI on Travis and AppVeyor
+
+- Added lots of new tests, particularly for reading/writing configuration files
 
 - Use readthedocs file to configure documentation building (#19)
 
@@ -14,6 +20,8 @@ Changelog for sequence
 
 0.1.2 (2020-03-04)
 ------------------ 
+
+- Added sediment compaction
 
 - Updated installation docs (#17)
 
