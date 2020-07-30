@@ -1,7 +1,7 @@
 Changelog for sequence
 ======================
 
-0.2.0 (unreleased)
+0.2.0 (2020-07-30)
 ------------------ 
 
 - Added support for toml-formatted input files and is now the default
