@@ -1,0 +1,4 @@
+foo:
+  bar: baz
+constant:
+  pi: 3.14

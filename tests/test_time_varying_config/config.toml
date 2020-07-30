@@ -1,0 +1,14 @@
+[[sequence]]
+_time = 1
+
+  [sequence.foo]
+  bar = "baz"
+
+  [sequence.constant]
+  pi = 3.14
+
+[[sequence]]
+_time = 2
+
+  [sequence.foo]
+  bar = "foobar"
