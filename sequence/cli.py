@@ -6,6 +6,7 @@ from io import StringIO
 
 import click
 import numpy as np
+import tomlkit as toml
 import yaml
 
 from .input_reader import TimeVaryingConfig
@@ -27,6 +28,7 @@ def _contents_of_input_file(infile, set):
 
     contents = {
         "sequence.yaml": yaml.dump(params, default_flow_style=False),
+        "sequence.toml": toml.dumps(dict(sequence=dict(_time=0.0, **params))),
         "bathymetry.csv": as_csv(
             [[0.0, 20.0], [100000.0, -80.0]], header="X [m], Elevation [m]"
         ),
@@ -118,11 +120,12 @@ def sequence(cd) -> None:
 
       Create a folder with example input files,
 
-        $ sequence setup sequence-example
+        $ mkdir sequence-example && cd sequence-example
+        $ sequence setup
 
       Run a simulation using the examples input files,
 
-        $ sequence run sequence-example
+        $ sequence run
     """
     os.chdir(cd)
 
@@ -178,7 +181,7 @@ def run(with_citations, verbose, dry_run):
     "infile",
     type=click.Choice(
         sorted(
-            ["bathymetry.csv", "sequence.yaml", "sealevel.csv", "subsidence.csv"]
+            ["bathymetry.csv", "sequence.yaml", "sequence.toml", "sealevel.csv", "subsidence.csv"]
             # ["bathymetry.csv", "sequence.yaml", "sequence.output", "sealevel.csv", "subsidence.csv"]
             # + [f"sequence.{name}" for name in SequenceModel.DEFAULT_PARAMS]
         )
@@ -201,7 +204,7 @@ def setup(set):
         pathlib.Path(fname)
         for fname in [
             "bathymetry.csv",
-            "sequence.yaml",
+            "sequence.toml",
             "sealevel.csv",
             "subsidence.csv",
         ]

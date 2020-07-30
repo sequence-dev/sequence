@@ -1,7 +1,27 @@
+import inspect
 import pathlib
 
 import numpy as np
+import tomlkit as toml
 import yaml
+
+
+def load_config(stream, fmt=None):
+    if fmt is None and isinstance(stream, (str, pathlib.Path)):
+        fmt = pathlib.Path(stream).suffix[1:]
+
+    loader = TimeVaryingConfig.get_loader(fmt)
+
+    if isinstance(stream, (str, pathlib.Path)):
+        with open(stream, "r") as fp:
+            times_and_params = loader(fp)
+    else:
+        times_and_params = loader(stream)
+
+    if len(times_and_params) == 1:
+        return times_and_params[0][1]
+    else:
+        return times_and_params
 
 
 class TimeVaryingConfig:
@@ -69,13 +89,17 @@ class TimeVaryingConfig:
         self._time = next_time
         return diff
 
-    def dump(self):
+    def dump(self, fmt="toml"):
         docs = [_expand_dict(self._dicts[0])]
         for prev, next_ in zip(self._times[:-1], self._times[1:]):
             docs.append(_expand_dict(self.diff(prev, next_)))
         for time, doc in zip(self._times, docs):
             doc["_time"] = time
-        return yaml.dump_all(docs, default_flow_style=False)
+
+        if fmt == "toml":
+            return toml.dumps(dict(sequence=docs))
+        else:
+            raise ValueError(f"unrecognized format: {fmt}")
 
     @classmethod
     def from_files(cls, names, times=None):
@@ -88,11 +112,55 @@ class TimeVaryingConfig:
         return cls(times, dicts)
 
     @classmethod
-    def from_file(cls, name):
+    def from_file(cls, name, fmt=None):
+        filepath = pathlib.Path(name)
+        if fmt is None:
+            fmt = filepath.suffix[1:]
+        try:
+            loader = getattr(cls, f"load_{fmt}")
+        except AttributeError:
+            raise ValueError(f"unrecognized format: {fmt}")
+
         with open(name, "r") as fp:
-            dicts = yaml.safe_load_all(fp)
-            times = [d.pop("_time", index) for index, d in enumerate(dicts)]
-        return cls(times, dicts)
+            times_and_params = loader(fp)
+        return cls(*zip(*times_and_params))
+
+    @staticmethod
+    def load_yaml(stream):
+        doc = yaml.safe_load_all(stream)
+        params = []
+        for d in doc:
+            if isinstance(d, list):
+                params.extend(d)
+            else:
+                params.append(d)
+        return [(d.pop("_time", idx), d) for idx, d in enumerate(params)]
+
+    @staticmethod
+    def load_toml(stream):
+        doc = toml.parse(stream.read()).pop("sequence")
+        if isinstance(doc, list):
+            params = [dict(table.items()) for table in doc]
+        else:
+            params = [dict(doc.items())]
+
+        return [(d.pop("_time", idx), d) for idx, d in enumerate(params)]
+
+    @staticmethod
+    def get_loader(fmt):
+        try:
+            return getattr(TimeVaryingConfig, f"load_{fmt}")
+        except AttributeError:
+            fmts = set(TimeVaryingConfig.get_supported_formats())
+            raise ValueError(f"unrecognized format: {fmt!r} (not on of {fmts!r})")
+
+    @staticmethod
+    def get_supported_formats():
+        return [
+            name.split("_", maxsplit=1)[1]
+            for name, _ in inspect.getmembers(TimeVaryingConfig, inspect.isfunction)
+            if name.startswith("load_")
+        ]
 
 
 def _flatten_dict(d, sep=None):
