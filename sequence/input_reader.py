@@ -98,17 +98,20 @@ class TimeVaryingConfig:
 
         if fmt == "toml":
             return toml.dumps(dict(sequence=docs))
+        elif fmt == "yaml":
+            return yaml.dump(docs, default_flow_style=False)
         else:
             raise ValueError(f"unrecognized format: {fmt}")
 
     @classmethod
     def from_files(cls, names, times=None):
-        if times is None:
-            times = list(range(len(names)))
         dicts = []
         for name in [pathlib.Path(n) for n in names]:
             with open(name, "r") as fp:
-                dicts.append(yaml.safe_load(fp))
+                loader = TimeVaryingConfig.get_loader(name.suffix[1:])
+                dicts.extend([p for _, p in loader(fp)])
+        if times is None:
+            times = list(range(len(dicts)))
         return cls(times, dicts)
 
     @classmethod
@@ -138,11 +141,36 @@ class TimeVaryingConfig:
 
     @staticmethod
     def load_toml(stream):
+        def _tomlkit_to_popo(d):
+            try:
+                result = getattr(d, "value")
+            except AttributeError:
+                result = d
+
+            if isinstance(result, list):
+                result = [_tomlkit_to_popo(x) for x in result]
+            elif isinstance(result, dict):
+                result = {
+                    _tomlkit_to_popo(key): _tomlkit_to_popo(val) for key, val in result.items()
+                }
+            elif isinstance(result, toml.items.Integer):
+                result = int(result)
+            elif isinstance(result, toml.items.Float):
+                result = float(result)
+            elif isinstance(result, toml.items.String):
+                result = str(result)
+            elif isinstance(result, toml.items.Bool):
+                result = bool(result)
+            else:
+                print("unknown type", type(result))
+
+            return result
+
         doc = toml.parse(stream.read()).pop("sequence")
         if isinstance(doc, list):
-            params = [dict(table.items()) for table in doc]
+            params = [_tomlkit_to_popo(table) for table in doc]
         else:
-            params = [dict(doc.items())]
+            params = [_tomlkit_to_popo(doc)]
 
         return [(d.pop("_time", idx), d) for idx, d in enumerate(params)]
 

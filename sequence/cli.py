@@ -94,8 +94,13 @@ def _find_config_files(pathname):
     """
     pathname = pathlib.Path(pathname)
 
+    toml_files = list(pathname.glob("sequence*.toml"))
+    yaml_files = list(pathname.glob("sequence*.yaml"))
+
+    config_files = toml_files if toml_files else yaml_files
+
     items = []
-    for index, config_file in enumerate(pathname.glob("sequence*.yaml")):
+    for index, config_file in enumerate(config_files):
         time = _time_from_filename(config_file)
         if time is None:
             time = index
