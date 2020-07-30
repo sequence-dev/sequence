@@ -1,0 +1,53 @@
+[sequence.bathymetry]
+  filepath = "bathymetry.csv"
+  kind = "linear"
+[sequence.clock]
+  start = 0.0
+  step = 100.0
+  stop = 20000.0
+[sequence.compaction]
+  c = 5.0e-08
+  porosity_max = 0.5
+  porosity_min = 0.01
+  rho_grain = 2650.0
+  rho_void = 1000.0
+[sequence.flexure]
+  isostasytime = 0
+  method = "flexure"
+  rho_mantle = 3300.0
+[sequence.grid]
+  bc = {bottom = "closed", top = "closed"}
+  shape = [3, 100]
+  xy_of_lower_left = [0.0, 0.0]
+  xy_spacing = 100.0
+[sequence.output]
+  clobber = true
+  fields = ["sediment_deposit__thickness"]
+  filepath = "sequence.nc"
+  interval = 10
+  rows = [1]
+[sequence.sea_level]
+  amplitude = 10.0
+  linear = 0.0
+  phase = 0.0
+  wave_length = 1000.0
+[sequence.sediments]
+  hemipelagic = 0.0
+  layers = 2
+  mud = 0.006
+  mud_density = 2720.0
+  sand = 1.0
+  sand_density = 2650.0
+  sand_frac = 0.5
+[sequence.submarine_diffusion]
+  alpha = 0.0005
+  basin_width = 500000.0
+  load_sealevel = 0.0
+  plain_slope = 0.0008
+  sediment_load = 3.0
+  shelf_slope = 0.001
+  shoreface_height = 15.0
+  wave_base = 60.0
+[sequence.subsidence]
+  filepath = "subsidence.csv"
+
