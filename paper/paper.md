@@ -6,26 +6,28 @@ tags:
   - modeling
 authors:
   - name: Michael S. Steckler
-    orcid: 
+    orcid: 0000-0002-4828-4319
     affiliation: 1
   - name: Eric W.H. Hutton
     orcid: 0000-0002-5864-6459
     affiliation: 2
   - name: David Ologan
     orcid: 
-    affiliation: 
+    affiliation: 3
   - name: Gregory E. Tucker
     orcid: 0000-0003-0364-5800
-    affiliation: 2, 3, 4
+    affiliation: 2, 4, 5
 affiliations:
-  - name: 
+  - name: Lamont Doherty Earth Observatory of Columbia University, Palisades, NY, United States
     index: 1
-  - name: Community Surface Dynamics Modeling System, University of Colorado Boulder, USA
+  - name: Community Surface Dynamics Modeling System, University of Colorado Boulder, CO, USA
     index: 2
-  - name: Cooperative Institute for Research in Environmental Sciences (CIRES), University of Colorado Boulder, USA
+  - name: Massachusetts Institute of Technology, Cambridge, MA, USA
     index: 3
-  - name: Department of Geological Sciences, University of Colorado Boulder, USA
+  - name: Cooperative Institute for Research in Environmental Sciences (CIRES), University of Colorado Boulder, CO, USA
     index: 4
+  - name: Department of Geological Sciences, University of Colorado Boulder, CO, USA
+    index: 5
 date: 30 July 2020
 bibliography: paper.bib
 
@@ -33,7 +35,6 @@ bibliography: paper.bib
 
 Summary
 =======
-
 
 The accumulation of layers of sediment, or stratigraphy, at continental
 margins is the result of the interplay of the creation of accommodation
@@ -60,7 +61,7 @@ net effect of sediment transport and deposition for each depositional
 environment over a longer (i.e., ~100 y) timescale. The basic framework
 is a moving-boundary formulation with the coastal plain, continental
 shelf, upper slope and lower slope/rise (@steckler1993modelling;
-@syvitski2007predictiop). Submarine sediment transport and deposition
+@syvitski2007prediction). Submarine sediment transport and deposition
 is modeled as nonlinear diffusion. Sediment lithology is tracked as a
 mixture of two grain sizes corresponding to sand and mud with separate
 transport functions. The components of the code are modular to
