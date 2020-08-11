@@ -1,5 +1,6 @@
 import inspect
 import pathlib
+import warnings
 
 import numpy as np
 import tomlkit as toml
@@ -157,12 +158,16 @@ class TimeVaryingConfig:
                 result = int(result)
             elif isinstance(result, toml.items.Float):
                 result = float(result)
-            elif isinstance(result, toml.items.String):
+            elif isinstance(result, (toml.items.String, str)):
                 result = str(result)
-            elif isinstance(result, toml.items.Bool):
+            elif isinstance(result, (toml.items.Bool, bool)):
                 result = bool(result)
             else:
-                print("unknown type", type(result))
+                warnings.warn(
+                    "unexpected type ({0!r}) encountered when converting toml to a dict".format(
+                        result.__class__.__name__
+                    )
+                )
 
             return result
 
