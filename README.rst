@@ -69,7 +69,7 @@ After downloading the *Sequence* source code, run the following from
 *Sequence*'s top-level folder (the one that contains *setup.py*) to
 install *Sequence* into the current environment::
 
-  $ pip install -e . --pre
+  $ pip install -e .
 
 Input Files
 -----------
@@ -77,11 +77,11 @@ Input Files
 Sequence Parameter File
 +++++++++++++++++++++++
 
-The main *Sequence* input file is a yaml-formatted text file that lists
-parameter values for the various components. Running the following will
-print a sample *Sequence* parameter file::
+The main *Sequence* input file is a *toml*-formatted (or, optionally, *yaml*)
+text file that lists parameter values for the various components. Running
+the following will print a sample *Sequence* parameter file::
 
-  $ sequence generate sequence.yaml
+  $ sequence generate sequence.toml
 
 Bathymetry File
 +++++++++++++++
@@ -140,9 +140,10 @@ Examples
 To run a simulation using the sample input files described above, you first
 need to create a set of sample files::
 
-  $ sequence setup example
+  $ mkdir example
+  $ cd example && sequence setup
   example
 
-You can now run the simulation::
+You can now run the simulation (from within the *example* folder)::
 
-  $ sequence run example
+  $ sequence run
