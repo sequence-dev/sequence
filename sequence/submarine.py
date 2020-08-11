@@ -98,6 +98,17 @@ class SubmarineDiffuser(LinearDiffuser):
         super(SubmarineDiffuser, self).__init__(grid, **kwds)
 
     @property
+    def sediment_load(self):
+        return self._load0
+
+    @sediment_load.setter
+    def sediment_load(self, value):
+        self._load0 = float(value)
+        self._load = self._load0 * (1 + self._sea_level * self._load_sl)
+        self._ksh = self._load / self._plain_slope
+        grid.at_grid["sediment_load"] = self._load
+
+    @property
     def k0(self):
         return self._k0
 
