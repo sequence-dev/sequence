@@ -98,6 +98,47 @@ class SubmarineDiffuser(LinearDiffuser):
         super(SubmarineDiffuser, self).__init__(grid, **kwds)
 
     @property
+    def plain_slope(self):
+        return self._plain_slope
+
+    @plain_slope.setter
+    def plain_slope(self, value):
+        self._plain_slope = float(value)
+        self._ksh = self._load / self._plain_slope
+
+    @property
+    def wave_base(self):
+        return self._wave_base
+
+    @wave_base.setter
+    def wave_base(self, value):
+        self._wave_base = float(value)
+
+    @property
+    def shoreface_height(self):
+        return self._shoreface_height
+
+    @shoreface_height.setter
+    def shoreface_height(self, value):
+        self._shoreface_height = float(value)
+
+    @property
+    def alpha(self):
+        return self._alpha
+
+    @alpha.setter
+    def alpha(self, value):
+        self._alpha = float(value)
+
+    @property
+    def shelf_slope(self):
+        return self._shelf_slope
+
+    @shelf_slope.setter
+    def shelf_slope(self, value):
+        self._shelf_slope = float(value)
+
+    @property
     def sediment_load(self):
         return self._load0
 
