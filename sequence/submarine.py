@@ -11,26 +11,31 @@ class SubmarineDiffuser(LinearDiffuser):
 
     _time_units = "y"
 
-    _input_var_names = ("topographic__elevation", "sea_level__elevation")
-
-    _output_var_names = ("topographic__elevation", "sediment_deposit__thickness")
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "sea_level__elevation": "m",
-        "sediment_deposit__thickness": "m",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "sea_level__elevation": "grid",
-        "sediment_deposit__thickness": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "land and ocean bottom elevation, positive up",
-        "sea_level__elevation": "Position of sea level",
-        "sediment_deposit__thickness": "Thickness of deposition or erosion",
+    _info = {
+        "sea_level__elevation": {
+            "dtype": "float",
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "grid",
+            "doc": "Position of sea level",
+        },
+        "topographic__elevation": {
+            "dtype": "float",
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "land and ocean bottom elevation, positive up",
+        },
+        "sediment_deposit__thickness": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Thickness of deposition or erosion",
+        },
     }
 
     def __init__(
@@ -147,7 +152,7 @@ class SubmarineDiffuser(LinearDiffuser):
         self._load0 = float(value)
         self._load = self._load0 * (1 + self._sea_level * self._load_sl)
         self._ksh = self._load / self._plain_slope
-        grid.at_grid["sediment_load"] = self._load
+        self.grid.at_grid["sediment_load"] = self._load
 
     @property
     def k0(self):
