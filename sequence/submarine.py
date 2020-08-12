@@ -11,26 +11,31 @@ class SubmarineDiffuser(LinearDiffuser):
 
     _time_units = "y"
 
-    _input_var_names = ("topographic__elevation", "sea_level__elevation")
-
-    _output_var_names = ("topographic__elevation", "sediment_deposit__thickness")
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "sea_level__elevation": "m",
-        "sediment_deposit__thickness": "m",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "sea_level__elevation": "grid",
-        "sediment_deposit__thickness": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "land and ocean bottom elevation, positive up",
-        "sea_level__elevation": "Position of sea level",
-        "sediment_deposit__thickness": "Thickness of deposition or erosion",
+    _info = {
+        "sea_level__elevation": {
+            "dtype": "float",
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "grid",
+            "doc": "Position of sea level",
+        },
+        "topographic__elevation": {
+            "dtype": "float",
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "land and ocean bottom elevation, positive up",
+        },
+        "sediment_deposit__thickness": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Thickness of deposition or erosion",
+        },
     }
 
     def __init__(
@@ -96,6 +101,58 @@ class SubmarineDiffuser(LinearDiffuser):
 
         kwds.setdefault("linear_diffusivity", "kd")
         super(SubmarineDiffuser, self).__init__(grid, **kwds)
+
+    @property
+    def plain_slope(self):
+        return self._plain_slope
+
+    @plain_slope.setter
+    def plain_slope(self, value):
+        self._plain_slope = float(value)
+        self._ksh = self._load / self._plain_slope
+
+    @property
+    def wave_base(self):
+        return self._wave_base
+
+    @wave_base.setter
+    def wave_base(self, value):
+        self._wave_base = float(value)
+
+    @property
+    def shoreface_height(self):
+        return self._shoreface_height
+
+    @shoreface_height.setter
+    def shoreface_height(self, value):
+        self._shoreface_height = float(value)
+
+    @property
+    def alpha(self):
+        return self._alpha
+
+    @alpha.setter
+    def alpha(self, value):
+        self._alpha = float(value)
+
+    @property
+    def shelf_slope(self):
+        return self._shelf_slope
+
+    @shelf_slope.setter
+    def shelf_slope(self, value):
+        self._shelf_slope = float(value)
+
+    @property
+    def sediment_load(self):
+        return self._load0
+
+    @sediment_load.setter
+    def sediment_load(self, value):
+        self._load0 = float(value)
+        self._load = self._load0 * (1 + self._sea_level * self._load_sl)
+        self._ksh = self._load / self._plain_slope
+        self.grid.at_grid["sediment_load"] = self._load
 
     @property
     def k0(self):
