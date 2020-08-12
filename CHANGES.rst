@@ -1,7 +1,7 @@
 Changelog for sequence
 ======================
 
-0.3.0 (unreleased)
+0.3.0 (2020-08-11)
 ------------------
 
 - Added more time-varying parameters to SubmarineDiffuser (#24)

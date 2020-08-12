@@ -17,7 +17,7 @@ long_description = u'\n\n'.join(
 
 setup(
     name="sequence",
-    version="0.3.0.dev0",
+    version="0.3.0",
     author="Eric Hutton",
     author_email="mcflugen@gmail.com",
     classifiers=[
