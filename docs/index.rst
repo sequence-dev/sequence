@@ -49,8 +49,9 @@ Miscellaneous Pages
 .. toctree::
    :maxdepth: 2
 
-   contributing
    authors
+   changelog
+   contributing
    license
 
 

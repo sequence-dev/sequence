@@ -6,6 +6,8 @@ Changelog for sequence
 
 - Added more time-varying parameters to SubmarineDiffuser (#24)
 
+- Improved documentation for time-varying parameters (#23)
+
 
 0.2.0 (2020-07-30)
 ------------------ 
