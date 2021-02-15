@@ -84,7 +84,9 @@ def test_set_subsidence_file(tmpdir):
         with open("subsidence-0.csv", "w") as fp:
             fp.write("0.0,10.0\n4.0,10.0")
         subsidence = SubsidenceTimeSeries(grid, filepath="subsidence-0.csv")
-        assert_array_equal(grid.at_node["bedrock_surface__increment_of_elevation"], 10.0)
+        assert_array_equal(
+            grid.at_node["bedrock_surface__increment_of_elevation"], 10.0
+        )
 
         subsidence.run_one_step(dt=1.0)
         assert_array_equal(grid.at_node["bedrock_surface__elevation"], 10.0)

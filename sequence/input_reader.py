@@ -152,7 +152,8 @@ class TimeVaryingConfig:
                 result = [_tomlkit_to_popo(x) for x in result]
             elif isinstance(result, dict):
                 result = {
-                    _tomlkit_to_popo(key): _tomlkit_to_popo(val) for key, val in result.items()
+                    _tomlkit_to_popo(key): _tomlkit_to_popo(val)
+                    for key, val in result.items()
                 }
             elif isinstance(result, toml.items.Integer):
                 result = int(result)

@@ -48,7 +48,7 @@ MOCK_MODULES = [
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
-if os.environ.get('READTHEDOCS', ''):
+if os.environ.get("READTHEDOCS", ""):
     # RTD doesn't use the repo's Makefile to build docs.
     import subprocess
 
@@ -77,7 +77,6 @@ extensions = [
     "sphinx.ext.autosummary",
     # "IPython.sphinxext.ipython_console_highlighting",
     # "sphinxcontrib_github_alt",
-
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -130,7 +129,7 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-#html_theme = "bizstyle"
+# html_theme = "bizstyle"
 html_theme = "alabaster"
 
 # Theme options are theme-specific and customize the look and feel of a
@@ -221,5 +220,5 @@ html_sidebars = {
         "links.html",
         "sourcelink.html",
         "searchbox.html",
-    ]
+    ],
 }
