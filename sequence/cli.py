@@ -10,7 +10,8 @@ import tomlkit as toml
 import yaml
 
 from .input_reader import TimeVaryingConfig
-from .raster_model import load_model_params
+from .plot import plot_strat
+from .raster_model import load_model_params, load_params_from_strings
 from .sequence_model import SequenceModel
 
 out = partial(click.secho, bold=True, err=True)
@@ -186,7 +187,13 @@ def run(with_citations, verbose, dry_run):
     "infile",
     type=click.Choice(
         sorted(
-            ["bathymetry.csv", "sequence.yaml", "sequence.toml", "sealevel.csv", "subsidence.csv"]
+            [
+                "bathymetry.csv",
+                "sequence.yaml",
+                "sequence.toml",
+                "sealevel.csv",
+                "subsidence.csv",
+            ]
             # ["bathymetry.csv", "sequence.yaml", "sequence.output", "sealevel.csv", "subsidence.csv"]
             # + [f"sequence.{name}" for name in SequenceModel.DEFAULT_PARAMS]
         )
@@ -229,3 +236,25 @@ def setup(set):
 
     if existing_files:
         raise click.Abort()
+
+
+@sequence.command()
+@click.option("--set", multiple=True, help="Set model parameters")
+@click.option(
+    "-v", "--verbose", is_flag=True, help="Also emit status messages to stderr."
+)
+def plot(set, verbose):
+    """Plot a sequence output file."""
+    folder = pathlib.Path.cwd()
+
+    config = (
+        TimeVaryingConfig.from_file(folder / "sequence.toml")
+        .as_dict()
+        .get("plot", dict())
+    )
+    config.update(**load_params_from_strings(set))
+
+    if verbose:
+        out(toml.dumps(dict(sequence=dict(plot=config))))
+
+    plot_strat(folder / "sequence.nc", **config)
