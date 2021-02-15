@@ -7,6 +7,8 @@ sequence: Sequence-stratigraphic modeling with Python
 
 .. image:: https://github.com/sequence-dev/sequence/workflows/Black/badge.svg
 
+.. image:: https://github.com/sequence-dev/sequence/workflows/Documentation/badge.svg
+
 .. image:: https://readthedocs.org/projects/sequence/badge/?version=develop
   :target: https://sequence.readthedocs.io/en/develop/?badge=develop
   :alt: Documentation Status
