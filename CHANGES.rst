@@ -4,7 +4,7 @@ Changelog for sequence
 0.3.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Changed to use GitHub Actions for continuous integration (#26)
 
 
 0.3.0 (2020-08-11)

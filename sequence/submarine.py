@@ -78,7 +78,7 @@ class SubmarineDiffuser(LinearDiffuser):
             Length of drainage basin upstream of model.  Creates increase in
             diffusivity downstream by (basin_width + x) / basin_width
             from increase river flow (m).
-         """
+        """
         self._plain_slope = float(plain_slope)
         self._wave_base = float(wave_base)
         self._shoreface_height = float(shoreface_height)

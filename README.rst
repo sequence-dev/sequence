@@ -1,11 +1,13 @@
 sequence: Sequence-stratigraphic modeling with Python
 =====================================================
 
-.. image:: https://img.shields.io/travis/sequence-dev/sequence.svg
-  :target: https://travis-ci.org/sequence-dev/sequence
+.. image:: https://github.com/sequence-dev/sequence/workflows/Build/Test%20CI/badge.svg
 
-.. image:: https://ci.appveyor.com/api/projects/status/380ox1dv8hekefq9?svg=true
-  :target: https://ci.appveyor.com/project/mcflugen/sequence/branch/develop
+.. image:: https://github.com/sequence-dev/sequence/workflows/Flake8/badge.svg
+
+.. image:: https://github.com/sequence-dev/sequence/workflows/Black/badge.svg
+
+.. image:: https://github.com/sequence-dev/sequence/workflows/Documentation/badge.svg
 
 .. image:: https://readthedocs.org/projects/sequence/badge/?version=develop
   :target: https://sequence.readthedocs.io/en/develop/?badge=develop
