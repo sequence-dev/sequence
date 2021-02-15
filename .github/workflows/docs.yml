@@ -13,18 +13,18 @@ jobs:
     
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v2
+          - uses: actions/checkout@v2
         
-              - name: Set up Python 3.9
-                uses: actions/setup-python@v2
-                with:
-                  python-version: 3.9
-        
-              - name: Install dependencies
-                run: |
-                  python -m pip install --upgrade pip setuptools wheel
-                  conda install --file=requirements.txt -c conda-forge
-                  python -m pip install -e "."
-                  python -m pip install -r "requirements-docs.txt"
-              - name: Build documentation
-                run: make -C docs clean html            
+          - name: Set up Python 3.9
+            uses: actions/setup-python@v2
+            with:
+              python-version: 3.9
+    
+          - name: Install dependencies
+            run: |
+              python -m pip install --upgrade pip setuptools wheel
+              conda install --file=requirements.txt -c conda-forge
+              python -m pip install -e "."
+              python -m pip install -r "requirements-docs.txt"
+          - name: Build documentation
+            run: make -C docs clean html            
