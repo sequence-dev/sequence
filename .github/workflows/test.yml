@@ -1,0 +1,47 @@
+name: Build/Test CI
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: [3.8, 3.9]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+          channels: conda-forge
+          channel-priority: true
+
+      - name: Show conda installation info
+        run: conda info
+
+      - name: Build and install package
+        run: pip install .
+
+      - name: Install testing dependencies
+        run: conda install --file=requirements-testing.txt -c conda-forge
+
+      - name: Test
+        run: |
+          python -c 'import sequence; print(sequence.__version__)'
+          pytest --cov=sequence --cov-report= --cov-report=xml -vvv
+          sequence --cd=example setup
+          sequence --cd=example run
+          sequence --cd=data/marmara run
+
+      - name: Coveralls
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
+        uses: AndreMiras/coveralls-python-action@v20201129
