@@ -38,7 +38,7 @@ def _contents_of_input_file(infile, set):
         ),
         "subsidence.csv": as_csv(
             [[0.0, 0], [30000.0, 0], [35000.0, 0], [50000.0, 0], [100000.0, 0]],
-            header="Time [y], Subsidence Rate [m / y]",
+            header="X [x], Subsidence Rate [m / y]",
         ),
     }
     for section, section_params in params.items():
@@ -247,11 +247,14 @@ def plot(set, verbose):
     """Plot a sequence output file."""
     folder = pathlib.Path.cwd()
 
-    config = (
-        TimeVaryingConfig.from_file(folder / "sequence.toml")
-        .as_dict()
-        .get("plot", dict())
-    )
+    if (folder / "sequence.toml").exists():
+        config = (
+            TimeVaryingConfig.from_file(folder / "sequence.toml")
+            .as_dict()
+            .get("plot", dict())
+        )
+    else:
+        config = {}
     config.update(**load_params_from_strings(set))
 
     if verbose:
