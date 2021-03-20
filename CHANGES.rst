@@ -4,6 +4,11 @@ Changelog for sequence
 0.3.1 (unreleased)
 ------------------
 
+- Updated README documentation. Added descriptions of the
+  sequence.grid and sequence.output sections for the
+  sequence.toml file, and added documentation for the plot
+  subcommand (#27)
+
 - Changed to use GitHub Actions for continuous integration (#26)
 
 - Added "plot" subcommand to sequence for plotting stratigraphic output
