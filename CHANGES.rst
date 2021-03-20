@@ -1,7 +1,7 @@
 Changelog for sequence
 ======================
 
-0.3.1 (unreleased)
+0.4.0 (unreleased)
 ------------------
 
 - Updated README documentation. Added descriptions of the
