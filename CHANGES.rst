@@ -6,6 +6,9 @@ Changelog for sequence
 
 - Changed to use GitHub Actions for continuous integration (#26)
 
+- Added "plot" subcommand to sequence for plotting stratigraphic output
+  from a netcdf file (#25)
+
 
 0.3.0 (2020-08-11)
 ------------------

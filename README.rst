@@ -158,6 +158,67 @@ Following is the generated input file,
     rho_void = 1000.0
 
 
+.. _The grid section:
+
+
+The grid section
+~~~~~~~~~~~~~~~~
+
+You define the grid on which *Sequence* will run in the `sequence.grid` section.
+An example gid section looks like,
+
+.. code::
+
+    [sequence.grid]
+    shape = [3, 500]
+    xy_spacing = 100.0
+    xy_of_lower_left = [0.0, 0.0]
+
+In this case we have a grid that, if we are looking down on it from above, consists
+of three rows and 500 columns (the *shape* parameter). *Sequence* is a 1D model and
+uses only the middle row of nodes so you will never want to change the number of
+rows from a value of 3. You can play with the number of columns though—this is the
+number of stacks of sediment you have along your profile.
+
+The *xy_spacing* parameter is the width of each of your sediment stacks in meters.
+Thus, the length of you domain is the product of the number of columns with
+the spacing (that is, for this example, 500 * 100 m or 50 km).
+
+The *xy_of_lower_left* parameter gives the position of the lower-left node of
+you grid. In *Sequence*, this parameter is not used.
+
+The output section
+~~~~~~~~~~~~~~~~~~
+
+You can define when and what *Sequence* will save to a NetCDF file while it is running.
+Here is an example output section,
+
+.. code::
+
+    [sequence.output]
+    interval = 10
+    filepath = "sequence.nc"
+    clobber = true
+    rows = [1]
+    fields = ["sediment_deposit__thickness"]
+
+The *interval* parameter is the interval, in time steps (**not** years), that
+*Sequence* will write data to a file. Other parameters, which you will
+probably not want to change, are:
+
+* *filepath*: the name of the output NetCDF file to which output is written.
+* *clobber*: what *Sequence* should do if the output file exists. If `true`,
+  an existing file will be overwritten, otherwise *Sequence* will raise an
+  error.
+* *rows*: as described in `The grid section`_ a *Sequence* grid consists
+  of three rows. The *rows* parameter specifies which of these rows to
+  write to the output file.
+* *fields*: a list of names of quantities you would like *Sequence* to include
+  in the NetCDF file. *Sequence* keeps track of many quantities, most of which
+  you probably aren't interested in and so this parameter limits the number
+  of quantities written as output.
+
+.. _Time-varying parameters:
 
 Time-varying parameters
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -215,14 +276,19 @@ along the profile and subsidence rate, respectively. For a sample subsidence
 file::
 
   $ sequence generate subsidence.csv
-  # Time [y], Subsidence Rate [m / y]
+  # X [y], Subsidence Rate [m / y]
   0.0,0.0
   30000.0,0.0
   35000.0,0.0
   50000.0,0.0
   100000.0,0.0
 
-Note that positive rates represent uplift.
+.. note::
+
+  Positive rates represent **uplift**.
+
+If you would like your subsidence profile to change with time, see the
+section above, `Time-varying parameters`_.
 
 Output File
 -----------
@@ -244,3 +310,43 @@ need to create a set of sample files::
 You can now run the simulation (from within the *example* folder)::
 
   $ sequence run
+
+Plotting output
+---------------
+
+The *Sequence* program provides a command-line utility for generating a quick
+plot of *Sequence* output from a NetCDF file named *sequence.nc*. As an
+example,
+
+.. code::
+
+    $ sequence plot
+
+If you would like to change some aspects of the generated plot, you can add
+a *sequence.plot* section to your *sequence.toml* file. For example, here
+is a *sequence.plot* section,
+
+.. code:: toml
+
+    [sequence.plot]
+    color_water = [0.8, 1.0, 1.0]
+    color_land = [0.8, 1.0, 0.8]
+    color_shoreface = [0.8, 0.8, 0.0]
+    color_shelf = [0.75, 0.5, 0.5]
+    layer_line_color = "k"
+    layer_line_width = 0.5
+    title = "{filename}"
+    x_label = "Distance (m)"
+    y_label = "Elevation (m)"
+    legend_location = "upper right"
+    layer_start=0
+    layer_stop = -1
+    n_layers = 5
+
+The *color_* parameters give colors of various pieces of the plot as
+fractions of [*red*, *green*, *blue*]. Some other parameters, which may
+not be obvious,
+
+* *layer_start*: the first layer to plot
+* *layer_stop*: the last layer to plot (a value of -1 means stop at the last layer)
+* *n_layers*: the number of layers to plot.
