@@ -154,7 +154,9 @@ def run(with_citations, verbose, dry_run):
     if verbose:
         out(params.dump())
 
-    model = SequenceModel(**params.as_dict())
+    model_params = params.as_dict()
+    model_params.pop("plot", None)
+    model = SequenceModel(**model_params)
 
     if with_citations:
         from landlab.core.model_component import registry
