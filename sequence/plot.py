@@ -19,9 +19,9 @@ def pairwise(iterable):
 def plot_strat(
     filename,
     color_water=(0.8, 1.0, 1.0),
-    color_land=(0.8, 1.0, 0.8, 0.5),
-    color_shoreface=(0.8, 0.8, 0.0, 0.5),
-    color_shelf=(0.75, 0.5, 0.5, 0.5),
+    color_land=(0.8, 1.0, 0.8),
+    color_shoreface=(0.8, 0.8, 0.0),
+    color_shelf=(0.75, 0.5, 0.5),
     layer_line_width=0.5,
     layer_line_color="k",
     layer_start=0,
@@ -46,40 +46,24 @@ def plot_strat(
         thickness_at_layer = ds["at_layer:thickness"][:n_times]
         x_of_shore = ds["at_grid:x_of_shore"].data.squeeze()
         x_of_shelf_edge = ds["at_grid:x_of_shelf_edge"].data.squeeze()
-        # x_of_stack = ds["x_of_cell"].data.squeeze()
         bedrock = ds["at_node:bedrock_surface__elevation"].data.squeeze()
         try:
             x_of_stack = ds["x_of_cell"].data.squeeze()
         except KeyError:
             x_of_stack = np.arange(ds.dims["cell"])
-            # (
-            #     np.arange(ds.dims["cell"]) * ds["xy_spacing"][0]
-            #     + ds["xy_of_lower_left"][0]
-            # )
 
         elevation_at_layer = bedrock[-1, 1:-1] + np.cumsum(thickness_at_layer, axis=0)
 
-    if n_layers:
-        # layer_step = int(len(elevation_at_layer) / (n_layers + 1))
-        if layer_stop < 0:
-            layer_stop = len(elevation_at_layer) + layer_stop
-        if n_layers >= 0:
-            if n_layers > layer_stop - layer_start:
-                layer_step = layer_stop - layer_start - 1
-            else:
-                layer_step = int((layer_stop - layer_start) / (n_layers + 1))
-        else:
-            layer_step = 1
-        plt.plot(
-            x_of_stack,
-            elevation_at_layer[layer_start:layer_stop:layer_step].T,
-            color=layer_line_color,
-            linewidth=layer_line_width,
-        )
+    stack_of_shore = np.searchsorted(x_of_stack, x_of_shore)
+    stack_of_shelf_edge = np.searchsorted(x_of_stack, x_of_shelf_edge)
 
     water = x_of_stack > x_of_shore[-1]
     x_water = x_of_stack[water]
     y_water = elevation_at_layer[-1, water]
+
+    if layer_stop < 0:
+        layer_stop = len(elevation_at_layer) + layer_stop + 1
+    layers_to_plot = _get_layers_to_plot(layer_start, layer_stop, num=n_layers)
 
     if color_water:
         plt.fill_between(
@@ -87,35 +71,40 @@ def plot_strat(
         )
     plt.plot([x_water[0], x_water[-1]], [y_water[0], y_water[0]], color="k")
 
-    # stack_of_shore = np.searchsorted(x_of_stack, x_of_shore)
-
     if plot_land:
-        fill_layers(
+        fill_between_layers(
             x_of_stack,
             elevation_at_layer,
             lower=None,
-            upper=x_of_shore,
+            upper=stack_of_shore,
             fc=color_land,
         )
 
-    stack_of_shelf_edge = np.searchsorted(x_of_stack, x_of_shelf_edge)
-
     if plot_shoreface:
-        fill_layers(
+        fill_between_layers(
             x_of_stack,
             elevation_at_layer,
-            lower=x_of_shore,
-            upper=x_of_shelf_edge,
+            lower=stack_of_shore,
+            upper=stack_of_shelf_edge,
             fc=color_shoreface,
         )
 
     if plot_shelf:
-        fill_layers(
+        fill_between_layers(
             x_of_stack,
             elevation_at_layer,
-            lower=x_of_shelf_edge,
+            lower=stack_of_shelf_edge,
             upper=None,
             fc=color_shelf,
+        )
+
+    if layers_to_plot:
+
+        plt.plot(
+            x_of_stack,
+            elevation_at_layer[layers_to_plot].T,
+            color=layer_line_color,
+            linewidth=layer_line_width,
         )
 
     if legend_location:
@@ -135,20 +124,25 @@ def plot_strat(
     plt.show()
 
 
-def fill_layers(x, y, lower=None, upper=None, fc=None):
+def _get_layers_to_plot(start, stop, num=-1):
+    if num == 0:
+        return None
+    elif num < 0 or num > stop - start + 1:
+        num = stop - start + 1
+    step = int((stop - start + 1) / num)
+    return slice(start, stop, step)
+
+
+def fill_between_layers(x, y, lower=None, upper=None, fc=None):
     n_layers = len(y)
 
     if lower is None:
-        lower = np.full(n_layers, x[0])
+        lower = np.zeros(n_layers, dtype=int)
 
     if upper is None:
-        upper = np.full(n_layers, x[-1])
+        upper = np.full(n_layers, len(x) - 1)
 
     for layer in range(n_layers - 1):
-        # for layer in range(1):
-        top = (x > lower[layer + 1]) & (x < upper[layer + 1])
-        bottom = (x > lower[layer]) & (x < upper[layer])
-
         xi, yi = outline_layer(
             x,
             y[layer],
@@ -156,71 +150,72 @@ def fill_layers(x, y, lower=None, upper=None, fc=None):
             bottom_limits=(lower[layer], upper[layer]),
             top_limits=(lower[layer + 1], upper[layer + 1]),
         )
-        plt.fill(xi, yi, fc=fc)  # , ec="k")
-
-        # plt.plot(x[bottom], y[layer][bottom], linewidth=3)
-        # plt.plot(x[top], y[layer + 1][top], linewidth=3)
+        plt.fill(xi, yi, fc=fc)
 
 
 def outline_layer(
     x, y_of_bottom_layer, y_of_top_layer, bottom_limits=None, top_limits=None
 ):
-    #     bottom_limits = (None, None) if bottom_limits is None else bottom_limits
-    #     top_limits = (None, None) if top_limits is None else top_limits
-    #
-    #     bottom_limits[0] = x[0] if bottom_limits is None else bottom_limits[0]
-    #     bottom_limits[1] = x[1] if bottom_limits is None else bottom_limits[1]
-    #     bottom_limits[0] = x[0] if bottom_limits is None else bottom_limits[0]
-    #     bottom_limits[1] = x[1] if bottom_limits is None else bottom_limits[1]
-
     if bottom_limits is None:
-        bottom_limits = (x[0], x[1])
+        bottom_limits = (None, None)
     if top_limits is None:
-        top_limits = (x[0], x[1])
+        top_limits = (None, None)
 
-    is_top = (x >= top_limits[0]) & (x <= top_limits[1])
+    bottom_limits = (
+        bottom_limits[0] if bottom_limits[0] is not None else 0,
+        bottom_limits[1] if bottom_limits[1] is not None else len(x) - 1,
+    )
+    top_limits = (
+        top_limits[0] if top_limits[0] is not None else 0,
+        top_limits[1] if top_limits[1] is not None else len(x) - 1,
+    )
+
+    is_top = slice(top_limits[1], top_limits[0], -1)
     x_of_top = x[is_top]
     y_of_top = y_of_top_layer[is_top]
 
-    is_bottom = (x >= bottom_limits[0]) & (x <= bottom_limits[1])
+    is_bottom = slice(bottom_limits[0], bottom_limits[1])
     x_of_bottom = x[is_bottom]
     y_of_bottom = y_of_bottom_layer[is_bottom]
 
-    is_left = (x > min(x_of_top[0], x_of_bottom[0])) & (
-        x < max(x_of_top[0], x_of_bottom[0])
-    )
-    x_of_left = x[is_left]
-    reverse = top_limits[0] > bottom_limits[0]
-    y_of_left = interp_between_layers(
-        x_of_left, y_of_top_layer[is_left], y_of_bottom_layer[is_left], reverse=reverse
-    )
-
-    is_right = (x > min(x_of_top[-1], x_of_bottom[-1])) & (
-        x < max(x_of_top[-1], x_of_bottom[-1])
-    )
-    x_of_right = x[is_right]
-    reverse = top_limits[1] < bottom_limits[1]
-    y_of_right = interp_between_layers(
-        x_of_right,
-        y_of_bottom_layer[is_right],
-        y_of_top_layer[is_right],
-        reverse=reverse,
-    )
-
     if top_limits[0] > bottom_limits[0]:
-        x_of_left = x_of_left[::-1]
-        y_of_left = y_of_left[::-1]
-    if top_limits[-1] < bottom_limits[-1]:
-        x_of_right = x_of_right[::-1]
-        y_of_right = y_of_right[::-1]
+        step = -1
+        is_left = slice(bottom_limits[0], top_limits[0] + 1)
+    else:
+        step = 1
+        is_left = slice(top_limits[0], bottom_limits[0] + 1)
+
+    x_of_left = x[is_left]
+    y_of_left = interp_between_layers(
+        x_of_left[::step],
+        y_of_top_layer[is_left][::step],
+        y_of_bottom_layer[is_left][::step],
+    )
+    x_of_left = x_of_left[::step][:-1]
+    y_of_left = y_of_left[:-1]
+
+    if bottom_limits[1] > top_limits[1]:
+        step = -1
+        is_right = slice(top_limits[1], bottom_limits[1] + 1)
+    else:
+        step = 1
+        is_right = slice(bottom_limits[1], top_limits[1] + 1)
+    x_of_right = x[is_right]
+    y_of_right = interp_between_layers(
+        x_of_right[::step],
+        y_of_bottom_layer[is_right][::step],
+        y_of_top_layer[is_right][::step],
+    )
+    x_of_right = x_of_right[::step][:-1]
+    y_of_right = y_of_right[:-1]
 
     return (
-        np.r_[x_of_top[::-1], x_of_left, x_of_bottom, x_of_right],
-        np.r_[y_of_top[::-1], y_of_left, y_of_bottom, y_of_right],
+        np.r_[x_of_top, x_of_left, x_of_bottom, x_of_right],
+        np.r_[y_of_top, y_of_left, y_of_bottom, y_of_right],
     )
 
 
-def interp_between_layers(x, y_of_bottom, y_of_top, kind="linear", reverse=False):
+def interp_between_layers(x, y_of_bottom, y_of_top, kind="linear"):
     x = np.asarray(x)
     y_of_top, y_of_bottom = np.asarray(y_of_top), np.asarray(y_of_bottom)
 
@@ -229,15 +224,8 @@ def interp_between_layers(x, y_of_bottom, y_of_top, kind="linear", reverse=False
     if len(x) == 0:
         return np.array([], dtype=float)
     elif len(x) == 1:
-        return (y_of_top + y_of_bottom) * 0.5
+        return y_of_bottom
 
-    if reverse:
-        dy = (y_of_top - y_of_bottom) * interp1d((x[0], x[-1]), (1.0, 0.0), kind=kind)(
-            x
-        )
-    else:
-        dy = (y_of_top - y_of_bottom) * interp1d((x[0], x[-1]), (0.0, 1.0), kind=kind)(
-            x
-        )
+    dy = (y_of_top - y_of_bottom) * interp1d((x[0], x[-1]), (0.0, 1.0), kind=kind)(x)
 
     return y_of_bottom + dy
