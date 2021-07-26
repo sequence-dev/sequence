@@ -29,7 +29,7 @@ def _netcdf_type(arr):
 
 
 def _create_grid_dimension(root, grid, at="node", ids=None):
-    """"Create grid dimensions for a netcdf file."""
+    """Create grid dimensions for a netcdf file."""
     if ids is None:
         ids = Ellipsis
 
