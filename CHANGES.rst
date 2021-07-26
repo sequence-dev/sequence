@@ -4,6 +4,8 @@ Changelog for sequence
 0.4.0 (unreleased)
 ------------------
 
+- Fixed layer interpolation when plotting (#28)
+
 - Updated README documentation. Added descriptions of the
   sequence.grid and sequence.output sections for the
   sequence.toml file, and added documentation for the plot
