@@ -1,7 +1,7 @@
 Changelog for sequence
 ======================
 
-0.4.0 (unreleased)
+0.4.0 (2021-07-26)
 ------------------
 
 - Fixed layer interpolation when plotting (#28)
