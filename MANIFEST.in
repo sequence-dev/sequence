@@ -1,9 +1,10 @@
-include *.rst
-include *.txt
-include Makefile
+include AUTHORS.rst CHANGES.rst LICENSE.rst README.rst
+include requirements.txt
+exclude Makefile CONTRIBUTING.rst
+exclude requirements-develop.txt requirements-docs.txt requirements-testing.txt
+exclude .readthedocs.yaml environment.yml
 
-recursive-include tests *
-recursive-exclude * __pycache__
-recursive-exclude * *.py[co]
-
-recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
+recursive-exclude data *
+recursive-exclude docs *
+recursive-exclude notebooks *
+recursive-exclude tests *
