@@ -47,6 +47,10 @@ jobs:
         run: |
           python -c 'import sequence; print(sequence.__version__)'
           pytest --cov=sequence --cov-report= --cov-report=xml -vvv
+
+      - name: Test command line
+        if: matrix.os != 'ubuntu-latest'
+        run: |
           mkdir example
           sequence --cd=example setup
           sequence --cd=example run
