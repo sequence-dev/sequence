@@ -1,6 +1,5 @@
 import os
 import shutil
-import sys
 
 from landlab.core import load_params
 
