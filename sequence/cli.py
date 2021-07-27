@@ -2,6 +2,7 @@ import os
 import pathlib
 import re
 import sys
+from contextlib import contextmanager, nullcontext
 from functools import partial
 from io import StringIO
 
@@ -111,6 +112,20 @@ def _find_config_files(pathname):
     return zip(*sorted(items))
 
 
+class silent_progressbar(object):
+    def __init__(self, **kwds):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        pass
+
+    def update(self, inc):
+        pass
+
+
 @click.group(chain=True)
 @click.version_option()
 @click.option(
@@ -158,6 +173,7 @@ def sequence(cd, silent, verbose) -> None:
 def run(ctx, with_citations, dry_run):
     """Run a simulation."""
     verbose = ctx.parent.params["verbose"]
+    silent = ctx.parent.params["silent"]
 
     run_dir = pathlib.Path.cwd()
 
@@ -179,11 +195,11 @@ def run(ctx, with_citations, dry_run):
         out("👆👆👆These are the citations to use👆👆👆")
 
     if not dry_run:
+        progressbar = silent_progressbar if silent else click.progressbar
         try:
-            with click.progressbar(
+            with progressbar(
                 length=int(model.clock.stop // model.clock.step),
                 label=" ".join(["🚀", str(run_dir)]),
-                file=out.keywords["file"],
             ) as bar:
                 while 1:
                     model.run_one_step()
