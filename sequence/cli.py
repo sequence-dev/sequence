@@ -230,10 +230,12 @@ def run(ctx, with_citations, dry_run):
         except StopIteration:
             pass
 
-        out("💥 Finished! 💥")
-        out("Output written to {0}".format(run_dir))
+        if verbose or not silent:
+            out("💥 Finished! 💥")
+            out("Output written to {0}".format(run_dir))
     else:
-        out("Nothing to do. 😴")
+        if verbose or not silent:
+            out("Nothing to do. 😴")
     print(run_dir)
 
 
