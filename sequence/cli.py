@@ -4,6 +4,7 @@ import re
 import sys
 from functools import partial
 from io import StringIO
+from typing import Any, Optional
 
 import click
 import numpy as np
@@ -15,8 +16,32 @@ from .plot import plot_strat
 from .raster_model import load_model_params, load_params_from_strings
 from .sequence_model import SequenceModel
 
-out = partial(click.secho, bold=True, file=sys.stderr)
-err = partial(click.secho, fg="red", file=sys.stderr)
+# out = partial(click.secho, bold=True, file=sys.stderr)
+# err = partial(click.secho, fg="red", file=sys.stderr)
+
+
+def _out(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+    if message is not None:
+        if "bold" not in styles:
+            styles["bold"] = True
+        message = click.style(message, **styles)
+    click.echo(message, nl=nl, err=True)
+
+
+def _err(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+    if message is not None:
+        if "fg" not in styles:
+            styles["fg"] = "red"
+        message = click.style(message, **styles)
+    click.echo(message, nl=nl, err=True)
+
+
+def out(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+    _out(message, nl=nl, **styles)
+
+
+def err(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+    _err(message, nl=nl, **styles)
 
 
 def _contents_of_input_file(infile, set):
@@ -157,8 +182,8 @@ def sequence(cd, silent, verbose) -> None:
 
         $ sequence run
     """
-    if silent:
-        out.keywords["file"] = open(os.devnull, "w")
+    # if silent:
+    #     out.keywords["file"] = open(os.devnull, "w")
 
     os.chdir(cd)
 
