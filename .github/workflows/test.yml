@@ -53,8 +53,8 @@ jobs:
         run: |
           mkdir example
           sequence --cd=example setup
-          sequence --cd=example run
-          sequence --cd=data/marmara run
+          sequence --cd=example --silent run
+          sequence --cd=data/marmara --silent run
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'

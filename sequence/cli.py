@@ -1,6 +1,7 @@
 import os
 import pathlib
 import re
+import sys
 from functools import partial
 from io import StringIO
 
@@ -14,8 +15,8 @@ from .plot import plot_strat
 from .raster_model import load_model_params, load_params_from_strings
 from .sequence_model import SequenceModel
 
-out = partial(click.secho, bold=True, err=True)
-err = partial(click.secho, fg="red", err=True)
+out = partial(click.secho, bold=True, file=sys.stderr)
+err = partial(click.secho, fg="red", file=sys.stderr)
 
 
 def _contents_of_input_file(infile, set):
@@ -118,7 +119,16 @@ def _find_config_files(pathname):
     type=click.Path(exists=True, file_okay=False, dir_okay=True, readable=True),
     help="chage to directory, then execute",
 )
-def sequence(cd) -> None:
+@click.option(
+    "-s",
+    "--silent",
+    is_flag=True,
+    help="Suppress status status messages, including the progress bar.",
+)
+@click.option(
+    "-v", "--verbose", is_flag=True, help="Also emit status messages to stderr."
+)
+def sequence(cd, silent, verbose) -> None:
     """The Steckler Sequence model.
 
     \b
@@ -133,19 +143,22 @@ def sequence(cd) -> None:
 
         $ sequence run
     """
+    if silent:
+        out.keywords["file"] = open(os.devnull, "w")
+
     os.chdir(cd)
 
 
 @sequence.command()
 @click.option("--dry-run", is_flag=True, help="do not actually run the model")
 @click.option(
-    "-v", "--verbose", is_flag=True, help="Also emit status messages to stderr."
-)
-@click.option(
     "--with-citations", is_flag=True, help="print citations for components used"
 )
-def run(with_citations, verbose, dry_run):
+@click.pass_context
+def run(ctx, with_citations, dry_run):
     """Run a simulation."""
+    verbose = ctx.parent.params["verbose"]
+
     run_dir = pathlib.Path.cwd()
 
     times, names = _find_config_files(".")
@@ -170,6 +183,7 @@ def run(with_citations, verbose, dry_run):
             with click.progressbar(
                 length=int(model.clock.stop // model.clock.step),
                 label=" ".join(["🚀", str(run_dir)]),
+                file=out.keywords["file"],
             ) as bar:
                 while 1:
                     model.run_one_step()
@@ -182,6 +196,7 @@ def run(with_citations, verbose, dry_run):
         out("Output written to {0}".format(run_dir))
     else:
         out("Nothing to do. 😴")
+    print(run_dir)
 
 
 @sequence.command()
