@@ -43,14 +43,17 @@ jobs:
       - name: Install testing dependencies
         run: conda install --file=requirements-testing.txt -c conda-forge
 
-      - name: Test
+      - name: Test package
         run: |
           python -c 'import sequence; print(sequence.__version__)'
           pytest --cov=sequence --cov-report= --cov-report=xml -vvv
+
+      - name: Test command line
+        run: |
           mkdir example
           sequence --cd=example setup
-          sequence --cd=example run
-          sequence --cd=data/marmara run
+          sequence --cd=example --silent run
+          sequence --cd=data/marmara --silent run
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'

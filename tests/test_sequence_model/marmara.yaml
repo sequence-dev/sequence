@@ -1,13 +1,13 @@
 clock:
   start: 0.0
   step: 100.0
-  stop: 40000.0
+  stop: 4000.0
 grid:
   xy_of_lower_left: [0.0, 0.0]
   shape:
   - 3
-  - 200
-  xy_spacing: [250., 500.0]
+  - 100
+  xy_spacing: [500., 500.0]
   bc:
     top: closed
     bottom: closed

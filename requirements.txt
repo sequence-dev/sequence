@@ -2,7 +2,7 @@ click
 compaction
 landlab>=2.0.0b7
 netcdf4
-numpy
+numpy<1.21
 pyyaml
 scipy
 tomlkit

@@ -1,7 +1,7 @@
 include AUTHORS.rst CHANGES.rst LICENSE.rst README.rst
 include requirements.txt
 exclude Makefile CONTRIBUTING.rst
-exclude requirements-develop.txt requirements-docs.txt requirements-testing.txt
+exclude requirements-docs.txt requirements-testing.txt
 exclude .readthedocs.yaml environment.yml
 
 recursive-exclude data *
