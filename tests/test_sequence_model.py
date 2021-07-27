@@ -2,15 +2,11 @@ import os
 import shutil
 import sys
 
-import pytest
 from landlab.core import load_params
 
 from sequence.sequence_model import SequenceModel
 
 
-@pytest.mark.skipif(
-    sys.platform.startswith("linux"), reason="possible problem with Ubuntu"
-)
 def test_marmara(tmpdir, datadir):
     with tmpdir.as_cwd():
         for fname in datadir.iterdir():

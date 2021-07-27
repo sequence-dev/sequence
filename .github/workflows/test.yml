@@ -43,13 +43,12 @@ jobs:
       - name: Install testing dependencies
         run: conda install --file=requirements-testing.txt -c conda-forge
 
-      - name: Test
+      - name: Test package
         run: |
           python -c 'import sequence; print(sequence.__version__)'
           pytest --cov=sequence --cov-report= --cov-report=xml -vvv
 
       - name: Test command line
-        if: matrix.os != 'ubuntu-latest'
         run: |
           mkdir example
           sequence --cd=example setup
