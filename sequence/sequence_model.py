@@ -163,7 +163,7 @@ class SequenceModel:
         self._components.update(
             sea_level=self._sea_level,
             subsidence=self._subsidence,
-            compaction=self._compaction,
+            # compaction=self._compaction,
             submarine_diffusion=self._submarine_diffusion,
             fluvial=self._fluvial,
             flexure=self._flexure,
@@ -221,7 +221,7 @@ class SequenceModel:
             water_depth=water_depth[self.grid.node_at_cell],
             t0=dz[self.grid.node_at_cell].clip(0.0),
             percent_sand=percent_sand[self.grid.node_at_cell],
-            porosity=self._compaction.porosity_max,
+            # porosity=self._compaction.porosity_max,
         )
 
         try:
