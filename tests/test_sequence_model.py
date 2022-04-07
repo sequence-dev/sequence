@@ -1,7 +1,6 @@
 import os
 import shutil
 
-import pytest
 from landlab.core import load_params
 
 from sequence.sequence_model import SequenceModel
