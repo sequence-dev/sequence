@@ -92,9 +92,9 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"sequence"
-copyright = u"2018, Eric Hutton"
-author = u"Eric Hutton"
+project = "sequence"
+copyright = "2018, Eric Hutton"
+author = "Eric Hutton"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout
@@ -171,7 +171,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass
 # [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "sequence.tex", u"sequence Documentation", u"Eric Hutton", "manual")
+    (master_doc, "sequence.tex", "sequence Documentation", "Eric Hutton", "manual")
 ]
 
 
@@ -179,7 +179,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "sequence", u"sequence Documentation", [author], 1)]
+man_pages = [(master_doc, "sequence", "sequence Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------
@@ -191,7 +191,7 @@ texinfo_documents = [
     (
         master_doc,
         "sequence",
-        u"sequence Documentation",
+        "sequence Documentation",
         author,
         "sequence",
         "One line description of project.",
