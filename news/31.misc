@@ -1,0 +1,2 @@
+Modified requirements file to exclude numpy versions that caused a core dump when running Sequence with the compaction component.
+
