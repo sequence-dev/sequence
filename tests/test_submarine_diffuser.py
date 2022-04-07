@@ -1,9 +1,9 @@
 from random import random
 
 import pytest
+from landlab import RasterModelGrid
 
 from sequence.submarine import SubmarineDiffuser
-from landlab import RasterModelGrid
 
 
 @pytest.mark.parametrize(

@@ -3,10 +3,9 @@
 from collections import OrderedDict
 
 import numpy as np
+from compaction.landlab import Compact
 from landlab import RasterModelGrid
 from landlab.bmi.bmi_bridge import TimeStepper
-
-from compaction.landlab import Compact
 
 from .bathymetry import BathymetryReader
 from .fluvial import Fluvial
