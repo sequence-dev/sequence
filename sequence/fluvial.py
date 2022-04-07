@@ -99,7 +99,7 @@ class Fluvial(Component):
         qs = (
             10.0
             * np.sqrt(9.8 * (self.sand_density / 1000.0 - 1.0))
-            * (self.sand_grain ** 1)
+            * (self.sand_grain**1)
         )
         # m^2/s  units */
         # print (self.sand_frac,mud_vol,sand_vol,qs)

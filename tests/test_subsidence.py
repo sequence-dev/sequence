@@ -1,8 +1,8 @@
 import pytest
+from landlab import RasterModelGrid
 from numpy.testing import assert_array_equal
 
 from sequence.subsidence import SubsidenceTimeSeries
-from landlab import RasterModelGrid
 
 
 def test_bad_filepath(tmpdir):
