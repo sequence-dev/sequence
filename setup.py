@@ -37,7 +37,6 @@ setup(
     include_package_data=True,
     keywords=["sequence", "stratigraphy", "landlab"],
     packages=find_packages(include=["sequence"]),
-    test_suite="tests",
     url="https://github.com/sequence-dev/sequence",
     entry_points={"console_scripts": ["sequence=sequence.cli:sequence"]},
     zip_safe=False,
