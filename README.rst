@@ -53,7 +53,7 @@ base *Python* installation. This can be done with *conda* as::
   $ conda activate sequence
 
 Stable Release
-++++++++++++++
+``````````````
 
 *Sequence*, and its dependencies, can be installed either with *pip*
 or *conda*. Using *pip*::
@@ -65,7 +65,7 @@ Using *conda*::
     $ conda install sequence -c conda-forge
 
 From Source
-+++++++++++
+```````````
 
 After downloading the *Sequence* source code, run the following from
 *Sequence*'s top-level folder (the one that contains *setup.py*) to
@@ -77,7 +77,7 @@ Input Files
 -----------
 
 Sequence Parameter File
-+++++++++++++++++++++++
+```````````````````````
 
 The main *Sequence* input file is a *toml*-formatted (or, optionally, *yaml*)
 text file that lists parameter values for the various components. Running
@@ -242,7 +242,7 @@ simulation.
 
 
 Bathymetry File
-+++++++++++++++
+```````````````
 
 The *Sequence* bathymetry file defines initial sea-floor elevations in
 a two-column CSV file. A sample bathymetry file can be obtained with::
@@ -256,7 +256,7 @@ Elevations are linearly interpolated between the points given in the file
 as necessary.
 
 Sea-Level File
-++++++++++++++
+``````````````
 
 The *Sequence* sea-level file defines sea-level elevations with simulation
 time. It consists of two (comma separated) columns of time and sea-level
@@ -268,7 +268,7 @@ elevation, respectively. For a sample sea-level file::
   200000.0,-10.0
 
 Subsidence File
-+++++++++++++++
+```````````````
 
 The *Sequence* subsidence file defines the subsidence rates of points along
 the profile. It consists of two (comma separated) columns that give position
