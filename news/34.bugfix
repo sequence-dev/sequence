@@ -1,4 +1,0 @@
-Fixed a bug where, instead of writing the current model time, *Sequence* was
-writing the model time step number to the output file as the *time* variable.
-
-
