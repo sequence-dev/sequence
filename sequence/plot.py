@@ -41,9 +41,7 @@ def plot_strat(
     legend_item = partial(Patch, edgecolor="k", linewidth=0.5)
 
     with xr.open_dataset(filename) as ds:
-        n_times = ds.dims["time"]
-
-        thickness_at_layer = ds["at_layer:thickness"][:n_times]
+        thickness_at_layer = ds["at_layer:thickness"]
         x_of_shore = ds["at_grid:x_of_shore"].data.squeeze()
         x_of_shelf_edge = ds["at_grid:x_of_shelf_edge"].data.squeeze()
         bedrock = ds["at_node:bedrock_surface__elevation"].data.squeeze()
@@ -51,8 +49,13 @@ def plot_strat(
             x_of_stack = ds["x_of_cell"].data.squeeze()
         except KeyError:
             x_of_stack = np.arange(ds.dims["cell"])
+        time = ds["time"]
+        time_at_layer = ds["at_layer:age"]
 
         elevation_at_layer = bedrock[-1, 1:-1] + np.cumsum(thickness_at_layer, axis=0)
+
+    x_of_shore = interp1d(time, x_of_shore)(time_at_layer[:, 0])
+    x_of_shelf_edge = interp1d(time, x_of_shelf_edge)(time_at_layer[:, 0])
 
     stack_of_shore = np.searchsorted(x_of_stack, x_of_shore)
     stack_of_shelf_edge = np.searchsorted(x_of_stack, x_of_shelf_edge)
