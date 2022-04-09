@@ -41,9 +41,7 @@ class OutputWriter(Component):
         self._step_count = 0
 
     def run_one_step(self, dt=None):
-        if dt is None:
-            dt = 1
-        self._time += dt
+        dt = 1.0 if dt is None else float(dt)
         if self._step_count % self.interval == 0:
             to_netcdf(
                 self.grid,
@@ -53,6 +51,7 @@ class OutputWriter(Component):
                 names={"node": self.fields},
                 ids={"node": self._nodes},
             )
+        self._time += dt
         self._step_count += 1
 
     @property
