@@ -41,8 +41,6 @@ def plot_strat(
     legend_item = partial(Patch, edgecolor="k", linewidth=0.5)
 
     with xr.open_dataset(filename) as ds:
-        n_times = ds.dims["time"]
-
         thickness_at_layer = ds["at_layer:thickness"]
         x_of_shore = ds["at_grid:x_of_shore"].data.squeeze()
         x_of_shelf_edge = ds["at_grid:x_of_shelf_edge"].data.squeeze()
