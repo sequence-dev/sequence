@@ -38,11 +38,10 @@ jobs:
       - name: Build and install package
         run: |
           conda install rasterio -c conda-forge
-          conda install --file=requirements.txt -c conda-forge
           pip install .
 
       - name: Install testing dependencies
-        run: conda install --file=requirements-testing.txt -c conda-forge
+        run: pip install ".[dev]"
 
       - name: Test package
         run: |
