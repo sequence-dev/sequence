@@ -1,8 +1,10 @@
+# Requirements extracted from pyproject.toml
+# [project.dependencies]
 click
 compaction
 landlab
 netcdf4
-numpy != 1.21.0, != 1.21.1
+numpy >=1.21, != 1.21.0, != 1.21.1
 pyyaml
 scipy
 tomlkit
