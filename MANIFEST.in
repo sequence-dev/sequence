@@ -1,10 +1,10 @@
 include AUTHORS.rst CHANGES.rst LICENSE.rst README.rst
-include requirements.txt
 exclude Makefile CONTRIBUTING.rst
-exclude requirements-docs.txt requirements-testing.txt
+exclude requirements.txt requirements.py
 exclude .readthedocs.yaml environment.yml
 
 recursive-exclude data *
 recursive-exclude docs *
+recursive-exclude news *
 recursive-exclude notebooks *
 recursive-exclude tests *
