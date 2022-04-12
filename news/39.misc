@@ -1,0 +1,3 @@
+The ``sequence plot`` command now prints a better error message if the
+*netCDF* output file being plotted is missing a required variable.
+

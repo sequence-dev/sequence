@@ -25,17 +25,17 @@ class SequenceModel:
     DEFAULT_PARAMS = {
         "grid": {
             "shape": [3, 100],
-            "xy_spacing": 100.0,
+            "xy_spacing": 1000.0,
             "xy_of_lower_left": [0.0, 0.0],
             "bc": {"top": "closed", "bottom": "closed"},
         },
-        "clock": {"start": 0.0, "stop": 20000.0, "step": 100.0},
+        "clock": {"start": 0.0, "stop": 600000.0, "step": 100.0},
         "output": {
             "interval": 10,
             "filepath": "sequence.nc",
             "clobber": True,
             "rows": [1],
-            "fields": ["sediment_deposit__thickness"],
+            "fields": ["sediment_deposit__thickness", "bedrock_surface__elevation"],
         },
         "submarine_diffusion": {
             "plain_slope": 0.0008,
@@ -49,7 +49,7 @@ class SequenceModel:
         },
         "sea_level": {
             "amplitude": 10.0,
-            "wave_length": 1000.0,
+            "wave_length": 200000.0,
             "phase": 0.0,
             "linear": 0.0,
         },
