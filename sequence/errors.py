@@ -23,4 +23,4 @@ class MissingRequiredVariable(SequenceError):
         self._name = name
 
     def __str_(self):
-        return f"{name}"
+        return f"{self._name}"
