@@ -53,6 +53,7 @@ jobs:
           mkdir example
           sequence --cd=example setup --set clock.stop=60000
           sequence --cd=example --silent run
+          sequence --cd=example plot
           sequence --cd=data/marmara --silent run
 
       - name: Coveralls
