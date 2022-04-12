@@ -9,6 +9,7 @@ import numpy as np
 import tomlkit as toml
 import yaml
 
+from .errors import MissingRequiredVariable
 from .input_reader import TimeVaryingConfig
 from .plot import plot_strat
 from .raster_model import load_model_params, load_params_from_strings
@@ -317,4 +318,10 @@ def plot(set, verbose):
     if verbose:
         out(toml.dumps(dict(sequence=dict(plot=config))))
 
-    plot_strat(folder / "sequence.nc", **config)
+    try:
+        plot_strat(folder / "sequence.nc", **config)
+    except MissingRequiredVariable as error:
+        err(
+            f"{folder / 'sequence.nc'}: output file is missing a required variable ({error})"
+        )
+        raise click.Abort()

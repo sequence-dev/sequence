@@ -51,7 +51,7 @@ jobs:
       - name: Test command line
         run: |
           mkdir example
-          sequence --cd=example setup
+          sequence --cd=example setup --set clock.stop=60000
           sequence --cd=example --silent run
           sequence --cd=data/marmara --silent run
 
