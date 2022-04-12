@@ -37,7 +37,7 @@ jobs:
 
       - name: Build and install package
         run: |
-          conda install rasterio -c conda-forge
+          conda install rasterio richdem -c conda-forge
           pip install .
 
       - name: Install testing dependencies
