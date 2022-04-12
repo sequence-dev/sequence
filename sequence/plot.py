@@ -74,11 +74,12 @@ def plot_strat(
         layer_stop = len(elevation_at_layer) + layer_stop + 1
     layers_to_plot = _get_layers_to_plot(layer_start, layer_stop, num=n_layers)
 
-    if color_water:
-        plt.fill_between(
-            x_water, y_water, np.full_like(x_water, y_water[0]), fc=color_water
-        )
-    plt.plot([x_water[0], x_water[-1]], [y_water[0], y_water[0]], color="k")
+    if np.any(water):
+        if color_water:
+            plt.fill_between(
+                x_water, y_water, np.full_like(x_water, y_water[0]), fc=color_water
+            )
+        plt.plot([x_water[0], x_water[-1]], [y_water[0], y_water[0]], color="k")
 
     if plot_land:
         fill_between_layers(
