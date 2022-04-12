@@ -16,3 +16,11 @@ class ShelfEdgeError(SequenceError):
 
     def __str__(self):
         return self._msg
+
+
+class MissingRequiredVariable(SequenceError):
+    def __init__(self, name):
+        self._name = name
+
+    def __str_(self):
+        return f"{name}"

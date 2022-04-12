@@ -8,6 +8,8 @@ import xarray as xr
 from matplotlib.patches import Patch
 from scipy.interpolate import interp1d
 
+from .errors import MissingRequiredVariable
+
 
 def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."
@@ -41,16 +43,20 @@ def plot_strat(
     legend_item = partial(Patch, edgecolor="k", linewidth=0.5)
 
     with xr.open_dataset(filename) as ds:
-        thickness_at_layer = ds["at_layer:thickness"]
-        x_of_shore = ds["at_grid:x_of_shore"].data.squeeze()
-        x_of_shelf_edge = ds["at_grid:x_of_shelf_edge"].data.squeeze()
-        bedrock = ds["at_node:bedrock_surface__elevation"].data.squeeze()
+        try:
+            thickness_at_layer = ds["at_layer:thickness"]
+            x_of_shore = ds["at_grid:x_of_shore"].data.squeeze()
+            x_of_shelf_edge = ds["at_grid:x_of_shelf_edge"].data.squeeze()
+            bedrock = ds["at_node:bedrock_surface__elevation"].data.squeeze()
+            time = ds["time"]
+            time_at_layer = ds["at_layer:age"]
+        except KeyError as err:
+            raise MissingRequiredVariable(str(err))
+
         try:
             x_of_stack = ds["x_of_cell"].data.squeeze()
         except KeyError:
             x_of_stack = np.arange(ds.dims["cell"])
-        time = ds["time"]
-        time_at_layer = ds["at_layer:age"]
 
         elevation_at_layer = bedrock[-1, 1:-1] + np.cumsum(thickness_at_layer, axis=0)
 
