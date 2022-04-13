@@ -1,2 +1,0 @@
-Fixed a bug that incorrectly determined the shore and shelf edge at startigraphic layers
-when writing *netCDF* output. This was only an issue when *Sequence* had averaged buried layers.
