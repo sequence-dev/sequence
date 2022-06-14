@@ -68,7 +68,7 @@ class SedimentFlexure(Flexure1D):
         mud_density=2720.0,
         isostasytime=7000.0,
         water_density=1030.0,
-        # **kwds,
+        **kwds,
         # **sediments,
     ):
         """Subside elevations due to sediment loading.
@@ -103,7 +103,7 @@ class SedimentFlexure(Flexure1D):
 
         # grid.add_zeros("lithosphere__increment_of_overlying_pressure", at="node")
 
-        super().__init__(grid)
+        super().__init__(grid, **kwds)
 
         if "lithosphere__increment_of_overlying_pressure" not in grid.at_node:
             grid.add_zeros("lithosphere__increment_of_overlying_pressure", at="node")
