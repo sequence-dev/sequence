@@ -68,7 +68,7 @@ class SedimentFlexure(Flexure1D):
         mud_density=2720.0,
         isostasytime=7000.0,
         water_density=1030.0,
-        **kwds,
+        # **kwds,
         # **sediments,
     ):
         """Subside elevations due to sediment loading.
@@ -101,9 +101,16 @@ class SedimentFlexure(Flexure1D):
 
         self._dt = 100.0  # default timestep = 100 y
 
-        grid.add_zeros("lithosphere__increment_of_overlying_pressure", at="node")
+        # grid.add_zeros("lithosphere__increment_of_overlying_pressure", at="node")
 
-        Flexure1D.__init__(self, grid, **kwds)
+        super().__init__(grid)
+
+        if "lithosphere__increment_of_overlying_pressure" not in grid.at_node:
+            grid.add_zeros("lithosphere__increment_of_overlying_pressure", at="node")
+        if "lithosphere_surface__increment_of_elevation" not in grid.at_node:
+            grid.add_empty("lithosphere_surface__increment_of_elevation", at="node")
+        if "sea_level__elevation" not in grid.at_grid:
+            grid.at_grid["sea_level__elevation"] = 0.0
 
         self.subs_pool = self.grid.zeros(at="node")
 
@@ -136,6 +143,10 @@ class SedimentFlexure(Flexure1D):
         )
 
     @property
+    def sand_bulk_density(self):
+        return self._rho_sand
+
+    @property
     def mud_density(self):
         return self._mud_density
 
@@ -148,12 +159,16 @@ class SedimentFlexure(Flexure1D):
         )
 
     @property
+    def mud_bulk_density(self):
+        return self._rho_mud
+
+    @property
     def water_density(self):
-        return self._rho_water
+        return self._water_density
 
     @water_density.setter
     def water_density(self, density):
-        self._rho_water = SedimentFlexure.validate_density(density)
+        self._water_density = SedimentFlexure.validate_density(density)
         self._rho_sand = SedimentFlexure._calc_bulk_density(
             self.sand_density, self.water_density, 0.4
         )
