@@ -33,7 +33,7 @@ class Fluvial(Component):
             "intent": "out",
             "optional": False,
             "units": "-",
-            "mapping": "noe",
+            "mapping": "node",
             "doc": "delta sand fraction",
         },
     }
