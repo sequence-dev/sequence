@@ -109,13 +109,18 @@ def plot_strat(
         )
 
     if layers_to_plot:
-
         plt.plot(
             x_of_stack,
             elevation_at_layer[layers_to_plot].T,
             color=layer_line_color,
             linewidth=layer_line_width,
         )
+    plt.plot(
+        x_of_stack,
+        elevation_at_layer[-1],
+        color=layer_line_color,
+        linewidth=layer_line_width,
+    )
 
     if legend_location:
         items = [
