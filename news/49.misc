@@ -1,0 +1,4 @@
+Added GitHub Actions workflows for releasing Sequence to PyPI and TestPyPI
+(for pre-releases). This allows users to run ``pip install sequence`` to get
+the latest release.
+
