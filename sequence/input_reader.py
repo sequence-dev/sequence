@@ -14,7 +14,7 @@ def load_config(stream, fmt=None):
     loader = TimeVaryingConfig.get_loader(fmt)
 
     if isinstance(stream, (str, pathlib.Path)):
-        with open(stream, "r") as fp:
+        with open(stream) as fp:
             times_and_params = loader(fp)
     else:
         times_and_params = loader(stream)
@@ -108,7 +108,7 @@ class TimeVaryingConfig:
     def from_files(cls, names, times=None):
         dicts = []
         for name in [pathlib.Path(n) for n in names]:
-            with open(name, "r") as fp:
+            with open(name) as fp:
                 loader = TimeVaryingConfig.get_loader(name.suffix[1:])
                 dicts.extend([p for _, p in loader(fp)])
         if times is None:
@@ -125,7 +125,7 @@ class TimeVaryingConfig:
         except AttributeError:
             raise ValueError(f"unrecognized format: {fmt}")
 
-        with open(name, "r") as fp:
+        with open(name) as fp:
             times_and_params = loader(fp)
         return cls(*zip(*times_and_params))
 
@@ -165,7 +165,7 @@ class TimeVaryingConfig:
                 result = bool(result)
             else:
                 warnings.warn(
-                    "unexpected type ({0!r}) encountered when converting toml to a dict".format(
+                    "unexpected type ({!r}) encountered when converting toml to a dict".format(
                         result.__class__.__name__
                     )
                 )
@@ -284,8 +284,7 @@ def _walk_dict(indict, prev=None):
     if isinstance(indict, dict):
         for key, value in indict.items():
             if isinstance(value, dict):
-                for d in _walk_dict(value, prev + (key,)):
-                    yield d
+                yield from _walk_dict(value, prev + (key,))
             elif isinstance(value, list) or isinstance(value, tuple):
                 yield prev + (key,), value
             else:

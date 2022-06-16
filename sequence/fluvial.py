@@ -67,7 +67,7 @@ class Fluvial(Component):
 
         """
 
-        super(Fluvial, self).__init__(grid, **kwds)
+        super().__init__(grid, **kwds)
 
         # fixed parameters
         self.sand_grain = 0.001  # grain size = 1 mm

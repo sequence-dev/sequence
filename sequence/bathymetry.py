@@ -35,7 +35,7 @@ class BathymetryReader(Component):
             'nearest', 'zero', 'slinear', 'quadratic', 'cubic').
             Default is 'linear'.
         """
-        super(BathymetryReader, self).__init__(grid, **kwds)
+        super().__init__(grid, **kwds)
 
         data = np.loadtxt(filepath, delimiter=",", comments="#")
         self._bathymetry = interpolate.interp1d(

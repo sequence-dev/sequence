@@ -50,7 +50,7 @@ class ShorelineFinder(Component):
     }
 
     def __init__(self, grid, alpha=0.0005):
-        super(ShorelineFinder, self).__init__(grid)
+        super().__init__(grid)
 
         self._alpha = alpha
         self.grid.at_grid["x_of_shore"] = 0.0
@@ -332,7 +332,7 @@ def find_shoreline_index(x, z, sea_level=0.0):
 
     if len(below_water) == 0 or len(below_water) == len(x):
         raise ShorelineError(
-            "No shoreline found. The profile is all {0} sea level".format(
+            "No shoreline found. The profile is all {} sea level".format(
                 "above" if len(below_water) == 0 else "below"
             )
         )
