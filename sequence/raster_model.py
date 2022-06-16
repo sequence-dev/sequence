@@ -10,7 +10,7 @@ from landlab.plot import imshow_grid
 from .output_writer import OutputWriter
 
 
-class RasterModel(object):
+class RasterModel:
     def __init__(self, grid=None, clock=None, output=None):
         self._clock = TimeStepper(**clock)
         self._grid = RasterModelGrid.from_dict(grid)
@@ -148,8 +148,7 @@ def walk_dict(indict, prev=None):
     if isinstance(indict, dict):
         for key, value in indict.items():
             if isinstance(value, dict):
-                for d in walk_dict(value, [key] + prev):
-                    yield d
+                yield from walk_dict(value, [key] + prev)
             elif isinstance(value, list) or isinstance(value, tuple):
                 yield prev + [key, value]
                 # for v in value:

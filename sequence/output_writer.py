@@ -24,7 +24,7 @@ class OutputWriter(Component):
         if filepath is None:
             raise ValueError("filepath must be provided")
 
-        super(OutputWriter, self).__init__(grid)
+        super().__init__(grid)
 
         self._clock = clock or TimeStepper()
         self._clobber = clobber

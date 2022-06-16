@@ -20,7 +20,7 @@ _NUMPY_TO_NETCDF_TYPE = {
 
 def _netcdf_var_name(name, at):
     """Get the name a field will be stored as in a netCDF file."""
-    return "at_{at}:{name}".format(at=at, name=name)
+    return f"at_{at}:{name}"
 
 
 def _netcdf_type(arr):
@@ -34,13 +34,13 @@ def _create_grid_dimension(root, grid, at="node", ids=None):
         ids = Ellipsis
 
     if at not in ("node", "link", "patch", "corner", "face", "cell", "grid"):
-        raise ValueError("unknown grid location {0}".format(at))
+        raise ValueError(f"unknown grid location {at}")
 
     if at not in root.dimensions:
         if at == "grid":
             number_of_elements = 1
         else:
-            number_of_elements = len(getattr(grid, "xy_of_{0}".format(at))[ids])
+            number_of_elements = len(getattr(grid, f"xy_of_{at}")[ids])
         root.createDimension(at, number_of_elements)
 
     return root
@@ -51,11 +51,11 @@ def _create_grid_coordinates(root, grid, at="node", ids=None):
     _create_grid_dimension(root, grid, at=at, ids=ids)
 
     if at != "grid":
-        root.createVariable("x_of_{0}".format(at), "f8", (at,))
-        root.createVariable("y_of_{0}".format(at), "f8", (at,))
+        root.createVariable(f"x_of_{at}", "f8", (at,))
+        root.createVariable(f"y_of_{at}", "f8", (at,))
 
         for coord in ("x", "y"):
-            name = "{coord}_of_{at}".format(coord=coord, at=at)
+            name = f"{coord}_of_{at}"
             if name not in root.variables:
                 root.createVariable(name, "f8", (at,))
 

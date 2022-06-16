@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 from collections import OrderedDict
 
 import numpy as np
@@ -104,7 +103,7 @@ class SequenceModel:
         missing_kwds = [kwd for kwd, value in config.items() if value is None]
         if missing_kwds:
             raise ValueError(
-                "missing required config parameters for SequenceModel ({0})".format(
+                "missing required config parameters for SequenceModel ({})".format(
                     ", ".join(missing_kwds)
                 )
             )

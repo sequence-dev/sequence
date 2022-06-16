@@ -135,7 +135,7 @@ def _find_config_files(pathname):
     return zip(*sorted(items))
 
 
-class silent_progressbar(object):
+class silent_progressbar:
     def __init__(self, **kwds):
         pass
 
@@ -233,7 +233,7 @@ def run(ctx, with_citations, dry_run):
 
         if verbose or not silent:
             out("💥 Finished! 💥")
-            out("Output written to {0}".format(run_dir))
+            out(f"Output written to {run_dir}")
     else:
         if verbose or not silent:
             out("Nothing to do. 😴")

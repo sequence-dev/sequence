@@ -43,7 +43,7 @@ class SubsidenceTimeSeries(Component):
             'nearest', 'zero', 'slinear', 'quadratic', 'cubic').
             Default is 'linear'.
         """
-        super(SubsidenceTimeSeries, self).__init__(grid)
+        super().__init__(grid)
 
         self._filepath = filepath
         self._kind = kind

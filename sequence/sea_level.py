@@ -36,7 +36,7 @@ class SeaLevelTimeSeries(Component):
             'nearest', 'zero', 'slinear', 'quadratic', 'cubic').
             Default is 'linear'.
         """
-        super(SeaLevelTimeSeries, self).__init__(grid, **kwds)
+        super().__init__(grid, **kwds)
 
         self._filepath = filepath
         self._kind = kind
