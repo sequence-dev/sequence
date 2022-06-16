@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 import argparse
 import os
-import sys
 
 
 def _find_tomllib():
