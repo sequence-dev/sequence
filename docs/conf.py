@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 # sequence documentation build configuration file, created by
 # sphinx-quickstart on Fri Jun  9 13:47:02 2017.
@@ -22,6 +21,8 @@ import os
 import sys
 
 from unittest.mock import MagicMock
+
+import sequence
 
 
 class Mock(MagicMock):
@@ -54,8 +55,6 @@ if os.environ.get("READTHEDOCS", ""):
 
     subprocess.run(["sphinx-apidoc", "--force", "-o", "./api", "../sequence", "*tests"])
 
-
-import sequence
 
 # -- General configuration ---------------------------------------------
 
