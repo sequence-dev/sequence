@@ -115,9 +115,9 @@ def _plot(
 
 
 def plot_grid(grid, **kwds):
-    elevation_at_layer = grid.at_node["bedrock_surface__elevation"][
-        grid.node_at_cell
-    ] + np.cumsum(grid.at_layer.dz, axis=0)
+    elevation_at_layer = (
+        grid.at_node["bedrock_surface__elevation"][grid.node_at_cell] + grid.at_layer.z
+    )
     x_of_stack = grid.x_of_node[grid.node_at_cell]
 
     x_of_shore = grid.at_layer_grid["x_of_shore"].flatten()
@@ -128,6 +128,8 @@ def plot_grid(grid, **kwds):
 
     x_of_shore = interp1d(time_at_layer_grid, x_of_shore)(time_at_layer[:, 0])
     x_of_shelf_edge = interp1d(time_at_layer_grid, x_of_shelf_edge)(time_at_layer[:, 0])
+
+    kwds.setdefault("title", f"time = {time_at_layer[-1, 0]} years")
 
     _plot(
         elevation_at_layer,
