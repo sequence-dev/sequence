@@ -27,12 +27,12 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-  "click",
   "compaction",
   "landlab",
   "netcdf4",
   "numpy >=1.21, != 1.21.0, != 1.21.1",
   "pyyaml",
+  "rich-click",
   "scipy",
   "tomlkit",
 ]
@@ -72,6 +72,7 @@ doc = [
 
 [project.scripts]
 sequence = "sequence.cli:sequence"
+testy = "sequence.testy:app"
 
 [tool.setuptools]
 packages = ["sequence"]
