@@ -4,10 +4,10 @@ import re
 from io import StringIO
 from typing import Any, Optional
 
-# import click
+import click
 import numpy as np
 
-import rich_click as click
+# import rich_click as click
 import tomlkit as toml
 import yaml
 
@@ -18,17 +18,17 @@ from .raster_model import load_model_params, load_params_from_strings
 from .sequence_model import SequenceModel
 
 
-click.rich_click.ERRORS_SUGGESTION = (
-    "Try running the '--help' flag for more information."
-)
-click.rich_click.ERRORS_EPILOGUE = (
-    "To find out more, visit https://github.com/sequence-dev/sequence"
-)
-click.STYLE_ERRORS_SUGGESTION = "yellow italic"
-click.SHOW_ARGUMENTS = True
-click.GROUP_ARGUMENTS_OPTIONS = False
-click.SHOW_METAVARS_COLUMN = True
-click.USE_MARKDOWN = True
+# click.rich_click.ERRORS_SUGGESTION = (
+#     "Try running the '--help' flag for more information."
+# )
+# click.rich_click.ERRORS_EPILOGUE = (
+#     "To find out more, visit https://github.com/sequence-dev/sequence"
+# )
+# click.STYLE_ERRORS_SUGGESTION = "yellow italic"
+# click.SHOW_ARGUMENTS = True
+# click.GROUP_ARGUMENTS_OPTIONS = False
+# click.SHOW_METAVARS_COLUMN = True
+# click.USE_MARKDOWN = True
 
 # out = partial(click.secho, bold=True, file=sys.stderr)
 # err = partial(click.secho, fg="red", file=sys.stderr)
