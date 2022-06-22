@@ -74,9 +74,18 @@ class Sequence(Component):
 
     @property
     def time(self):
+        """The current model time (in years)."""
         return self._time
 
     def update(self, dt=None):
+        """Update the model of a given time step.
+
+        Parameters
+        ----------
+        dt : float, optional
+            The length of time to run the model for. If not given,
+            update the model a single time step.
+        """
         dt = self._time_step if dt is None else dt
 
         for component in self._components:
@@ -89,6 +98,16 @@ class Sequence(Component):
         )
 
     def run(self, until=None, progress_bar=True):
+        """Run the model to a given time.
+
+        Parameters
+        ----------
+        until : float, optional
+            The time (in years) to run the model to. If not provided, run
+            for a single time step.
+        progress_bar : bool, optional
+            If ``True`` display a progress bar while the model is running.
+        """
         if until is None:
             until = self._time + self._time_step
 
