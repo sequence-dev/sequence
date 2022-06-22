@@ -49,6 +49,7 @@ dev = [
   "black",
   "flake8",
   "isort",
+  "nbmake",
   "pre-commit",
   "pytest",
   "pytest-cov",
@@ -68,6 +69,10 @@ doc = [
   "nbsphinx>=0.2.12",
   "sphinxcontrib_github_alt",
   "pygments>=2.4",
+]
+notebook = [
+  "notebook",
+  "tqdm",
 ]
 
 [project.scripts]
