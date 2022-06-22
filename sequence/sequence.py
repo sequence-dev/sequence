@@ -1,4 +1,5 @@
 import numpy as np
+from tqdm import trange
 
 from landlab import Component
 from landlab.layers import EventLayers
@@ -86,6 +87,16 @@ class Sequence(Component):
         self.add_layer(
             self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell]
         )
+
+    def run(self, until=None, progress_bar=True):
+        if until is None:
+            until = self._time + self._time_step
+
+        dt = self._time_step
+        n_steps = int((until - self.time) // dt)
+
+        for _ in trange(n_steps, desc="🚀", disable=not progress_bar):
+            self.update(dt=min(dt, until - self._time))
 
     def layer_properties(self):
         dz = self.grid.at_node["sediment_deposit__thickness"]
