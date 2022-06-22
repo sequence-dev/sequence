@@ -7,3 +7,6 @@ class SequenceModelGrid(RasterModelGrid):
 
         self.status_at_node[self.nodes_at_top_edge] = self.BC_NODE_IS_CLOSED
         self.status_at_node[self.nodes_at_bottom_edge] = self.BC_NODE_IS_CLOSED
+
+        self.at_node["sediment_deposit__thickness"] = self.zeros(at="node")
+        self.at_grid["sea_level__elevation"] = 0.0
