@@ -95,7 +95,8 @@ class SubmarineDiffuser(LinearDiffuser):
         grid.at_grid["sediment_load"] = self._load
 
         grid.add_zeros("kd", at="node")
-        grid.add_zeros("sediment_deposit__thickness", at="node")
+        if "sediment_deposit__thickness" not in grid.at_node:
+            grid.add_zeros("sediment_deposit__thickness", at="node")
 
         self._time = 0.0
 

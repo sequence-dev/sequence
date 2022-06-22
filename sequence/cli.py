@@ -6,14 +6,29 @@ from typing import Any, Optional
 
 import click
 import numpy as np
+
+# import rich_click as click
 import tomlkit as toml
 import yaml
 
 from .errors import MissingRequiredVariable
 from .input_reader import TimeVaryingConfig
-from .plot import plot_strat
+from .plot import plot_file
 from .raster_model import load_model_params, load_params_from_strings
 from .sequence_model import SequenceModel
+
+
+# click.rich_click.ERRORS_SUGGESTION = (
+#     "Try running the '--help' flag for more information."
+# )
+# click.rich_click.ERRORS_EPILOGUE = (
+#     "To find out more, visit https://github.com/sequence-dev/sequence"
+# )
+# click.STYLE_ERRORS_SUGGESTION = "yellow italic"
+# click.SHOW_ARGUMENTS = True
+# click.GROUP_ARGUMENTS_OPTIONS = False
+# click.SHOW_METAVARS_COLUMN = True
+# click.USE_MARKDOWN = True
 
 # out = partial(click.secho, bold=True, file=sys.stderr)
 # err = partial(click.secho, fg="red", file=sys.stderr)
@@ -169,17 +184,17 @@ class silent_progressbar:
 def sequence(cd, silent, verbose) -> None:
     """The Steckler Sequence model.
 
-    \b
-    Examples:
+    # Examples
 
-      Create a folder with example input files,
-
-        $ mkdir sequence-example && cd sequence-example
-        $ sequence setup
-
-      Run a simulation using the examples input files,
-
-        $ sequence run
+    Create a folder with example input files,
+    ```bash
+    $ mkdir sequence-example && cd sequence-example
+    $ sequence setup
+    ```
+    Run a simulation using the examples input files,
+    ```bash
+    $ sequence run
+    ```
     """
     # if silent:
     #     out.keywords["file"] = open(os.devnull, "w")
@@ -302,7 +317,7 @@ def setup(set):
     "-v", "--verbose", is_flag=True, help="Also emit status messages to stderr."
 )
 def plot(set, verbose):
-    """Plot a sequence output file."""
+    """Plot a Sequence output file."""
     folder = pathlib.Path.cwd()
 
     if (folder / "sequence.toml").exists():
@@ -319,7 +334,7 @@ def plot(set, verbose):
         out(toml.dumps(dict(sequence=dict(plot=config))))
 
     try:
-        plot_strat(folder / "sequence.nc", **config)
+        plot_file(folder / "sequence.nc", **config)
     except MissingRequiredVariable as error:
         err(
             f"{folder / 'sequence.nc'}: output file is missing a required variable ({error})"

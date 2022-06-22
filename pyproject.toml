@@ -31,7 +31,7 @@ dependencies = [
   "compaction",
   "landlab",
   "netcdf4",
-  "numpy >=1.21, != 1.21.0, != 1.21.1",
+  "numpy >=1.22",
   "pyyaml",
   "scipy",
   "tomlkit",
@@ -72,6 +72,7 @@ doc = [
 
 [project.scripts]
 sequence = "sequence.cli:sequence"
+testy = "sequence.testy:app"
 
 [tool.setuptools]
 packages = ["sequence"]
