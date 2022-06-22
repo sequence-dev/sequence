@@ -72,6 +72,7 @@ doc = [
 ]
 notebook = [
   "notebook",
+  "tqdm",
 ]
 
 [project.scripts]
