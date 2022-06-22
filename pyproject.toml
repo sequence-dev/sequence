@@ -49,6 +49,7 @@ dev = [
   "black",
   "flake8",
   "isort",
+  "nbcheck",
   "pre-commit",
   "pytest",
   "pytest-cov",
