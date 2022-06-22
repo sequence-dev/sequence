@@ -90,7 +90,8 @@ class Fluvial(Component):
         self.wave_base = float(wave_base)
         self.hemi = float(hemipelagic)
 
-        grid.add_zeros("delta_sediment_sand__volume_fraction", at="node")
+        if "delta_sediment_sand__volume_fraction" not in grid.at_node:
+            grid.add_zeros("delta_sediment_sand__volume_fraction", at="node")
 
     def run_one_step(self, dt):
         # Upstream boundary conditions  */
