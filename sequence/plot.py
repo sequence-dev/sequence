@@ -1,6 +1,4 @@
-import pathlib
 from functools import partial
-from itertools import tee
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,15 +9,11 @@ from scipy.interpolate import interp1d
 from .errors import MissingRequiredVariable
 
 
-def pairwise(iterable):
-    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
-    a, b = tee(iterable)
-    next(b, None)
-    return zip(a, b)
-
-
-def plot_strat(
-    filename,
+def _plot(
+    elevation_at_layer,
+    x_of_stack=None,
+    x_of_shore_at_layer=None,
+    x_of_shelf_edge_at_layer=None,
     color_water=(0.8, 1.0, 1.0),
     color_land=(0.8, 1.0, 0.8),
     color_shoreface=(0.8, 0.8, 0.0),
@@ -29,44 +23,24 @@ def plot_strat(
     layer_start=0,
     layer_stop=-1,
     n_layers=5,
-    title="{filename}",
+    title=None,
     x_label="Distance (m)",
     y_label="Elevation (m)",
     legend_location="lower left",
 ):
+    if x_of_stack is None:
+        x_of_stack = np.arange(elevation_at_layer.shape[1])
+
     plot_land = bool(color_land)
     plot_shoreface = bool(color_shoreface)
     plot_shelf = bool(color_shelf)
 
-    filename = pathlib.Path(filename)
-
     legend_item = partial(Patch, edgecolor="k", linewidth=0.5)
 
-    with xr.open_dataset(filename) as ds:
-        try:
-            thickness_at_layer = ds["at_layer:thickness"]
-            x_of_shore = ds["at_grid:x_of_shore"].data.squeeze()
-            x_of_shelf_edge = ds["at_grid:x_of_shelf_edge"].data.squeeze()
-            bedrock = ds["at_node:bedrock_surface__elevation"].data.squeeze()
-            time = ds["time"]
-            time_at_layer = ds["at_layer:age"]
-        except KeyError as err:
-            raise MissingRequiredVariable(str(err))
+    stack_of_shore = np.searchsorted(x_of_stack, x_of_shore_at_layer)
+    stack_of_shelf_edge = np.searchsorted(x_of_stack, x_of_shelf_edge_at_layer)
 
-        try:
-            x_of_stack = ds["x_of_cell"].data.squeeze()
-        except KeyError:
-            x_of_stack = np.arange(ds.dims["cell"])
-
-        elevation_at_layer = bedrock[-1, 1:-1] + np.cumsum(thickness_at_layer, axis=0)
-
-    x_of_shore = interp1d(time, x_of_shore)(time_at_layer[:, 0])
-    x_of_shelf_edge = interp1d(time, x_of_shelf_edge)(time_at_layer[:, 0])
-
-    stack_of_shore = np.searchsorted(x_of_stack, x_of_shore)
-    stack_of_shelf_edge = np.searchsorted(x_of_stack, x_of_shelf_edge)
-
-    water = x_of_stack > x_of_shore[-1]
+    water = x_of_stack > x_of_shore_at_layer[-1]
     x_water = x_of_stack[water]
     y_water = elevation_at_layer[-1, water]
 
@@ -133,10 +107,67 @@ def plot_strat(
 
     plt.xlabel(x_label)
     plt.ylabel(y_label)
-    plt.title(title.format(filename=filename.name))
+    if title:
+        plt.title(title)
     plt.xlim((x_of_stack[0], x_of_stack[-1]))
 
     plt.show()
+
+
+def plot_grid(grid, **kwds):
+    elevation_at_layer = grid.at_node["bedrock_surface__elevation"][
+        grid.node_at_cell
+    ] + np.cumsum(grid.at_layer.dz, axis=0)
+    x_of_stack = grid.x_of_node[grid.node_at_cell]
+
+    x_of_shore = grid.at_layer_grid["x_of_shore"].flatten()
+    x_of_shelf_edge = grid.at_layer_grid["x_of_shelf_edge"].flatten()
+
+    time_at_layer_grid = grid.at_layer_grid["age"].flatten()
+    time_at_layer = grid.at_layer["age"]
+
+    x_of_shore = interp1d(time_at_layer_grid, x_of_shore)(time_at_layer[:, 0])
+    x_of_shelf_edge = interp1d(time_at_layer_grid, x_of_shelf_edge)(time_at_layer[:, 0])
+
+    _plot(
+        elevation_at_layer,
+        x_of_stack=x_of_stack,
+        x_of_shore_at_layer=x_of_shore,
+        x_of_shelf_edge_at_layer=x_of_shelf_edge,
+        **kwds,
+    )
+
+
+def plot_file(filename, **kwds):
+    kwds.setdefault("title", f"{filename}")
+    with xr.open_dataset(filename) as ds:
+        try:
+            thickness_at_layer = ds["at_layer:thickness"]
+            x_of_shore = ds["at_grid:x_of_shore"].data.squeeze()
+            x_of_shelf_edge = ds["at_grid:x_of_shelf_edge"].data.squeeze()
+            bedrock = ds["at_node:bedrock_surface__elevation"].data.squeeze()
+            time = ds["time"]
+            time_at_layer = ds["at_layer:age"]
+        except KeyError as err:
+            raise MissingRequiredVariable(str(err))
+
+        try:
+            x_of_stack = ds["x_of_cell"].data.squeeze()
+        except KeyError:
+            x_of_stack = np.arange(ds.dims["cell"])
+
+        elevation_at_layer = bedrock[-1, 1:-1] + np.cumsum(thickness_at_layer, axis=0)
+
+    x_of_shore = interp1d(time, x_of_shore)(time_at_layer[:, 0])
+    x_of_shelf_edge = interp1d(time, x_of_shelf_edge)(time_at_layer[:, 0])
+
+    _plot(
+        elevation_at_layer,
+        x_of_stack=x_of_stack,
+        x_of_shore_at_layer=x_of_shore,
+        x_of_shelf_edge_at_layer=x_of_shelf_edge,
+        **kwds,
+    )
 
 
 def _get_layers_to_plot(start, stop, num=-1):
