@@ -41,7 +41,7 @@ class Fluvial(Component):
     def __init__(
         self,
         grid,
-        sand_frac,
+        sand_frac=0.5,
         start=0.0,
         wave_base=60.0,
         sediment_load=3.0,
@@ -59,7 +59,7 @@ class Fluvial(Component):
         grid: ModelGrid
             A landlab grid.
         sand_frac: str
-            Name of csv-formatted sea-level file.
+            Fraction of sand on the delta.
         sea_level: float, optional
             The current sea level (m).
         wave_base: float, optional
