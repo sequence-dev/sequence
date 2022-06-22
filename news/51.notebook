@@ -1,0 +1,4 @@
+Added a tutorial notebook that demonstrates the use of the new ``Sequence``
+class and how one can build, run and dynamically modify a new *sequence*
+model from a series of process components.
+

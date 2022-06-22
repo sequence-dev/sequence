@@ -3,6 +3,8 @@ import numpy as np
 from landlab import Component
 from landlab.layers import EventLayers
 
+from .plot import plot_grid
+
 
 class Sequence(Component):
     _name = "Sequence"
@@ -79,11 +81,11 @@ class Sequence(Component):
         for component in self._components:
             component.run_one_step(dt=dt)
 
+        self._time += dt
+
         self.add_layer(
             self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell]
         )
-
-        self._time += dt
 
     def layer_properties(self):
         dz = self.grid.at_node["sediment_deposit__thickness"]
@@ -96,6 +98,7 @@ class Sequence(Component):
             "age": self.time,
             "water_depth": water_depth[self.grid.node_at_cell],
             "t0": dz[self.grid.node_at_cell].clip(0.0),
+            "porosity": 0.5,
         }
 
         try:
@@ -112,10 +115,11 @@ class Sequence(Component):
             "age": np.max,
             "water_depth": np.mean,
             "t0": np.sum,
+            "porosity": np.mean,
         }
         if "percent_sand" in self.grid.event_layers.tracking:
             reducers["percent_sand"] = np.mean
-        # porosity = np.mean
+
         return reducers
 
     def add_layer(self, dz_at_cell):
@@ -142,3 +146,6 @@ class Sequence(Component):
                 **self.layer_reducers(),
             )
             self._n_archived_layers += 1
+
+    def plot(self):
+        plot_grid(self.grid)
