@@ -14,7 +14,7 @@ class SedimentFlexure(Flexure1D):
         "sediment_deposit__thickness": {
             "dtype": "float",
             "intent": "in",
-            "optional": False,
+            "optional": True,
             "units": "m",
             "mapping": "node",
             "doc": "Thickness of deposited or eroded sediment",
@@ -30,7 +30,7 @@ class SedimentFlexure(Flexure1D):
         "topographic__elevation": {
             "dtype": "float",
             "intent": "inout",
-            "optional": False,
+            "optional": True,
             "units": "m",
             "mapping": "node",
             "doc": "land and ocean bottom elevation, positive up",
@@ -38,7 +38,7 @@ class SedimentFlexure(Flexure1D):
         "bedrock_surface__elevation": {
             "dtype": "float",
             "intent": "inout",
-            "optional": False,
+            "optional": True,
             "units": "m",
             "mapping": "node",
             "doc": "New bedrock elevation following subsidence",
@@ -46,15 +46,15 @@ class SedimentFlexure(Flexure1D):
         "bedrock_surface__increment_of_elevation": {
             "dtype": "float",
             "intent": "out",
-            "optional": False,
+            "optional": True,
             "units": "m",
             "mapping": "node",
             "doc": "Amount of subsidence due to sediment loading",
         },
         "delta_sediment_sand__volume_fraction": {
             "dtype": "float",
-            "intent": "out",
-            "optional": False,
+            "intent": "in",
+            "optional": True,
             "units": "-",
             "mapping": "node",
             "doc": "delta sand fraction",
@@ -111,6 +111,10 @@ class SedimentFlexure(Flexure1D):
             grid.add_empty("lithosphere_surface__increment_of_elevation", at="node")
         if "sea_level__elevation" not in grid.at_grid:
             grid.at_grid["sea_level__elevation"] = 0.0
+        if "delta_sediment_sand__volume_fraction" not in grid.at_node:
+            grid.add_ones("delta_sediment_sand__volume_fraction", at="node")
+        if "bedrock_surface__increment_of_elevation" not in grid.at_node:
+            grid.add_empty("bedrock_surface__increment_of_elevation", at="node")
 
         self.subs_pool = self.grid.zeros(at="node")
 
