@@ -1,0 +1,36 @@
+# YAML 1.2
+cff-version: 1.2.0
+title: sequence
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+abstract: >-
+  Sequence is a modular 2D (i.e., profile) sequence stratigraphic model
+  that is written in Python and implemented within the Landlab framework.
+  Sequence represents time-averaged fluvial and marine sediment transport
+  via differential equations. The modular code includes components to deal
+  with sea level changes, sediment compaction, local or flexural isostasy,
+  and tectonic subsidence and uplift.
+type: software
+authors:
+  - given-names: Eric
+    family-names: Hutton
+    email: mcflugen@gmail.com
+    affiliation: University of Colorado
+    orcid: 'https://orcid.org/0000-0002-5864-6459'
+  - given-names: Michael
+    family-names: Steckler
+    affiliation: Columbia University
+    orcid: "https://orcid.org/0000-0002-4828-4319"
+repository-code: "https://github.com/sequence-dev/sequence"
+url: "https://sequence.readthedocs.io"
+date-released: "2022-06-26"
+keywords:
+  - "bmi"
+  - "component modeling"
+  - "earth science"
+  - "landlab"
+  - "model coupling"
+  - "numerical modeling"
+  - "sequence stratigraphy"
+license: MIT
