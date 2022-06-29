@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sequence"
+name = "sequence-model"
 description = "Python version of the Steckler Sequence model built with landlab"
 authors = [
   {email = "mcflugen@gmail.com"},
