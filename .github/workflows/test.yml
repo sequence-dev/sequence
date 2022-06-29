@@ -50,6 +50,7 @@ jobs:
 
       - name: Test command line
         run: |
+          sequence --version
           mkdir example
           sequence --cd=example setup --set clock.stop=60000
           sequence --cd=example --silent run
