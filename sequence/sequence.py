@@ -1,4 +1,5 @@
 import numpy as np
+from tqdm import trange
 
 from landlab import Component
 from landlab.layers import EventLayers
@@ -73,9 +74,18 @@ class Sequence(Component):
 
     @property
     def time(self):
+        """The current model time (in years)."""
         return self._time
 
     def update(self, dt=None):
+        """Update the model of a given time step.
+
+        Parameters
+        ----------
+        dt : float, optional
+            The length of time to run the model for. If not given,
+            update the model a single time step.
+        """
         dt = self._time_step if dt is None else dt
 
         for component in self._components:
@@ -86,6 +96,27 @@ class Sequence(Component):
         self.add_layer(
             self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell]
         )
+
+    def run(self, until=None, dt=None, progress_bar=True):
+        """Run the model to a given time.
+
+        Parameters
+        ----------
+        until : float, optional
+            The time (in years) to run the model to. If not provided, run
+            for a single time step.
+        progress_bar : bool, optional
+            If ``True`` display a progress bar while the model is running.
+        """
+        dt = self._time_step if dt is None else dt
+        until = self._time + self._time_step if until is None else until
+
+        n_steps = int((until - self.time) // dt)
+        if (until - self.time) % dt > 0:
+            n_steps += 1
+
+        for _ in trange(n_steps, desc="🚀", disable=not progress_bar):
+            self.update(dt=min(dt, until - self._time))
 
     def layer_properties(self):
         dz = self.grid.at_node["sediment_deposit__thickness"]
@@ -123,13 +154,16 @@ class Sequence(Component):
         return reducers
 
     def add_layer(self, dz_at_cell):
+        x_of_shore = self.grid.at_grid.get("x_of_shore", -1)
+        x_of_shelf_edge = self.grid.at_grid.get("x_of_shelf_edge", -1)
+
         self.grid.event_layers.add(dz_at_cell, **self.layer_properties())
         self.grid.at_layer_grid.add(
             1.0,
             age=self.time,
             sea_level=self.grid.at_grid["sea_level__elevation"],
-            x_of_shore=self.grid.at_grid["x_of_shore"],
-            x_of_shelf_edge=self.grid.at_grid["x_of_shelf_edge"],
+            x_of_shore=x_of_shore,
+            x_of_shelf_edge=x_of_shelf_edge,
         )
 
         try:
