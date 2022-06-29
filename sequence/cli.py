@@ -4,10 +4,10 @@ import re
 from io import StringIO
 from typing import Any, Optional
 
-import click
+# import click
 import numpy as np
 
-# import rich_click as click
+import rich_click as click
 import tomlkit as toml
 import yaml
 
@@ -18,17 +18,17 @@ from .raster_model import load_model_params, load_params_from_strings
 from .sequence_model import SequenceModel
 
 
-# click.rich_click.ERRORS_SUGGESTION = (
-#     "Try running the '--help' flag for more information."
-# )
-# click.rich_click.ERRORS_EPILOGUE = (
-#     "To find out more, visit https://github.com/sequence-dev/sequence"
-# )
-# click.STYLE_ERRORS_SUGGESTION = "yellow italic"
-# click.SHOW_ARGUMENTS = True
-# click.GROUP_ARGUMENTS_OPTIONS = False
-# click.SHOW_METAVARS_COLUMN = True
-# click.USE_MARKDOWN = True
+click.rich_click.ERRORS_SUGGESTION = (
+    "Try running the '--help' flag for more information."
+)
+click.rich_click.ERRORS_EPILOGUE = (
+    "To find out more, visit https://github.com/sequence-dev/sequence"
+)
+click.rich_click.STYLE_ERRORS_SUGGESTION = "yellow italic"
+click.rich_click.SHOW_ARGUMENTS = True
+click.rich_click.GROUP_ARGUMENTS_OPTIONS = False
+click.rich_click.SHOW_METAVARS_COLUMN = True
+click.rich_click.USE_MARKDOWN = True
 
 # out = partial(click.secho, bold=True, file=sys.stderr)
 # err = partial(click.secho, fg="red", file=sys.stderr)
@@ -165,7 +165,7 @@ class silent_progressbar:
 
 
 @click.group(chain=True)
-@click.version_option()
+@click.version_option(package_name="sequence-model")
 @click.option(
     "--cd",
     default=".",
@@ -182,9 +182,28 @@ class silent_progressbar:
     "-v", "--verbose", is_flag=True, help="Also emit status messages to stderr."
 )
 def sequence(cd, silent, verbose) -> None:
-    """The Steckler Sequence model.
+    """# Sequence
 
-    # Examples
+    Sequence is a modular 2D (i.e., profile) sequence stratigraphic model
+    that is written in Python and implemented within the Landlab framework.
+    Sequence represents time-averaged fluvial and marine sediment transport
+    via differential equations. The modular code includes components to deal
+    with sea level changes, sediment compaction, local or flexural isostasy,
+    and tectonic subsidence and uplift.
+    """
+    os.chdir(cd)
+
+
+@sequence.command()
+@click.option("--dry-run", is_flag=True, help="do not actually run the model")
+@click.option(
+    "--with-citations", is_flag=True, help="print citations for components used"
+)
+@click.pass_context
+def run(ctx, with_citations, dry_run):
+    """Run a simulation.
+
+    ## Examples
 
     Create a folder with example input files,
     ```bash
@@ -196,20 +215,6 @@ def sequence(cd, silent, verbose) -> None:
     $ sequence run
     ```
     """
-    # if silent:
-    #     out.keywords["file"] = open(os.devnull, "w")
-
-    os.chdir(cd)
-
-
-@sequence.command()
-@click.option("--dry-run", is_flag=True, help="do not actually run the model")
-@click.option(
-    "--with-citations", is_flag=True, help="print citations for components used"
-)
-@click.pass_context
-def run(ctx, with_citations, dry_run):
-    """Run a simulation."""
     verbose = ctx.parent.params["verbose"]
     silent = ctx.parent.params["silent"]
 
