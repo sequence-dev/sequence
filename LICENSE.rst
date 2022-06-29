@@ -1,7 +1,7 @@
 The MIT License (MIT)
 =====================
 
-Copyright © `2020` `Eric Hutton`
+Copyright (c) `2020` `Eric Hutton`
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
