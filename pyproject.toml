@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sequence"
+name = "sequence-model"
 description = "Python version of the Steckler Sequence model built with landlab"
 authors = [
   {email = "mcflugen@gmail.com"},
@@ -27,12 +27,12 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-  "click",
   "compaction",
   "landlab",
   "netcdf4",
   "numpy >=1.22",
   "pyyaml",
+  "rich-click",
   "scipy",
   "tomlkit",
   "tqdm",
