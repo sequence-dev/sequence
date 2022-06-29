@@ -27,12 +27,12 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-  "click",
   "compaction",
   "landlab",
   "netcdf4",
   "numpy >=1.22",
   "pyyaml",
+  "rich-click",
   "scipy",
   "tomlkit",
   "tqdm",
