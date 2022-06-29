@@ -1,3 +1,0 @@
-Added a GitHub Actions workflow that tests the *sequence* notebooks. The
-notebooks are simply executed to ensure they run, not to validate any output.
-

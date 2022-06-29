@@ -1,4 +1,0 @@
-Fixed a bug where the ``Compact`` component would fail to run because
-porosity was not being tracked within layers.
-
-

@@ -3,6 +3,64 @@ Changelog for Sequence
 
 .. towncrier release notes start
 
+0.5.0 (2022-06-29)
+------------------
+
+New Tutorial Notebooks
+``````````````````````
+
+- Added a tutorial notebook that demonstrates the use of the new ``Sequence``
+  class and how one can build, run and dynamically modify a new *sequence*
+  model from a series of process components. (`#51 <https://github.com/sequence-dev/sequence/issues/51>`_)
+
+
+New Features
+````````````
+
+- Added several new setters to ``SedimentFlexure`` that allows a user to
+  dynamically change paramters while the model is running. These include:
+  sediment densities (sand and mud), and water density. (`#45 <https://github.com/sequence-dev/sequence/issues/45>`_)
+- Added *water_density* as an input parameter to ``SedimentFlexure``. (`#45 <https://github.com/sequence-dev/sequence/issues/45>`_)
+- Added a new function, ``plot_grid``, that plots the output of a *sequence*
+  model from Python. This serves as the programmatic equivalent of the
+  ``sequence plot`` command-line program. (`#50 <https://github.com/sequence-dev/sequence/issues/50>`_)
+- Added a new module ``sequence.processes`` that holds all processes that can
+  be used to construct a new *sequence* model. (`#50 <https://github.com/sequence-dev/sequence/issues/50>`_)
+- Added ``Sequence`` class that allows a user to construct and run *sequence*
+  models within a Python environment and dynamically change input variables. (`#50 <https://github.com/sequence-dev/sequence/issues/50>`_)
+- Added a ``SequenceModelGrid`` class, based on a *landlab* ``RasterModelGrid``,
+  that creates a grid that can be used for creating new *sequence* models. (`#50 <https://github.com/sequence-dev/sequence/issues/50>`_)
+- Added a new method, *run*, to *Sequence* that allows a user to run the model
+  until a given time and with a given time step. (`#54 <https://github.com/sequence-dev/sequence/issues/54>`_)
+
+
+Bug Fixes
+`````````
+
+- Fixed a bug where the sea floor was not plotted in some situations. (`#46 <https://github.com/sequence-dev/sequence/issues/46>`_)
+- Fixed a bug where the ``Compact`` component would fail to run because
+  porosity was not being tracked within layers. (`#51 <https://github.com/sequence-dev/sequence/issues/51>`_)
+
+
+Other Changes and Additions
+```````````````````````````
+
+- Updated the ``SedimentFlexure`` component to be compatible with the latest
+  version of *landlab*. (`#45 <https://github.com/sequence-dev/sequence/issues/45>`_)
+- Added unit tests for the ``SedimentFlexure`` component. (`#45 <https://github.com/sequence-dev/sequence/issues/45>`_)
+- Upgraded Python syntax to 3.8 and above. (`#47 <https://github.com/sequence-dev/sequence/issues/47>`_)
+- Setup of pre-commit for the project that runs *black*, *flake8*, and
+  *pyupgrade* (for Python 3.8+). (`#48 <https://github.com/sequence-dev/sequence/issues/48>`_)
+- Added GitHub Actions workflows for releasing Sequence to PyPI and TestPyPI
+  (for pre-releases). This allows users to run ``pip install sequence`` to get
+  the latest release. (`#49 <https://github.com/sequence-dev/sequence/issues/49>`_)
+- Updated the pre-commit hooks to ensure notebooks are clean and styled
+  correctly. (`#51 <https://github.com/sequence-dev/sequence/issues/51>`_)
+- Added a GitHub Actions workflow that tests the *sequence* notebooks. The
+  notebooks are simply executed to ensure they run, not to validate any output. (`#52 <https://github.com/sequence-dev/sequence/issues/52>`_)
+- Added a citation file that users of *sequence* can use to cite the software. (`#53 <https://github.com/sequence-dev/sequence/issues/53>`_)
+
+
 0.4.1 (2022-04-12)
 ------------------
 

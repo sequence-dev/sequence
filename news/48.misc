@@ -1,3 +1,0 @@
-Setup of pre-commit for the project that runs *black*, *flake8*, and
-*pyupgrade* (for Python 3.8+).
-
