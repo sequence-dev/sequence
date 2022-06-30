@@ -18,35 +18,8 @@
 # absolute, like shown here.
 #
 import os
-import sys
-
-from unittest.mock import MagicMock
 
 import sequence
-
-
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-        return MagicMock()
-
-
-MOCK_MODULES = [
-    "click",
-    "landlab",
-    "landlab.bmi.bmi_bridge",
-    "landlab.components",
-    "landlab.components.flexure",
-    "landlab.core",
-    "landlab.core.model_component",
-    "landlab.plot",
-    "netCDF4",
-    "numpy",
-    "scipy",
-    "yaml",
-]
-
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
 if os.environ.get("READTHEDOCS", ""):
@@ -109,7 +82,7 @@ release = sequence.__version__
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -136,6 +109,18 @@ html_theme = "alabaster"
 # documentation.
 #
 # html_theme_options = {}
+html_theme_options = {
+    "description": "Sequence-stratigraphic modeling with Python.",
+    "logo": "sequence-logo-text-lowercase.png",
+    "logo_name": False,
+    "github_user": "sequence-dev",
+    "github_repo": "sequence",
+    "extra_nav_links": {
+        "sequence @ GitHub": "https://github.com/sequence-dev/sequence/",
+        "Contact Us": "https://github.com/sequence-dev/sequence/issues",
+    },
+}
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -203,21 +188,6 @@ napoleon_google_docstring = False
 napoleon_include_init_with_doc = True
 napoleon_include_special_with_doc = True
 
-# The name of an image file (relative to this directory) to place at the top
-# of the sidebar.
-html_logo = "_static/powered-by-logo-header.png"
-
 html_sidebars = {
-    "index": [
-        "sidebarintro.html",
-        "links.html",
-        "sourcelink.html",
-        "searchbox.html",
-    ],
-    "**": [
-        "sidebarintro.html",
-        "links.html",
-        "sourcelink.html",
-        "searchbox.html",
-    ],
+    "**": ["about.html", "searchbox.html", "navigation.html", "sidebaroutro.html"]
 }
