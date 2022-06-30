@@ -56,6 +56,6 @@ jobs:
           sequence --cd=example --silent run
           sequence --cd=data/marmara --silent run
 
-      - name: Coveralls
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
-        uses: AndreMiras/coveralls-python-action@v20201129
+      # - name: Coveralls
+      #   if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
+      #   uses: AndreMiras/coveralls-python-action@v20201129
