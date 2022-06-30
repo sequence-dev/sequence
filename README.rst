@@ -1,18 +1,35 @@
-sequence: Sequence-stratigraphic modeling with Python
-=====================================================
+.. image:: https://raw.githubusercontent.com/sequence-dev/sequence/develop/docs/_static/sequence-logo-text-lowercase.png
+  :target: https://sequence.readthedocs.io/en/develop/?badge=develop
+  :alt: Sequence
+  :align: center
+  
+.. raw:: html
+
+  <h2 align="center">Sequence-stratigraphic modeling with Python</h2>
+
+-----------
 
 .. image:: https://github.com/sequence-dev/sequence/workflows/Build/Test%20CI/badge.svg
 
+
 .. image:: https://github.com/sequence-dev/sequence/workflows/Flake8/badge.svg
+
 
 .. image:: https://github.com/sequence-dev/sequence/workflows/Black/badge.svg
 
+
 .. image:: https://github.com/sequence-dev/sequence/workflows/Documentation/badge.svg
+
 
 .. image:: https://readthedocs.org/projects/sequence/badge/?version=develop
   :target: https://sequence.readthedocs.io/en/develop/?badge=develop
   :alt: Documentation Status
 
+-----------
+
+`Read the documentation on ReadTheDocs! <https://sequence.readthedocs.io/en/develop/>`_
+
+-----------
 
 About
 -----
