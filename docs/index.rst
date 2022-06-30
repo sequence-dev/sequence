@@ -27,6 +27,7 @@ Getting Started
    :maxdepth: 3
 
    readme
+   notebooks
 
 ..   usage
 ..   installation
