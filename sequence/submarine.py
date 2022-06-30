@@ -53,6 +53,7 @@ class SubmarineDiffuser(LinearDiffuser):
         **kwds
     ):
         """Diffuse the ocean bottom.
+
         Parameters
         ----------
         grid: RasterModelGrid
