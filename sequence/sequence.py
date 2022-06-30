@@ -55,9 +55,6 @@ class Sequence(Component):
         self._time_step = time_step
 
         self.grid.at_layer_grid = EventLayers(1)
-        self.grid.at_layer_grid.add(
-            1.0, age=0.0, sea_level=0.0, x_of_shore=0.0, x_of_shelf_edge=0.0
-        )
 
         if "bedrock_surface__elevation" not in self.grid.at_node:
             self.grid.add_field(
