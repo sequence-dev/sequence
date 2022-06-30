@@ -1,3 +1,0 @@
-Fixed a bug where x_of_shore and x_of_shelf_edge were being incorrectly
-recorded (but correctly calculated).
-

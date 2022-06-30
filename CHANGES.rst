@@ -3,6 +3,16 @@ Changelog for Sequence
 
 .. towncrier release notes start
 
+0.5.1 (2022-06-30)
+------------------
+
+Bug Fixes
+`````````
+
+- Fixed a bug where x_of_shore and x_of_shelf_edge were being incorrectly
+  recorded (but correctly calculated). (`#57 <https://github.com/sequence-dev/sequence/issues/57>`_)
+
+
 0.5.0 (2022-06-29)
 ------------------
 
