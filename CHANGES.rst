@@ -1,5 +1,5 @@
-Changelog for Sequence
-======================
+Release Notes
+=============
 
 .. towncrier release notes start
 
