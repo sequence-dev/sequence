@@ -1,7 +1,8 @@
+import numpy as np
 import pytest
 
-
 from sequence import Sequence, SequenceModelGrid
+from sequence.processes import ShorelineFinder
 
 
 @pytest.fixture(scope="function")
@@ -47,3 +48,37 @@ def test_sequence_run_until_with_dt(grid, dt):
         expected += 1
     assert seq.time == pytest.approx(until)
     assert grid.at_layer.number_of_layers - initial_layers == expected
+
+
+def test_sequence_x_of_shore_missing(grid):
+    seq = Sequence(grid)
+
+    assert "x_of_shore" not in grid.at_grid
+    assert "x_of_shelf_edge" not in grid.at_grid
+
+    assert grid.at_layer_grid.number_of_layers == 1
+    assert np.isnan(grid.at_layer_grid["x_of_shore"][0])
+    assert np.isnan(grid.at_layer_grid["x_of_shelf_edge"][0])
+
+    seq.update()
+
+    assert grid.at_layer_grid.number_of_layers == 2
+    assert np.isnan(grid.at_layer_grid["x_of_shore"][-1])
+    assert np.isnan(grid.at_layer_grid["x_of_shelf_edge"][-1])
+
+
+def test_sequence_x_of_shore(grid):
+    seq = Sequence(grid, components=[ShorelineFinder(grid)])
+
+    assert "x_of_shore" in grid.at_grid
+    assert "x_of_shelf_edge" in grid.at_grid
+
+    assert grid.at_layer_grid.number_of_layers == 1
+    assert grid.at_layer_grid["x_of_shore"][-1] == pytest.approx(20000.0)
+    assert grid.at_layer_grid["x_of_shelf_edge"][-1] > 20000.0
+
+    seq.update()
+
+    assert grid.at_layer_grid.number_of_layers == 2
+    assert grid.at_layer_grid["x_of_shore"][-1] == pytest.approx(20000.0)
+    assert grid.at_layer_grid["x_of_shelf_edge"][-1] > 20000.0

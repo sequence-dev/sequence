@@ -55,9 +55,6 @@ class Sequence(Component):
         self._time_step = time_step
 
         self.grid.at_layer_grid = EventLayers(1)
-        self.grid.at_layer_grid.add(
-            1.0, age=0.0, sea_level=0.0, x_of_shore=0, x_of_shelf_edge=0
-        )
 
         if "bedrock_surface__elevation" not in self.grid.at_node:
             self.grid.add_field(
@@ -154,8 +151,14 @@ class Sequence(Component):
         return reducers
 
     def add_layer(self, dz_at_cell):
-        x_of_shore = self.grid.at_grid.get("x_of_shore", -1)
-        x_of_shelf_edge = self.grid.at_grid.get("x_of_shelf_edge", -1)
+        try:
+            x_of_shore = self.grid.at_grid["x_of_shore"]
+        except KeyError:
+            x_of_shore = np.nan
+        try:
+            x_of_shelf_edge = self.grid.at_grid["x_of_shelf_edge"]
+        except KeyError:
+            x_of_shelf_edge = np.nan
 
         self.grid.event_layers.add(dz_at_cell, **self.layer_properties())
         self.grid.at_layer_grid.add(
