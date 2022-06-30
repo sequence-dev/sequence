@@ -27,10 +27,6 @@
 
 -----------
 
-`Read the documentation on ReadTheDocs! <https://sequence.readthedocs.io/en/develop/>`_
-
------------
-
 About
 -----
 
@@ -40,6 +36,12 @@ Sequence represents time-averaged fluvial and marine sediment transport
 via differential equations. The modular code includes components to deal
 with sea level changes, sediment compaction, local or flexural isostasy,
 and tectonic subsidence and uplift.
+
+-----------
+
+`Read the documentation on ReadTheDocs! <https://sequence.readthedocs.io/en/develop/>`_
+
+-----------
 
 Requirements
 ------------
