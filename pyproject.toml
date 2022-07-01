@@ -70,7 +70,8 @@ doc = [
   "nbsphinx>=0.2.12",
   "sphinxcontrib_github_alt",
   "pygments>=2.4",
-  "sphinx-inline-tabs"
+  "sphinx-inline-tabs",
+  "furo",
 ]
 notebook = [
   "notebook",
