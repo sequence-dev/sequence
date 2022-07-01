@@ -1,17 +1,21 @@
-.. image:: _static/sequence-logo-text-lowercase.png
-    :align: center
-    :scale: 100%
-    :alt: Sequence
-    :target: https://sequence.readthedocs.org/
+.. image:: _static/sequence-logo-light.png
+   :align: center
+   :scale: 15%
+   :alt: Sequence
+   :target: https://sequence.readthedocs.org/
+   :class: only-light
+
+.. image:: _static/sequence-logo-dark.png
+   :align: center
+   :scale: 15%
+   :alt: Sequence
+   :target: https://sequence.readthedocs.org/
+   :class: only-dark
 
 
-Sequence is a modular 2D (i.e., profile) sequence stratigraphic model
-that is written in Python and implemented within the Landlab framework.
-Sequence represents time-averaged fluvial and marine sediment transport
-via differential equations. The modular code includes components to deal
-with sea level changes, sediment compaction, local or flexural isostasy,
-and tectonic subsidence and uplift.
-
+.. include:: ../README.rst
+   :start-after: .. start-abstract
+   :end-before: .. end-abstract
 
 .. image:: _static/sequence.png
     :align: center
@@ -20,44 +24,25 @@ and tectonic subsidence and uplift.
     :target: https://sequence.readthedocs.org/
 
 
-Getting Started
----------------
-
 .. toctree::
+   :caption: Getting Started
    :maxdepth: 2
+   :hidden:
 
-   readme
+   requirements
+   installation
+   usage
+   input-files
+   plotting
    notebooks
 
-..   usage
-..   installation
-
-API Reference
--------------
-
-If you are looking for information on a specific function, class, or
-method, this part of the documentation is for you.
-
 .. toctree::
+   :caption: Development
    :maxdepth: 2
+   :hidden:
 
    api/index
-
-
-Miscellaneous Pages
--------------------
-
-.. toctree::
-   :maxdepth: 2
-
    authors
    changelog
    contributing
    license
-
-
-Indices and tables
-==================
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

@@ -27,8 +27,11 @@
 
 -----------
 
+
 About
 -----
+
+.. start-abstract
 
 *Sequence* is a modular 2D (i.e., profile) sequence stratigraphic model
 that is written in Python and implemented within the Landlab framework.
@@ -36,6 +39,8 @@ Sequence represents time-averaged fluvial and marine sediment transport
 via differential equations. The modular code includes components to deal
 with sea level changes, sediment compaction, local or flexural isostasy,
 and tectonic subsidence and uplift.
+
+.. end-abstract
 
 -----------
 
@@ -46,7 +51,11 @@ and tectonic subsidence and uplift.
 Requirements
 ------------
 
-*Sequence* requires Python 3.
+.. start-requirements
+
+.. note::
+
+  *Sequence* requires Python 3.
 
 Apart from Python, *Sequence* has a number of other requirements, all of which
 can be obtained through either *pip* or *conda*, that will be automatically
@@ -60,8 +69,12 @@ additional dependencies for running *Sequence*'s tests to make sure
 that things are working as they should. These dependencies are listed
 in *requirements-testing.txt*.
 
+.. end-requirements
+
 Installation
 ------------
+
+.. start-installation
 
 To install *Sequence*, first create a new environment in
 which *Sequence* will be installed. This, although not necessary, will
@@ -75,13 +88,20 @@ Stable Release
 ``````````````
 
 *Sequence*, and its dependencies, can be installed either with *pip*
-or *conda*. Using *pip*::
+or *conda*.
+
+.. tab:: conda
+
+  .. code:: bash
+
+    $ conda install sequence-model -c conda-forge
+
+.. tab:: pip
+
+  .. code:: bash
 
     $ pip install sequence-model
 
-Using *conda*::
-
-    $ conda install sequence-model -c conda-forge
 
 From Source
 ```````````
@@ -92,9 +112,12 @@ install *Sequence* into the current environment::
 
   $ pip install -e .
 
+.. end-installation
 
 Usage
 -----
+
+.. start-usage
 
 *Sequence* is both a command-line program and a Python package that provides an
 application programming interface.
@@ -162,9 +185,12 @@ changing parameters.
   >>> sequence.run(until=600000.0, dt=100.0)
   >>> sequence.plot()
 
+.. end-usage
 
 Input Files
 -----------
+
+.. start-input-files
 
 Sequence Parameter File
 ```````````````````````
@@ -401,8 +427,12 @@ You can now run the simulation (from within the *example* folder)::
 
   $ sequence run
 
+.. end-input-files
+
 Plotting output
 ---------------
+
+.. start-plotting
 
 The *Sequence* program provides a command-line utility for generating a quick
 plot of *Sequence* output from a NetCDF file named *sequence.nc*. As an
@@ -440,4 +470,6 @@ not be obvious,
 * *layer_start*: the first layer to plot
 * *layer_stop*: the last layer to plot (a value of -1 means stop at the last layer)
 * *n_layers*: the number of layers to plot.
+
+.. end-plotting
 
