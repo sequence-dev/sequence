@@ -1,4 +1,4 @@
-.. image:: https://raw.githubusercontent.com/sequence-dev/sequence/develop/docs/_static/sequence-logo-text-lowercase.png
+.. image:: https://raw.githubusercontent.com/sequence-dev/sequence/develop/docs/_static/sequence-logo-light.png
   :target: https://sequence.readthedocs.io/en/develop/?badge=develop
   :alt: Sequence
   :align: center
