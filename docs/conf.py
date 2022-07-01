@@ -47,6 +47,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "sphinx_inline_tabs",
     # "IPython.sphinxext.ipython_console_highlighting",
     # "sphinxcontrib_github_alt",
 ]
@@ -102,7 +103,9 @@ todo_include_todos = False
 # a list of builtin themes.
 #
 # html_theme = "bizstyle"
-html_theme = "alabaster"
+# html_theme = "alabaster"
+html_theme = "furo"
+html_title = "Sequence"
 
 # Theme options are theme-specific and customize the look and feel of a
 # theme further.  For a list of options available for each theme, see the
@@ -110,22 +113,17 @@ html_theme = "alabaster"
 #
 # html_theme_options = {}
 html_theme_options = {
-    "description": "Sequence-stratigraphic modeling with Python.",
-    "logo": "sequence-logo-text-lowercase.png",
-    "logo_name": False,
-    "github_user": "sequence-dev",
-    "github_repo": "sequence",
-    "extra_nav_links": {
-        "sequence @ GitHub": "https://github.com/sequence-dev/sequence/",
-        "Contact Us": "https://github.com/sequence-dev/sequence/issues",
-    },
+    "source_repository": "https://github.com/sequence-dev/seuence/",
+    "source_branch": "develop",
+    "source_directory": "docs/",
 }
-
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+# html_logo = "_static/powered-by-logo-header.png"
+# html_logo = "_static/sequence-logo-text-lowercase.png"
 
 
 # -- Options for HTMLHelp output ---------------------------------------
@@ -187,7 +185,3 @@ napoleon_numpy_docstring = True
 napoleon_google_docstring = False
 napoleon_include_init_with_doc = True
 napoleon_include_special_with_doc = True
-
-html_sidebars = {
-    "**": ["about.html", "searchbox.html", "navigation.html", "sidebaroutro.html"]
-}
