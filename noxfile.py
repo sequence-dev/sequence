@@ -15,6 +15,12 @@ def tests(session: nox.Session) -> None:
 
 
 @nox.session
+def notebooks(session: nox.Session) -> None:
+    session.install(".[dev,notebook]")
+    session.run("pytest", "--nbmake", "notebooks/")
+
+
+@nox.session
 def cli(session: nox.Session) -> None:
     session.install(".")
     session.run("sequence", "--version")
