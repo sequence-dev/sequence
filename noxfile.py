@@ -75,8 +75,8 @@ def docs(session: nox.Session) -> None:
     session.chdir("docs")
     if os.path.exists("_build"):
         shutil.rmtree("_build")
-        session.run("sphinx-apidoc", "--force", "-o", "api", "sequence", "tests")
-        session.run("sphinx-build", "-b", "html", "-W", ".", "_build/html")
+    session.run("sphinx-apidoc", "--force", "-o", "api", "../sequence")
+    session.run("sphinx-build", "-b", "html", "-W", ".", "_build/html")
 
 
 @nox.session
