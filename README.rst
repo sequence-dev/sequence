@@ -406,6 +406,9 @@ file::
 If you would like your subsidence profile to change with time, see the
 section above, `Time-varying parameters`_.
 
+.. end-input-files
+
+
 Output File
 -----------
 
@@ -426,8 +429,6 @@ need to create a set of sample files::
 You can now run the simulation (from within the *example* folder)::
 
   $ sequence run
-
-.. end-input-files
 
 Plotting output
 ---------------
