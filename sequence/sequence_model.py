@@ -9,7 +9,6 @@ from landlab.bmi.bmi_bridge import TimeStepper
 from .bathymetry import BathymetryReader
 from .fluvial import Fluvial
 
-# from .raster_model import RasterModel
 from .input_reader import load_config
 from .output_writer import OutputWriter
 from .sea_level import SeaLevelTimeSeries, SinusoidalSeaLevel
@@ -79,6 +78,7 @@ class SequenceModel:
         self,
         grid=None,
         clock=None,
+        processes=None,
         output=None,
         submarine_diffusion=None,
         sea_level=None,
@@ -134,38 +134,32 @@ class SequenceModel:
             porosity=0.5,
         )
 
-        if "filepath" in sea_level:
-            self._sea_level = SeaLevelTimeSeries(
-                self.grid, sea_level.pop("filepath"), start=clock["start"], **sea_level
-            )
-        else:
-            self._sea_level = SinusoidalSeaLevel(
-                self.grid, start=clock["start"], **sea_level
-            )
+        process_class = {
+            "sea_level": SeaLevelTimeSeries
+            if "filepath" in sea_level
+            else SinusoidalSeaLevel,
+            "subsidence": SubsidenceTimeSeries,
+            "compaction": Compact,
+            "submarine_diffusion": SubmarineDiffuser,
+            "fluvial": Fluvial,
+            "flexure": SedimentFlexure,
+        }
 
-        self._subsidence = SubsidenceTimeSeries(self.grid, **subsidence)
-
-        self._submarine_diffusion = SubmarineDiffuser(self.grid, **submarine_diffusion)
-        self._fluvial = Fluvial(
-            self.grid,
-            0.5,
-            start=0,
+        sea_level["start"] = clock["start"]
+        config["fluvial"] = dict(
+            sand_frac=0.5,
+            start=0.0,
             sediment_load=submarine_diffusion["sediment_load"],
             plain_slope=submarine_diffusion["plain_slope"],
             hemipelagic=sediments["hemipelagic"],
         )
-        self._flexure = SedimentFlexure(self.grid, **flexure)
-        self._shoreline = ShorelineFinder(self.grid, alpha=submarine_diffusion["alpha"])
-        self._compaction = Compact(self.grid, **compaction)
 
-        self._components.update(
-            sea_level=self._sea_level,
-            subsidence=self._subsidence,
-            compaction=self._compaction,
-            submarine_diffusion=self._submarine_diffusion,
-            fluvial=self._fluvial,
-            flexure=self._flexure,
-            shoreline=self._shoreline,
+        for process in processes:
+            self._components[process] = process_class[process](
+                self.grid, **config[process]
+            )
+        self._components["shoreline"] = ShorelineFinder(
+            self.grid, alpha=submarine_diffusion["alpha"]
         )
 
     @property
@@ -213,14 +207,16 @@ class SequenceModel:
             - self.grid.at_node["topographic__elevation"]
         )
 
-        self.grid.event_layers.add(
-            dz[self.grid.node_at_cell],
+        layer_properties = dict(
             age=self.clock.time,
             water_depth=water_depth[self.grid.node_at_cell],
             t0=dz[self.grid.node_at_cell].clip(0.0),
             percent_sand=percent_sand[self.grid.node_at_cell],
-            porosity=self._compaction.porosity_max,
         )
+        if "compaction" in self._components:
+            layer_properties["porosity"] = self._components["compaction"].porosity_max
+
+        self.grid.event_layers.add(dz[self.grid.node_at_cell], **layer_properties)
 
         try:
             self._n_archived_layers
