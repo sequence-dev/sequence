@@ -26,9 +26,9 @@ jobs:
         if:
           github.event_name == 'push' || github.event.pull_request.head.repo.full_name !=
           github.repository
-    
+
         runs-on: ubuntu-latest
-        
+
         defaults:
           run:
             shell: bash -l {0}
@@ -44,11 +44,11 @@ jobs:
 
           - name: Show conda installation info
             run: conda info
-    
+
           - name: Install dependencies
             run: |
               conda install --file=requirements.txt
               pip install -e ".[doc]"
 
           - name: Build documentation
-            run: make -C docs clean html            
+            run: make -C docs clean html

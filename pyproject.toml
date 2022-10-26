@@ -73,7 +73,6 @@ notebook = [
 
 [project.scripts]
 sequence = "sequence.cli:sequence"
-testy = "sequence.testy:app"
 
 [tool.setuptools]
 packages = ["sequence"]

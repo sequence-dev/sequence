@@ -7,7 +7,6 @@ from .shoreline import ShorelineFinder
 from .submarine import SubmarineDiffuser
 from .subsidence import SubsidenceTimeSeries
 
-
 __all__ = [
     "Compact",
     "Fluvial",

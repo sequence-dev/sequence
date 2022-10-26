@@ -17,6 +17,6 @@
     sl_type: 'sinusoid'
     sl_file_name : 'sample_sea_level_file.txt'
     sea_level_phase : 0.
-    sea_level_amplitude : 10. 
+    sea_level_amplitude : 10.
     sea_level_period : 100000.
 ...

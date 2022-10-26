@@ -116,7 +116,7 @@ class RasterModel:
 
 
 def load_params_from_strings(values):
-    params = dict()
+    params = {}
     for param in values:
         dotted_name, value = param.split("=")
         params.update(dots_to_dict(dotted_name, yaml.safe_load(value)))
@@ -129,7 +129,7 @@ def dots_to_dict(name, value):
     level = base
     names = name.split(".")
     for k in names[:-1]:
-        level[k] = dict()
+        level[k] = {}
         level = level[k]
     level[names[-1]] = value
     return base

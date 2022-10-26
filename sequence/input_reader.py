@@ -237,7 +237,7 @@ def _add_flattened_item(keys, value, base=None):
     level = expanded
     for k in parent:
         if k not in level:
-            level[k] = dict()
+            level[k] = {}
         level = level[k]
     if isinstance(value, tuple):
         value = list(value)
@@ -247,7 +247,7 @@ def _add_flattened_item(keys, value, base=None):
 
 
 def _expand_dict(flat_dict):
-    expanded = dict()
+    expanded = {}
     for key, value in flat_dict.items():
         _add_flattened_item(key, value, base=expanded)
     return expanded

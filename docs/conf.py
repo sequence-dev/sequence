@@ -21,7 +21,6 @@ import os
 
 import sequence
 
-
 if os.environ.get("READTHEDOCS", ""):
     # RTD doesn't use the repo's Makefile to build docs.
     import subprocess
