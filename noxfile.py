@@ -61,8 +61,6 @@ def lint(session: nox.Session) -> None:
     session.install("pre-commit")
     session.run("pre-commit", "run", "--all-files")
 
-    towncrier(session)
-
 
 @nox.session
 def towncrier(session: nox.Session) -> None:
