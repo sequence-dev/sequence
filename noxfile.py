@@ -5,26 +5,30 @@ from itertools import chain
 
 import nox
 
+PROJECT = "sequence"
+ROOT = pathlib.Path(__file__).parent
+
 
 @nox.session
-def tests(session: nox.Session) -> None:
+def test(session: nox.Session) -> None:
     """Run the tests."""
-    session.install("pytest")
     session.install(".[dev]")
-    session.run("pytest", "--cov=sequence", "-vvv")
-    session.run("coverage", "report", "--ignore-errors", "--show-missing")
-    # "--fail-under=100",
+
+    args = session.posargs or ["-n", "auto", "--cov", PROJECT, "-vvv"]
+    if "CI" in os.environ:
+        args.append("--cov-report=xml:$(pwd)/coverage.xml")
+    session.run("pytest", *args)
 
 
-@nox.session
-def notebooks(session: nox.Session) -> None:
+@nox.session(name="test-notebooks")
+def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     session.install(".[dev,notebook]")
     session.run("pytest", "--nbmake", "notebooks/")
 
 
-@nox.session
-def cli(session: nox.Session) -> None:
+@nox.session(name="test-cli")
+def test_cli(session: nox.Session) -> None:
     """Test the command line interface."""
     session.install(".")
     session.run("sequence", "--version")
@@ -129,9 +133,6 @@ def publish_pypi(session):
 @nox.session(python=False)
 def clean(session):
     """Remove all .venv's, build files and caches in the directory."""
-    PROJECT = "sequence"
-    ROOT = pathlib.Path(__file__).parent
-
     shutil.rmtree("build", ignore_errors=True)
     shutil.rmtree("wheelhouse", ignore_errors=True)
     shutil.rmtree(f"{PROJECT}.egg-info", ignore_errors=True)

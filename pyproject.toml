@@ -58,6 +58,7 @@ dev = [
   "pytest-cov",
   "pytest-datadir",
   "pytest-runner",
+  "pytest-xdist",
   "towncrier",
 ]
 doc = [

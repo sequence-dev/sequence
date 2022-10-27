@@ -31,8 +31,7 @@ jobs:
             run: conda info
 
           - name: Install dependencies
-            run: |
-              pip install -e ".[notebook,dev]"
+            run: pip install nox
 
-          - name: Test notebooks
-            run: pytest --nbmake notebooks/*ipynb
+          - name: Build documentation
+            run: nox -s test-notebooks

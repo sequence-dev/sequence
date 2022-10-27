@@ -35,26 +35,11 @@ jobs:
       - name: Show conda installation info
         run: conda info
 
-      - name: Build and install package
-        run: |
-          conda install rasterio richdem -c conda-forge
-          pip install .
+      - name: Install dependencies
+        run: pip install nox
 
-      - name: Install testing dependencies
-        run: pip install ".[dev]"
-
-      - name: Test package
-        run: |
-          python -c 'import sequence; print(sequence.__version__)'
-          pytest --cov=sequence --cov-report= --cov-report=xml -vvv
-
-      - name: Test command line
-        run: |
-          sequence --version
-          mkdir example
-          sequence --cd=example setup --set clock.stop=60000
-          sequence --cd=example --silent run
-          sequence --cd=data/marmara --silent run
+      - name: Build documentation
+        run: nox -s test
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
