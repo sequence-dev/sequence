@@ -5,26 +5,30 @@ from itertools import chain
 
 import nox
 
+PROJECT = "sequence"
+ROOT = pathlib.Path(__file__).parent
+
 
 @nox.session
-def tests(session: nox.Session) -> None:
+def test(session: nox.Session) -> None:
     """Run the tests."""
-    session.install("pytest")
     session.install(".[dev]")
-    session.run("pytest", "--cov=sequence", "-vvv")
-    session.run("coverage", "report", "--ignore-errors", "--show-missing")
-    # "--fail-under=100",
+
+    args = session.posargs or ["-n", "auto", "--cov", PROJECT, "-vvv"]
+    if "CI" in os.environ:
+        args.append("--cov-report=xml:$(pwd)/coverage.xml")
+    session.run("pytest", *args)
 
 
-@nox.session
-def notebooks(session: nox.Session) -> None:
+@nox.session(name="test-notebooks")
+def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     session.install(".[dev,notebook]")
     session.run("pytest", "--nbmake", "notebooks/")
 
 
-@nox.session
-def cli(session: nox.Session) -> None:
+@nox.session(name="test-cli")
+def test_cli(session: nox.Session) -> None:
     """Test the command line interface."""
     session.install(".")
     session.run("sequence", "--version")
@@ -57,8 +61,6 @@ def lint(session: nox.Session) -> None:
     session.install("pre-commit")
     session.run("pre-commit", "run", "--all-files")
 
-    towncrier(session)
-
 
 @nox.session
 def towncrier(session: nox.Session) -> None:
@@ -67,16 +69,61 @@ def towncrier(session: nox.Session) -> None:
     session.run("towncrier", "check", "--compare-with", "origin/develop")
 
 
-@nox.session
-def docs(session: nox.Session) -> None:
+@nox.session(name="build-docs", reuse_venv=True)
+def build_docs(session: nox.Session) -> None:
     """Build the docs."""
-    session.install(".[doc]")
+    with session.chdir(ROOT):
+        session.install(".[doc]")
 
-    session.chdir("docs")
-    if os.path.exists("_build"):
-        shutil.rmtree("_build")
-    session.run("sphinx-apidoc", "--force", "-o", "api", "../sequence")
-    session.run("sphinx-build", "-b", "html", "-W", ".", "_build/html")
+    clean_docs(session)
+
+    with session.chdir(ROOT):
+        session.run(
+            "sphinx-apidoc",
+            "-e",
+            "-force",
+            "--no-toc",
+            "--module-first",
+            "--templatedir",
+            "docs/_templates",
+            "-o",
+            "docs/api",
+            "sequence",
+        )
+        session.run(
+            "sphinx-build",
+            "-b",
+            "html",
+            "-W",
+            "docs",
+            "build/html",
+        )
+
+
+@nox.session(name="live-docs", reuse_venv=True)
+def live_docs(session: nox.Session) -> None:
+    session.install("sphinx-autobuild")
+    session.install(".[doc]")
+    session.run(
+        "sphinx-apidoc",
+        "-e",
+        "-force",
+        "--no-toc",
+        "--module-first",
+        "--templatedir",
+        "docs/_templates",
+        "-o",
+        "docs/api",
+        "sequence",
+    )
+    session.run(
+        "sphinx-autobuild",
+        "-b",
+        "dirhtml",
+        "docs",
+        "build/html",
+        "--open-browser",
+    )
 
 
 @nox.session
@@ -129,9 +176,6 @@ def publish_pypi(session):
 @nox.session(python=False)
 def clean(session):
     """Remove all .venv's, build files and caches in the directory."""
-    PROJECT = "sequence"
-    ROOT = pathlib.Path(__file__).parent
-
     shutil.rmtree("build", ignore_errors=True)
     shutil.rmtree("wheelhouse", ignore_errors=True)
     shutil.rmtree(f"{PROJECT}.egg-info", ignore_errors=True)
@@ -141,4 +185,16 @@ def clean(session):
         if p.is_dir():
             p.rmdir()
         else:
+            p.unlink()
+
+
+@nox.session(python=False, name="clean-docs")
+def clean_docs(session: nox.Session) -> None:
+    """Clean up the docs folder."""
+    with session.chdir(ROOT / "build"):
+        if os.path.exists("html"):
+            shutil.rmtree("html")
+
+    with session.chdir(ROOT / "docs"):
+        for p in pathlib.Path("api").rglob("sequence*.rst"):
             p.unlink()

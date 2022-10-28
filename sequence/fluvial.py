@@ -58,12 +58,22 @@ class Fluvial(Component):
         ----------
         grid: ModelGrid
             A landlab grid.
-        sand_frac: str
+        sand_frac: str, optional
             Fraction of sand on the delta.
-        sea_level: float, optional
-            The current sea level (m).
+        start : float, optional
+            The initial time of the component.
         wave_base: float, optional
             Wave base (m).
+        sediment_load : float, optional
+            Sediment load.
+        sand_density : float, optional
+            The grain density of sand [kg / m^3]
+        plain_slope : float, optional
+            The gradient of the flood plain.
+        hemipelagic : float, optional
+            Hemipelagic sedimentation.
+        sea_level: float, optional
+            The current sea level (m).
 
         """
 

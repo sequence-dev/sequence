@@ -1,8 +1,7 @@
 import numpy as np
-from tqdm import trange
-
 from landlab import Component
 from landlab.layers import EventLayers
+from tqdm import trange
 
 from .plot import plot_grid
 
@@ -102,6 +101,8 @@ class Sequence(Component):
         until : float, optional
             The time (in years) to run the model to. If not provided, run
             for a single time step.
+        dt : float, optional
+            Run using a time step other than what the component was initialized with.
         progress_bar : bool, optional
             If ``True`` display a progress bar while the model is running.
         """

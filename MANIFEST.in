@@ -9,4 +9,3 @@ recursive-exclude docs *
 recursive-exclude news *
 recursive-exclude notebooks *
 recursive-exclude tests *
-

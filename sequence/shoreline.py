@@ -139,6 +139,11 @@ def find_shelf_edge(x, dz, x_of_shore=0.0, alpha=0.0005):
         x-positions of the profile.
     dz : ndarray of float
         Deposit thickness.
+    x_of_shore : float, optional
+        The x-position of the shoreline.
+    alpha : float, optional
+        Constant used in interpolating the precise location of the
+        shoreline.
 
     Returns
     -------

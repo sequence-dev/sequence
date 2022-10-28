@@ -3,7 +3,7 @@ import xarray as xr
 from landlab import RasterModelGrid
 from pytest import approx, raises
 
-from sequence import OutputWriter
+from sequence.output_writer import OutputWriter
 
 
 def test_no_fields(tmpdir):

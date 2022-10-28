@@ -58,4 +58,3 @@ submarine_diffusion:
   wave_base: 60.0
 subsidence:
   filepath: subsidence.csv
-

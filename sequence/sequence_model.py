@@ -8,8 +8,6 @@ from landlab.bmi.bmi_bridge import TimeStepper
 
 from .bathymetry import BathymetryReader
 from .fluvial import Fluvial
-
-# from .raster_model import RasterModel
 from .input_reader import load_config
 from .output_writer import OutputWriter
 from .sea_level import SeaLevelTimeSeries, SinusoidalSeaLevel
