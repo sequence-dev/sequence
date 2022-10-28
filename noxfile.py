@@ -69,16 +69,61 @@ def towncrier(session: nox.Session) -> None:
     session.run("towncrier", "check", "--compare-with", "origin/develop")
 
 
-@nox.session
-def docs(session: nox.Session) -> None:
+@nox.session(name="build-docs", reuse_venv=True)
+def build_docs(session: nox.Session) -> None:
     """Build the docs."""
-    session.install(".[doc]")
+    with session.chdir(ROOT):
+        session.install(".[doc]")
 
-    session.chdir("docs")
-    if os.path.exists("_build"):
-        shutil.rmtree("_build")
-    session.run("sphinx-apidoc", "--force", "-o", "api", "../sequence")
-    session.run("sphinx-build", "-b", "html", "-W", ".", "_build/html")
+    clean_docs(session)
+
+    with session.chdir(ROOT):
+        session.run(
+            "sphinx-apidoc",
+            "-e",
+            "-force",
+            "--no-toc",
+            "--module-first",
+            "--templatedir",
+            "docs/_templates",
+            "-o",
+            "docs/api",
+            "sequence",
+        )
+        session.run(
+            "sphinx-build",
+            "-b",
+            "html",
+            "-W",
+            "docs",
+            "build/html",
+        )
+
+
+@nox.session(name="live-docs", reuse_venv=True)
+def live_docs(session: nox.Session) -> None:
+    session.install("sphinx-autobuild")
+    session.install(".[doc]")
+    session.run(
+        "sphinx-apidoc",
+        "-e",
+        "-force",
+        "--no-toc",
+        "--module-first",
+        "--templatedir",
+        "docs/_templates",
+        "-o",
+        "docs/api",
+        "sequence",
+    )
+    session.run(
+        "sphinx-autobuild",
+        "-b",
+        "dirhtml",
+        "docs",
+        "build/html",
+        "--open-browser",
+    )
 
 
 @nox.session
@@ -140,4 +185,16 @@ def clean(session):
         if p.is_dir():
             p.rmdir()
         else:
+            p.unlink()
+
+
+@nox.session(python=False, name="clean-docs")
+def clean_docs(session: nox.Session) -> None:
+    """Clean up the docs folder."""
+    with session.chdir(ROOT / "build"):
+        if os.path.exists("html"):
+            shutil.rmtree("html")
+
+    with session.chdir(ROOT / "docs"):
+        for p in pathlib.Path("api").rglob("sequence*.rst"):
             p.unlink()
