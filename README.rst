@@ -2,7 +2,7 @@
   :target: https://sequence.readthedocs.io/en/develop/?badge=develop
   :alt: Sequence
   :align: center
-  
+
 .. raw:: html
 
   <h2 align="center">Sequence-stratigraphic modeling with Python</h2>
@@ -149,12 +149,12 @@ and then plots the output.
 
 The above can also be run through Python,
 
-.. code:: python
+.. code:: pycon
 
   >>> from sequence import Sequence, SequenceModelGrid
   >>> grid = SequenceModelGrid(100, spacing=1000.0)
   >>> grid.at_node["topographic__elevation"] = -0.001 * grid.x_of_node + 20.0
-  
+
   >>> sequence = Sequence()
   >>> sequence.run()
   >>> sequence.plot()
@@ -163,10 +163,12 @@ The ``Sequence`` class provides functionality not available to the command-line
 program. For example, you are able to run a simulation through time while dynamically
 changing parameters.
 
-  >>> from sequence import Sequence, SequenceModelGrid  
+.. code:: pycon
+
+  >>> from sequence import Sequence, SequenceModelGrid
   >>> grid = SequenceModelGrid(100, spacing=1000.0)
   >>> grid.at_node["topographic__elevation"] = -0.001 * grid.x_of_node + 20.0
-  
+
   >>> process = default_process_queue()
   >>> sequence = Sequence(
   ...   grid,
@@ -178,8 +180,8 @@ changing parameters.
   ...     process["flexure"],
   ...     process["shoreline"],
   ...   ]
-  ... )  
-  
+  ... )
+
   >>> sequence.run(until=300000.0, dt=100.0)
   >>> sequence.submarine_diffusion.sediment_load *= 2.0
   >>> sequence.run(until=600000.0, dt=100.0)
@@ -199,7 +201,9 @@ The main *Sequence* input file is a *toml*-formatted (or, optionally, *yaml*)
 text file that lists parameter values for the various components. Running
 the following will print a sample *Sequence* parameter file::
 
-  $ sequence generate sequence.toml
+.. code:: bash
+
+  sequence generate sequence.toml
 
 Following is the generated input file,
 
@@ -283,7 +287,7 @@ The grid section
 You define the grid on which *Sequence* will run in the `sequence.grid` section.
 An example gid section looks like,
 
-.. code::
+.. code:: toml
 
     [sequence.grid]
     shape = [3, 500]
@@ -309,7 +313,7 @@ The output section
 You can define when and what *Sequence* will save to a NetCDF file while it is running.
 Here is an example output section,
 
-.. code::
+.. code:: toml
 
     [sequence.output]
     interval = 10
@@ -363,7 +367,9 @@ Bathymetry File
 The *Sequence* bathymetry file defines initial sea-floor elevations in
 a two-column CSV file. A sample bathymetry file can be obtained with::
 
-  $ sequence generate bathymetry.csv
+.. code:: bash
+
+  sequence generate bathymetry.csv
   # X [m], Elevation [m]
   0.0,20.0
   100000.0,-80.0
@@ -378,7 +384,9 @@ The *Sequence* sea-level file defines sea-level elevations with simulation
 time. It consists of two (comma separated) columns of time and sea-level
 elevation, respectively. For a sample sea-level file::
 
-  $ sequence generate sealevel.csv
+.. code:: bash
+
+  sequence generate sealevel.csv
   # Time [y], Sea-Level Elevation [m]
   0.0,0.0
   200000.0,-10.0
@@ -391,7 +399,9 @@ the profile. It consists of two (comma separated) columns that give position
 along the profile and subsidence rate, respectively. For a sample subsidence
 file::
 
-  $ sequence generate subsidence.csv
+.. code:: bash
+
+  sequence generate subsidence.csv
   # X [y], Subsidence Rate [m / y]
   0.0,0.0
   30000.0,0.0
@@ -422,13 +432,17 @@ Examples
 To run a simulation using the sample input files described above, you first
 need to create a set of sample files::
 
-  $ mkdir example
-  $ cd example && sequence setup
+.. code:: bash
+
+  mkdir example
+  cd example && sequence setup
   example
 
 You can now run the simulation (from within the *example* folder)::
 
-  $ sequence run
+.. code:: bash
+
+  sequence run
 
 Plotting output
 ---------------
@@ -439,9 +453,9 @@ The *Sequence* program provides a command-line utility for generating a quick
 plot of *Sequence* output from a NetCDF file named *sequence.nc*. As an
 example,
 
-.. code::
+.. code:: bash
 
-    $ sequence plot
+  sequence plot
 
 If you would like to change some aspects of the generated plot, you can add
 a *sequence.plot* section to your *sequence.toml* file. For example, here
@@ -473,4 +487,3 @@ not be obvious,
 * *n_layers*: the number of layers to plot.
 
 .. end-plotting
-

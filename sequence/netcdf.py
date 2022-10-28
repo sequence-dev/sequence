@@ -180,6 +180,8 @@ def to_netcdf(
         Indices of elements to write.
     names: array_link or str, optional
         Names of fields to write to the netCDF file.
+    with_layers : bool, optional
+        Indicate if the NetCDF file should contain the grid's layers.
     """
     if with_layers and format != "NETCDF4":
         raise ValueError("Grid layers are only available with the NETCDF4 format.")

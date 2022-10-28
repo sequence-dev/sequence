@@ -35,6 +35,8 @@ class SeaLevelTimeSeries(Component):
             Kind of interpolation as a string (one of 'linear',
             'nearest', 'zero', 'slinear', 'quadratic', 'cubic').
             Default is 'linear'.
+        start : float, optional
+            Set the initial time for the component.
         """
         super().__init__(grid, **kwds)
 
@@ -95,6 +97,18 @@ class SinusoidalSeaLevel(SeaLevelTimeSeries):
         ----------
         grid: ModelGrid
             A landlab grid.
+        wave_length : float, optional
+            The wave length of the sea-level curve in [y].
+        amplitude : float, optional
+            The amplitude of the sea-level curve.
+        phase : float, optional
+            The phase shift of the sea-level curve [y].
+        mean : float, optional
+            Mean sea-level (disregarding any trend with time).
+        start : float, optional
+            The time of the component [y].
+        linear : float, optional
+            Linear trend of the sea-level curve with time [m / y].
         """
         wave_length /= 2.0 * np.pi
         super(SeaLevelTimeSeries, self).__init__(grid, **kwds)

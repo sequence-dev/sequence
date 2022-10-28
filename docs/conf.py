@@ -21,7 +21,6 @@ import os
 
 import sequence
 
-
 if os.environ.get("READTHEDOCS", ""):
     # RTD doesn't use the repo's Makefile to build docs.
     import subprocess
@@ -122,8 +121,6 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-# html_logo = "_static/powered-by-logo-header.png"
-# html_logo = "_static/sequence-logo-text-lowercase.png"
 
 
 # -- Options for HTMLHelp output ---------------------------------------

@@ -1,7 +1,7 @@
 Example Notebooks
 =================
 
-This page is provides an index to the *Sequence* Jupyter Notebooks. 
+This page is provides an index to the *Sequence* Jupyter Notebooks.
 
 **Useful links**
 
@@ -19,5 +19,3 @@ through Python.
 
 * `View notebook <https://github.com/sequence-dev/sequence/blob/develop/notebooks/example.ipynb>`_
 * `Launch notebook on CSDMS JupyterHub <https://lab.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Fsequence-dev%2Fsequence&urlpath=tree%2Fsequence%2Fnotebooks%2Fexample.ipynb&branch=develop>`_
-
-

@@ -6,7 +6,6 @@ from typing import Any, Optional
 
 # import click
 import numpy as np
-
 import rich_click as click
 import tomlkit as toml
 import yaml
@@ -16,7 +15,6 @@ from .input_reader import TimeVaryingConfig
 from .plot import plot_file
 from .raster_model import load_model_params, load_params_from_strings
 from .sequence_model import SequenceModel
-
 
 click.rich_click.ERRORS_SUGGESTION = (
     "Try running the '--help' flag for more information."

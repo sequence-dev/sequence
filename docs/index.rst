@@ -1,11 +1,11 @@
-.. image:: _static/sequence-logo-light.png
+.. image:: _static/sequence-logo-light.svg
    :align: center
    :scale: 15%
    :alt: Sequence
    :target: https://sequence.readthedocs.org/
    :class: only-light
 
-.. image:: _static/sequence-logo-dark.png
+.. image:: _static/sequence-logo-dark.svg
    :align: center
    :scale: 15%
    :alt: Sequence

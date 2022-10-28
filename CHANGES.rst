@@ -172,7 +172,7 @@ Other Changes and Additions
 
 
 0.1.2 (2020-03-04)
------------------- 
+------------------
 
 - Added sediment compaction
 
@@ -206,12 +206,11 @@ Other Changes and Additions
 
 
 0.1.1 (2018-08-24)
------------------- 
+------------------
 - Added versioneer for version management
 
 
 0.1.0 (2018-08-24)
------------------- 
+------------------
 
 - Initial release
-
