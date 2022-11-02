@@ -1,9 +1,18 @@
+"""
+Components that adjust sea level
+================================
+
+This module contains *Landlab* components used for adjusting
+a grid's sea level.
+"""
 import numpy as np
 from landlab import Component
 from scipy import interpolate
 
 
 class SeaLevelTimeSeries(Component):
+
+    """Modify sea level through a time series."""
 
     _name = "Sea Level Changer"
 
@@ -71,15 +80,30 @@ class SeaLevelTimeSeries(Component):
         )
 
     @property
-    def time(self):
+    def time(self) -> float:
+        """Return the current component time."""
         return self._time
 
-    def run_one_step(self, dt):
+    @time.setter
+    def time(self, new_time: float):
+        self._time = new_time
+
+    def run_one_step(self, dt: float) -> None:
+        """Update the component by a time step.
+
+        Parameters
+        ----------
+        dt : float
+            The time step.
+        """
         self._time += dt
         self.grid.at_grid["sea_level__elevation"] = self._sea_level(self.time)
 
 
 class SinusoidalSeaLevel(SeaLevelTimeSeries):
+
+    """Adjust a grid's sea level using a sine curve."""
+
     def __init__(
         self,
         grid,
@@ -126,18 +150,18 @@ class SinusoidalSeaLevel(SeaLevelTimeSeries):
         self._time = start
 
 
-def sea_level_type(dictionary):
-    from .sea_level import sea_level_file
+def _sea_level_type(dictionary):
+    from .sea_level import _sea_level_file
 
     sl_type = dictionary["sl_type"]
     if sl_type == "sinusoid":
-        return sea_level_function(dictionary)
+        return _sea_level_function(dictionary)
     else:
         sl_file_name = dictionary["sl_file_name"]
-        return sea_level_file(sl_file_name, dictionary)
+        return _sea_level_file(sl_file_name, dictionary)
 
 
-def sea_level_function(dictionary):
+def _sea_level_function(dictionary):
     # time is an array of x values (ex. arange(0,1000, pi/4))
     # amplitude is the amplitude of the sin function
     # phase is th phase shift
@@ -166,7 +190,7 @@ def sea_level_function(dictionary):
     return time, sl_array
 
 
-def sea_level_file(filename, dictionary):
+def _sea_level_file(filename, dictionary):
     """
     reading in the file above
     x is an array of x values (ex. x = arange(0, 10))
