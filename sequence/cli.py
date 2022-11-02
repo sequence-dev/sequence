@@ -1,10 +1,13 @@
+"""
+Command Line Interface
+----------------------
+"""
 import os
 import pathlib
 import re
 from io import StringIO
 from typing import Any, Optional
 
-# import click
 import numpy as np
 import rich_click as click
 import tomlkit as toml
@@ -219,6 +222,9 @@ def run(ctx, with_citations, dry_run):
     run_dir = pathlib.Path.cwd()
 
     times, names = _find_config_files(".")
+    out(
+        f"reading config file{'s' if len(names) > 1 else ''}: {', '.join(repr(name) for name in names)}"
+    )
     params = TimeVaryingConfig.from_files(names, times=times)
 
     if verbose:
@@ -230,25 +236,28 @@ def run(ctx, with_citations, dry_run):
     grid = SequenceModel.load_grid(
         model_params["grid"], bathymetry=model_params["bathymetry"]
     )
+    processes = model_params.get(
+        "processes",
+        [
+            "sea_level",
+            "subsidence",
+            "compaction",
+            "submarine_diffusion",
+            "fluvial",
+            "flexure",
+        ],
+    )
+    if len(processes):
+        out(
+            f"creating a Sequence model using the following processses: {', '.join(repr(name) for name in processes)}"
+        )
+    else:
+        out("all processes have been disabled")
     model = SequenceModel(
         grid,
         clock=model_params["clock"],
         output=model_params["output"],
-        processes=SequenceModel.load_processes(
-            grid,
-            model_params.get(
-                "processes",
-                [
-                    "sea_level",
-                    "subsidence",
-                    "compaction",
-                    "submarine_diffusion",
-                    "fluvial",
-                    "flexure",
-                ],
-            ),
-            model_params,
-        ),
+        processes=SequenceModel.load_processes(grid, processes, model_params),
     )
 
     if with_citations:
