@@ -6,6 +6,7 @@ Define the grid used for creating *Sequence* models.
 """
 import os
 
+import numpy as np
 from landlab import RasterModelGrid
 
 try:
@@ -17,7 +18,7 @@ except ModuleNotFoundError:
 class SequenceModelGrid(RasterModelGrid):
     """Create a Landlab ModelGrid for use with Sequence."""
 
-    def __init__(self, n_cols, spacing=100.0):
+    def __init__(self, n_cols: int, spacing: float = 100.0):
         """Create a *Landlab* :class:`~landlab.grid.base.ModelGrid` for use with *Sequence*.
 
         Parameters
@@ -34,10 +35,10 @@ class SequenceModelGrid(RasterModelGrid):
         >>> grid.shape
         (3, 500)
         >>> grid.spacing
-        (10.0, 10.0)
+        (1.0, 10.0)
         """
 
-        super().__init__((3, n_cols), xy_spacing=spacing)
+        super().__init__((3, n_cols), xy_spacing=(spacing, 1.0))
 
         self.status_at_node[self.nodes_at_top_edge] = self.BC_NODE_IS_CLOSED
         self.status_at_node[self.nodes_at_bottom_edge] = self.BC_NODE_IS_CLOSED
@@ -55,7 +56,7 @@ class SequenceModelGrid(RasterModelGrid):
             Path to the *toml* file that contains the grid parameters.
         """
         with open(filepath, "rb") as fp:
-            return SequenceModelGrid.from_dict(tomllib.load(fp)["sequence"])
+            return SequenceModelGrid.from_dict(tomllib.load(fp)["sequence"]["grid"])
 
     @classmethod
     def from_dict(cls, params: dict):
@@ -74,7 +75,18 @@ class SequenceModelGrid(RasterModelGrid):
             A dictionary that contains the parameters needed to
             create the grid.
         """
-        n_cols = params.get("n_cols", params["shape"][1])
-        spacing = params.get("spacing", params["xy_spacing"])
+        if "n_cols" in params:
+            n_cols = params["n_cols"]
+        elif "shape" in params:
+            n_cols = params["shape"][1]
+        else:
+            raise KeyError("n_cols")
+
+        if "spacing" in params:
+            spacing = params["spacing"]
+        elif "xy_spacing" in params:
+            spacing = np.broadcast_to(params["xy_spacing"], 2)[0]
+        else:
+            raise KeyError("spacing")
 
         return cls(n_cols, spacing=spacing)
