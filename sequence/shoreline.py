@@ -1,4 +1,10 @@
-#! /usr/bin/env python
+"""
+Find the grid's shoreline
+=========================
+
+This module contains methods for calculating a grid's shoreline and
+shelf edge.
+"""
 import bisect
 
 import numpy as np
@@ -9,6 +15,8 @@ from .errors import ShelfEdgeError, ShorelineError
 
 
 class ShorelineFinder(Component):
+
+    """Find a grid's shoreline."""
 
     _name = "Shoreline finder"
 
@@ -49,7 +57,17 @@ class ShorelineFinder(Component):
         },
     }
 
-    def __init__(self, grid, alpha=0.0005):
+    def __init__(self, grid, alpha: float = 0.0005):
+        """Create a shoreline finder.
+
+        Parameters
+        ----------
+        grid : :class:`~sequence.grid.SequenceModelGrid`
+            A Sequence grid.
+        alpha : float, optional
+            Parameter used to find the shoreline when
+            interpolating between nodes.
+        """
         super().__init__(grid)
 
         self._alpha = alpha
@@ -71,6 +89,10 @@ class ShorelineFinder(Component):
 
         self.grid.at_grid["x_of_shore"] = x_of_shore
         self.grid.at_grid["x_of_shelf_edge"] = x_of_shelf_edge
+
+    @property
+    def alpha(self) -> float:
+        return self._alpha
 
     def update(self):
         x = self.grid.x_of_node[self.grid.node_at_cell]
