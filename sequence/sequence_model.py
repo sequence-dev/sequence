@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 import warnings
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from collections.abc import Hashable, Sequence
 from typing import Optional
 
@@ -131,13 +131,26 @@ class SequenceModel:
     def load_processes(
         grid, processes: Sequence[str], context: dict[str, dict]
     ) -> dict:
+        """Instantiate processes.
+
+        Parameters
+        ----------
+        grid : :class:`~sequence.grid.SequenceModelGrid`
+            A Sequence grid.
+        processes : Sequence[str], optional
+            List of the names of the processes to create.
+        context : dict
+            A context from which to draw parameters to create the
+            processes.
+        """
         if "fluvial" not in processes:
             processes = list(processes) + ["fluvial"]
         if "shoreline" not in processes:
             processes = list(processes) + ["shoreline"]
-        params = {process: context.get(process, {}).copy() for process in processes}
-        params.setdefault("shoreline", {})
-        params.setdefault("fluvial", {})
+        params = defaultdict(dict)
+        params.update(
+            {process: context.get(process, {}).copy() for process in processes}
+        )
 
         _match_values(
             params["fluvial"],
@@ -177,7 +190,14 @@ class SequenceModel:
         """Return the model's clock."""
         return self._clock
 
-    def set_params(self, params):
+    def set_params(self, params: dict[str, dict]):
+        """Update the parameters for the model's processes.
+
+        Parameters
+        ----------
+        params : dict
+            The new parameters for the processes.
+        """
         for component, values in params.items():
             c = self._components[component]
             for param, value in values.items():
@@ -199,7 +219,7 @@ class SequenceModel:
         except StopIteration:
             pass
 
-    def advance_components(self, dt):
+    def advance_components(self, dt: float):
         for component in self._components.values():
             component.run_one_step(dt)
 
