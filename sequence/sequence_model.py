@@ -1,14 +1,17 @@
 #! /usr/bin/env python
+import warnings
 from collections import OrderedDict
+from collections.abc import Hashable, Sequence
+from typing import Optional
 
 import numpy as np
 from compaction.landlab import Compact
-from landlab import RasterModelGrid
+from landlab import FieldError
 from landlab.bmi.bmi_bridge import TimeStepper
 
 from .bathymetry import BathymetryReader
 from .fluvial import Fluvial
-from .input_reader import load_config
+from .grid import SequenceModelGrid
 from .output_writer import OutputWriter
 from .sea_level import SeaLevelTimeSeries, SinusoidalSeaLevel
 from .sediment_flexure import SedimentFlexure
@@ -75,54 +78,28 @@ class SequenceModel:
 
     def __init__(
         self,
-        grid=None,
-        clock=None,
-        processes=None,
-        output=None,
-        submarine_diffusion=None,
-        sea_level=None,
-        subsidence=None,
-        flexure=None,
-        sediments=None,
-        bathymetry=None,
-        compaction=None,
+        grid,
+        clock: Optional[dict] = None,
+        processes: Optional[dict] = None,
+        output: Optional[dict] = None,
     ):
-        config = {
-            "grid": grid,
-            "clock": clock,
-            "output": output,
-            "submarine_diffusion": submarine_diffusion,
-            "sea_level": sea_level,
-            "subsidence": subsidence,
-            "flexure": flexure,
-            "sediments": sediments,
-            "bathymetry": bathymetry,
-            "compaction": compaction,
-        }
-        missing_kwds = [kwd for kwd, value in config.items() if value is None]
-        if missing_kwds:
-            raise ValueError(
-                "missing required config parameters for SequenceModel ({})".format(
-                    ", ".join(missing_kwds)
-                )
-            )
+        if processes is None:
+            processes = {}
+
+        self._grid = grid
 
         self._clock = TimeStepper(**clock)
-        self._grid = RasterModelGrid.from_dict(grid)
 
-        self._components = OrderedDict()
-        if output:
-            self._output = OutputWriter(self._grid, **output)
-            self._components["output"] = self._output
+        self._components = OrderedDict(processes)
 
-        BathymetryReader(self.grid, **bathymetry).run_one_step()
-
-        z = self.grid.at_node["topographic__elevation"]
-        z0 = self.grid.add_empty("bedrock_surface__elevation", at="node")
-        z0[:] = z - 100.0
+        if output is not None:
+            self._components["output"] = OutputWriter(self._grid, **output)
 
         self.grid.at_grid["x_of_shore"] = np.nan
         self.grid.at_grid["x_of_shelf_edge"] = np.nan
+        self.grid.at_grid["sea_level__elevation"] = 0.0
+
+        z0 = grid.at_node["bedrock_surface__elevation"]
 
         self.grid.event_layers.add(
             100.0,
@@ -133,45 +110,72 @@ class SequenceModel:
             porosity=0.5,
         )
 
+        try:
+            self._components["sea_level"].time = self.clock.time
+        except KeyError:
+            pass
+
+    @staticmethod
+    def load_grid(params: dict, bathymetry: Optional[dict] = None):
+        grid = SequenceModelGrid.from_dict(params)
+
+        if bathymetry is not None:
+            BathymetryReader(grid, **bathymetry).run_one_step()
+
+            z = grid.at_node["topographic__elevation"]
+            grid.add_field("bedrock_surface__elevation", z - 100.0, at="node")
+
+        return grid
+
+    @staticmethod
+    def load_processes(
+        grid, processes: Sequence[str], context: dict[str, dict]
+    ) -> dict:
+        if "fluvial" not in processes:
+            processes = list(processes) + ["fluvial"]
+        if "shoreline" not in processes:
+            processes = list(processes) + ["shoreline"]
+        params = {process: context.get(process, {}).copy() for process in processes}
+        params.setdefault("shoreline", {})
+        params.setdefault("fluvial", {})
+
+        _match_values(
+            params["fluvial"],
+            params["submarine_diffusion"],
+            ["sediment_load", "plain_slope"],
+        )
+        _match_values(params["fluvial"], context["sediments"].copy(), ["hemipelagic"])
+        _match_values(params["shoreline"], params["submarine_diffusion"], ["alpha"])
+
         process_class = {
-            "sea_level": SeaLevelTimeSeries
-            if "filepath" in sea_level
-            else SinusoidalSeaLevel,
             "subsidence": SubsidenceTimeSeries,
             "compaction": Compact,
             "submarine_diffusion": SubmarineDiffuser,
             "fluvial": Fluvial,
             "flexure": SedimentFlexure,
+            "shoreline": ShorelineFinder,
         }
-
-        sea_level["start"] = clock["start"]
-        config["fluvial"] = dict(
-            sand_frac=0.5,
-            start=0.0,
-            sediment_load=submarine_diffusion["sediment_load"],
-            plain_slope=submarine_diffusion["plain_slope"],
-            hemipelagic=sediments["hemipelagic"],
+        try:
+            params["sea_level"]["filepath"]
+        except KeyError:
+            process_class["sea_level"] = SinusoidalSeaLevel
+        else:
+            process_class["sea_level"] = SeaLevelTimeSeries
+        processes = OrderedDict(
+            [(name, process_class[name](grid, **params[name])) for name in processes]
         )
 
-        for process in processes:
-            self._components[process] = process_class[process](
-                self.grid, **config[process]
-            )
-        self._components["shoreline"] = ShorelineFinder(
-            self.grid, alpha=submarine_diffusion["alpha"]
-        )
+        return processes
 
     @property
     def grid(self):
+        """Return the model's grid."""
         return self._grid
 
     @property
     def clock(self):
+        """Return the model's clock."""
         return self._clock
-
-    @classmethod
-    def from_path(cls, filepath, fmt=None):
-        return cls(**load_config(filepath, fmt=fmt))
 
     def set_params(self, params):
         for component, values in params.items():
@@ -179,7 +183,7 @@ class SequenceModel:
             for param, value in values.items():
                 setattr(c, param, value)
 
-    def run_one_step(self, dt=None, output=None):
+    def run_one_step(self, dt: Optional[float] = None):
         """Run each component for one time step."""
         dt = dt or self.clock.step
         self.clock.dt = dt
@@ -187,7 +191,7 @@ class SequenceModel:
 
         self.advance_components(dt)
 
-    def run(self, output=None):
+    def run(self):
         """Run the model until complete."""
         try:
             while 1:
@@ -200,7 +204,7 @@ class SequenceModel:
             component.run_one_step(dt)
 
         dz = self.grid.at_node["sediment_deposit__thickness"]
-        percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
+        # percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
         water_depth = (
             self.grid.at_grid["sea_level__elevation"]
             - self.grid.at_node["topographic__elevation"]
@@ -210,10 +214,16 @@ class SequenceModel:
             age=self.clock.time,
             water_depth=water_depth[self.grid.node_at_cell],
             t0=dz[self.grid.node_at_cell].clip(0.0),
-            percent_sand=percent_sand[self.grid.node_at_cell],
+            # percent_sand=percent_sand[self.grid.node_at_cell],
         )
         if "compaction" in self._components:
             layer_properties["porosity"] = self._components["compaction"].porosity_max
+        try:
+            percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
+        except FieldError:
+            pass
+        else:
+            layer_properties["percent_sand"] = percent_sand[self.grid.node_at_cell]
 
         self.grid.event_layers.add(dz[self.grid.node_at_cell], **layer_properties)
 
@@ -235,3 +245,67 @@ class SequenceModel:
                 water_depth=np.mean,
             )
             self._n_archived_layers += 1
+
+
+def _match_values(d1: dict, d2: dict, keys: Sequence[Hashable]):
+    """Match values between two dictionaries.
+
+    Parameters
+    ----------
+    d1 : dict
+        The first dictionary.
+    d2 : dict
+        The second dictionary.
+    keys : sequence
+        The keys to match between dictionaries.
+
+    Examples
+    --------
+    >>> a, b = {"foo": 0, "bar": 1}, {"baz": 2}
+    >>> _match_values(a, b, ["bar"])
+    >>> sorted(b.items())
+    [('bar', 1), ('baz', 2)]
+
+    >>> a, b = {"foo": 0, "bar": 1}, {"baz": 2}
+    >>> _match_values(a, b, ["foo", "baz"])
+    >>> sorted(a.items())
+    [('bar', 1), ('baz', 2), ('foo', 0)]
+    >>> sorted(b.items())
+    [('baz', 2), ('foo', 0)]
+
+    >>> a, b = {"bar": 1}, {"bar": 2}
+    >>> _match_values(a, b, ["bar"])
+    >>> sorted(a.items())
+    [('bar', 1)]
+    >>> sorted(b.items())
+    [('bar', 2)]
+
+    >>> a, b = {"bar": 1}, {"bar": 2}
+    >>> _match_values(a, b, ["foo"])
+    >>> sorted(a.items())
+    [('bar', 1)]
+    >>> sorted(b.items())
+    [('bar', 2)]
+
+    """
+    for key in keys:
+        try:
+            d1.setdefault(key, d2[key])
+        except KeyError:
+            pass
+        try:
+            d2.setdefault(key, d1[key])
+        except KeyError:
+            pass
+
+    mismatch = []
+    for key in keys:
+        try:
+            if d1[key] != d2[key]:
+                mismatch.append(repr(key))
+        except KeyError:
+            pass
+    if mismatch:
+        warnings.warn(
+            f"both dictionaries contain the key {', '.join(mismatch)} but their values do not match"
+        )

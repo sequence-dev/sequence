@@ -226,7 +226,30 @@ def run(ctx, with_citations, dry_run):
 
     model_params = params.as_dict()
     model_params.pop("plot", None)
-    model = SequenceModel(**model_params)
+
+    grid = SequenceModel.load_grid(
+        model_params["grid"], bathymetry=model_params["bathymetry"]
+    )
+    model = SequenceModel(
+        grid,
+        clock=model_params["clock"],
+        output=model_params["output"],
+        processes=SequenceModel.load_processes(
+            grid,
+            model_params.get(
+                "processes",
+                [
+                    "sea_level",
+                    "subsidence",
+                    "compaction",
+                    "submarine_diffusion",
+                    "fluvial",
+                    "flexure",
+                ],
+            ),
+            model_params,
+        ),
+    )
 
     if with_citations:
         from landlab.core.model_component import registry
