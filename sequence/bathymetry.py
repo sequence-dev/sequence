@@ -1,4 +1,7 @@
-#! /usr/bin/env python
+"""
+Read bathymetry
+===============
+"""
 import numpy as np
 from landlab import Component
 from scipy import interpolate
@@ -63,3 +66,28 @@ class BathymetryReader(Component):
     def run_one_step(self, dt=None):
         z = self.grid.at_node["topographic__elevation"].reshape(self.grid.shape)
         z[:] = self._bathymetry(self.grid.x_of_node[self.grid.nodes_at_bottom_edge])
+
+
+def _create_initial_profile(
+    x,
+    sl_plain=0.0008,
+    init_shore=19750.0,
+    hgt=15.0,
+    alpha=1 / 2000.0,
+    sl_sh=0.001,
+    wavebase=60.0,
+):
+
+    # check shoreline is in array, else put in center of array
+    if x[-1] < init_shore:
+        init_shore = (x[0] + x[-1]) / 2
+
+    z = np.empty_like(x)
+
+    land = x < init_shore
+    z[land] = (init_shore - x[land]) * sl_plain
+    z[~land] = (init_shore - x[~land]) * sl_sh - hgt * (
+        1 - np.exp((init_shore - x[~land]) * alpha)
+    )
+
+    return z

@@ -1,10 +1,13 @@
+"""
+Command Line Interface
+----------------------
+"""
 import os
 import pathlib
 import re
 from io import StringIO
 from typing import Any, Optional
 
-# import click
 import numpy as np
 import rich_click as click
 import tomlkit as toml
@@ -67,7 +70,13 @@ def _contents_of_input_file(infile, set):
 
     contents = {
         "sequence.yaml": yaml.dump(params, default_flow_style=False),
-        "sequence.toml": toml.dumps(dict(sequence=dict(_time=0.0, **params))),
+        "sequence.toml": toml.dumps(
+            dict(
+                sequence=dict(
+                    _time=0.0, processes=SequenceModel.ALL_PROCESSES, **params
+                )
+            )
+        ),
         "bathymetry.csv": as_csv(
             [[0.0, 20.0], [100000.0, -80.0]], header="X [m], Elevation [m]"
         ),
@@ -219,16 +228,41 @@ def run(ctx, with_citations, dry_run):
     run_dir = pathlib.Path.cwd()
 
     times, names = _find_config_files(".")
+    if not silent:
+        out(f"config_files = [{', '.join(repr(name) for name in names)}]")
     params = TimeVaryingConfig.from_files(names, times=times)
-
-    if verbose:
-        out(params.dump())
 
     model_params = params.as_dict()
     model_params.pop("plot", None)
-    model = SequenceModel(**model_params)
 
-    if with_citations:
+    grid = SequenceModel.load_grid(
+        model_params["grid"], bathymetry=model_params["bathymetry"]
+    )
+    processes = model_params.get("processes", SequenceModel.ALL_PROCESSES)
+    model = SequenceModel(
+        grid,
+        clock=model_params["clock"],
+        output=model_params["output"],
+        processes=SequenceModel.load_processes(grid, processes, model_params),
+    )
+
+    if verbose or not silent:
+        out("enabled = [")
+        for name in model.components:
+            out(f"  {name!r},")
+        out("]")
+        out("disabled = [")
+        for name in set(SequenceModel.ALL_PROCESSES) - set(model.components):
+            out(f"  {name!r},")
+        out("]")
+
+    if not silent and verbose:
+        out(params.dump())
+
+    if not silent and len(processes) == 0:
+        out("⚠️  ALL PROCESSES HAVE BEEN DISABLED! ⚠️")
+
+    if not silent and with_citations:
         from landlab.core.model_component import registry
 
         out("👇👇👇These are the citations to use👇👇👇")

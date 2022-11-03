@@ -12,7 +12,25 @@ def test_marmara(tmpdir, datadir):
         for fname in datadir.iterdir():
             shutil.copy(str(datadir / fname), ".")
         params = load_params("marmara.yaml")
-        model = SequenceModel(**params)
+        grid = SequenceModel.load_grid(params["grid"], bathymetry=params["bathymetry"])
+        processes = SequenceModel.load_processes(
+            grid,
+            processes=params.get(
+                "processes",
+                [
+                    "sea_level",
+                    "subsidence",
+                    "compaction",
+                    "submarine_diffusion",
+                    "fluvial",
+                    "flexure",
+                ],
+            ),
+            context=params,
+        )
+        model = SequenceModel(
+            grid, clock=params["clock"], processes=processes, output=params["output"]
+        )
         model.run()
 
         assert os.path.isfile("marmara.nc")

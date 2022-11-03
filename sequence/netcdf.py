@@ -1,4 +1,5 @@
 import os
+import warnings
 from collections import defaultdict
 
 import netCDF4 as nc
@@ -94,7 +95,13 @@ def _set_field(root, grid, at="node", ids=None, names=None):
     """Set values for variables at a field location(s)."""
     if isinstance(names, str):
         names = [names]
-    names = names or grid[at]
+    names = set(names or grid[at])
+
+    if missing := names - set(grid[at]):
+        warnings.warn(
+            f"missing field{'(s)' if len(missing) > 1 else ''} ({', '.join(missing)})"
+        )
+        names = names & set(grid[at])
 
     _create_field(root, grid, at=at, names=names)
 
@@ -178,7 +185,7 @@ def to_netcdf(
         is to write variables from all field locations.
     ids: array_like of int, optional
         Indices of elements to write.
-    names: array_link or str, optional
+    names: iterable or str, optional
         Names of fields to write to the netCDF file.
     with_layers : bool, optional
         Indicate if the NetCDF file should contain the grid's layers.

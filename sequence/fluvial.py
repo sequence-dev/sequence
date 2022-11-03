@@ -42,7 +42,6 @@ class Fluvial(Component):
         self,
         grid,
         sand_frac=0.5,
-        start=0.0,
         wave_base=60.0,
         sediment_load=3.0,
         sand_density=2650.0,
@@ -60,8 +59,6 @@ class Fluvial(Component):
             A landlab grid.
         sand_frac: str, optional
             Fraction of sand on the delta.
-        start : float, optional
-            The initial time of the component.
         wave_base: float, optional
             Wave base (m).
         sediment_load : float, optional

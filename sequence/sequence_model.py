@@ -1,14 +1,17 @@
 #! /usr/bin/env python
-from collections import OrderedDict
+import warnings
+from collections import OrderedDict, defaultdict
+from collections.abc import Hashable, Iterable
+from typing import Optional
 
 import numpy as np
 from compaction.landlab import Compact
-from landlab import RasterModelGrid
+from landlab import FieldError
 from landlab.bmi.bmi_bridge import TimeStepper
 
 from .bathymetry import BathymetryReader
 from .fluvial import Fluvial
-from .input_reader import load_config
+from .grid import SequenceModelGrid
 from .output_writer import OutputWriter
 from .sea_level import SeaLevelTimeSeries, SinusoidalSeaLevel
 from .sediment_flexure import SedimentFlexure
@@ -19,13 +22,16 @@ from .subsidence import SubsidenceTimeSeries
 
 class SequenceModel:
 
+    ALL_PROCESSES = (
+        "sea_level",
+        "subsidence",
+        "compaction",
+        "submarine_diffusion",
+        "fluvial",
+        "flexure",
+    )
     DEFAULT_PARAMS = {
-        "grid": {
-            "shape": [3, 100],
-            "xy_spacing": 1000.0,
-            "xy_of_lower_left": [0.0, 0.0],
-            "bc": {"top": "closed", "bottom": "closed"},
-        },
+        "grid": {"n_cols": 100, "spacing": 1000.0},
         "clock": {"start": 0.0, "stop": 600000.0, "step": 100.0},
         "output": {
             "interval": 10,
@@ -75,53 +81,28 @@ class SequenceModel:
 
     def __init__(
         self,
-        grid=None,
-        clock=None,
-        output=None,
-        submarine_diffusion=None,
-        sea_level=None,
-        subsidence=None,
-        flexure=None,
-        sediments=None,
-        bathymetry=None,
-        compaction=None,
+        grid,
+        clock: Optional[dict] = None,
+        processes: Optional[dict] = None,
+        output: Optional[dict] = None,
     ):
-        config = {
-            "grid": grid,
-            "clock": clock,
-            "output": output,
-            "submarine_diffusion": submarine_diffusion,
-            "sea_level": sea_level,
-            "subsidence": subsidence,
-            "flexure": flexure,
-            "sediments": sediments,
-            "bathymetry": bathymetry,
-            "compaction": compaction,
-        }
-        missing_kwds = [kwd for kwd, value in config.items() if value is None]
-        if missing_kwds:
-            raise ValueError(
-                "missing required config parameters for SequenceModel ({})".format(
-                    ", ".join(missing_kwds)
-                )
-            )
+        if processes is None:
+            processes = {}
+
+        self._grid = grid
 
         self._clock = TimeStepper(**clock)
-        self._grid = RasterModelGrid.from_dict(grid)
 
-        self._components = OrderedDict()
-        if output:
-            self._output = OutputWriter(self._grid, **output)
-            self._components["output"] = self._output
+        self._components = OrderedDict(processes)
 
-        BathymetryReader(self.grid, **bathymetry).run_one_step()
-
-        z = self.grid.at_node["topographic__elevation"]
-        z0 = self.grid.add_empty("bedrock_surface__elevation", at="node")
-        z0[:] = z - 100.0
+        if output is not None:
+            self._components["output"] = OutputWriter(self._grid, **output)
 
         self.grid.at_grid["x_of_shore"] = np.nan
         self.grid.at_grid["x_of_shelf_edge"] = np.nan
+        self.grid.at_grid["sea_level__elevation"] = 0.0
+
+        z0 = grid.at_node["bedrock_surface__elevation"]
 
         self.grid.event_layers.add(
             100.0,
@@ -132,59 +113,105 @@ class SequenceModel:
             porosity=0.5,
         )
 
-        if "filepath" in sea_level:
-            self._sea_level = SeaLevelTimeSeries(
-                self.grid, sea_level.pop("filepath"), start=clock["start"], **sea_level
-            )
+        try:
+            self._components["sea_level"].time = self.clock.time
+        except KeyError:
+            pass
+
+    @staticmethod
+    def load_grid(params: dict, bathymetry: Optional[dict] = None):
+        grid = SequenceModelGrid.from_dict(params)
+
+        if bathymetry is not None:
+            BathymetryReader(grid, **bathymetry).run_one_step()
+
+            z = grid.at_node["topographic__elevation"]
+            grid.add_field("bedrock_surface__elevation", z - 100.0, at="node")
+
+        return grid
+
+    @staticmethod
+    def load_processes(
+        grid, processes: Iterable[str], context: dict[str, dict]
+    ) -> dict:
+        """Instantiate processes.
+
+        Parameters
+        ----------
+        grid : :class:`~sequence.grid.SequenceModelGrid`
+            A Sequence grid.
+        processes : Iterable[str], optional
+            List of the names of the processes to create.
+        context : dict
+            A context from which to draw parameters to create the
+            processes.
+        """
+        if "fluvial" not in processes:
+            processes = list(processes) + ["fluvial"]
+        if "shoreline" not in processes:
+            processes = list(processes) + ["shoreline"]
+        params = defaultdict(dict)
+        params.update(
+            {process: context.get(process, {}).copy() for process in processes}
+        )
+
+        _match_values(
+            params["fluvial"],
+            params["submarine_diffusion"],
+            ["sediment_load", "plain_slope"],
+        )
+        _match_values(params["fluvial"], context["sediments"].copy(), ["hemipelagic"])
+        _match_values(params["shoreline"], params["submarine_diffusion"], ["alpha"])
+
+        process_class = {
+            "subsidence": SubsidenceTimeSeries,
+            "compaction": Compact,
+            "submarine_diffusion": SubmarineDiffuser,
+            "fluvial": Fluvial,
+            "flexure": SedimentFlexure,
+            "shoreline": ShorelineFinder,
+        }
+        try:
+            params["sea_level"]["filepath"]
+        except KeyError:
+            process_class["sea_level"] = SinusoidalSeaLevel
         else:
-            self._sea_level = SinusoidalSeaLevel(
-                self.grid, start=clock["start"], **sea_level
-            )
-
-        self._subsidence = SubsidenceTimeSeries(self.grid, **subsidence)
-
-        self._submarine_diffusion = SubmarineDiffuser(self.grid, **submarine_diffusion)
-        self._fluvial = Fluvial(
-            self.grid,
-            0.5,
-            start=0,
-            sediment_load=submarine_diffusion["sediment_load"],
-            plain_slope=submarine_diffusion["plain_slope"],
-            hemipelagic=sediments["hemipelagic"],
+            process_class["sea_level"] = SeaLevelTimeSeries
+        processes = OrderedDict(
+            [(name, process_class[name](grid, **params[name])) for name in processes]
         )
-        self._flexure = SedimentFlexure(self.grid, **flexure)
-        self._shoreline = ShorelineFinder(self.grid, alpha=submarine_diffusion["alpha"])
-        self._compaction = Compact(self.grid, **compaction)
 
-        self._components.update(
-            sea_level=self._sea_level,
-            subsidence=self._subsidence,
-            compaction=self._compaction,
-            submarine_diffusion=self._submarine_diffusion,
-            fluvial=self._fluvial,
-            flexure=self._flexure,
-            shoreline=self._shoreline,
-        )
+        return processes
 
     @property
     def grid(self):
+        """Return the model's grid."""
         return self._grid
 
     @property
     def clock(self):
+        """Return the model's clock."""
         return self._clock
 
-    @classmethod
-    def from_path(cls, filepath, fmt=None):
-        return cls(**load_config(filepath, fmt=fmt))
+    @property
+    def components(self):
+        """Return the name of enabled components."""
+        return tuple(self._components)
 
-    def set_params(self, params):
+    def set_params(self, params: dict[str, dict]):
+        """Update the parameters for the model's processes.
+
+        Parameters
+        ----------
+        params : dict
+            The new parameters for the processes.
+        """
         for component, values in params.items():
             c = self._components[component]
             for param, value in values.items():
                 setattr(c, param, value)
 
-    def run_one_step(self, dt=None, output=None):
+    def run_one_step(self, dt: Optional[float] = None):
         """Run each component for one time step."""
         dt = dt or self.clock.step
         self.clock.dt = dt
@@ -192,7 +219,7 @@ class SequenceModel:
 
         self.advance_components(dt)
 
-    def run(self, output=None):
+    def run(self):
         """Run the model until complete."""
         try:
             while 1:
@@ -200,25 +227,33 @@ class SequenceModel:
         except StopIteration:
             pass
 
-    def advance_components(self, dt):
+    def advance_components(self, dt: float):
         for component in self._components.values():
             component.run_one_step(dt)
 
         dz = self.grid.at_node["sediment_deposit__thickness"]
-        percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
+        # percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
         water_depth = (
             self.grid.at_grid["sea_level__elevation"]
             - self.grid.at_node["topographic__elevation"]
         )
 
-        self.grid.event_layers.add(
-            dz[self.grid.node_at_cell],
+        layer_properties = dict(
             age=self.clock.time,
             water_depth=water_depth[self.grid.node_at_cell],
             t0=dz[self.grid.node_at_cell].clip(0.0),
-            percent_sand=percent_sand[self.grid.node_at_cell],
-            porosity=self._compaction.porosity_max,
+            # percent_sand=percent_sand[self.grid.node_at_cell],
         )
+        if "compaction" in self._components:
+            layer_properties["porosity"] = self._components["compaction"].porosity_max
+        try:
+            percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
+        except FieldError:
+            pass
+        else:
+            layer_properties["percent_sand"] = percent_sand[self.grid.node_at_cell]
+
+        self.grid.event_layers.add(dz[self.grid.node_at_cell], **layer_properties)
 
         try:
             self._n_archived_layers
@@ -238,3 +273,67 @@ class SequenceModel:
                 water_depth=np.mean,
             )
             self._n_archived_layers += 1
+
+
+def _match_values(d1: dict, d2: dict, keys: Iterable[Hashable]):
+    """Match values between two dictionaries.
+
+    Parameters
+    ----------
+    d1 : dict
+        The first dictionary.
+    d2 : dict
+        The second dictionary.
+    keys : iterable
+        The keys to match between dictionaries.
+
+    Examples
+    --------
+    >>> a, b = {"foo": 0, "bar": 1}, {"baz": 2}
+    >>> _match_values(a, b, ["bar"])
+    >>> sorted(b.items())
+    [('bar', 1), ('baz', 2)]
+
+    >>> a, b = {"foo": 0, "bar": 1}, {"baz": 2}
+    >>> _match_values(a, b, ["foo", "baz"])
+    >>> sorted(a.items())
+    [('bar', 1), ('baz', 2), ('foo', 0)]
+    >>> sorted(b.items())
+    [('baz', 2), ('foo', 0)]
+
+    >>> a, b = {"bar": 1}, {"bar": 2}
+    >>> _match_values(a, b, ["bar"])
+    >>> sorted(a.items())
+    [('bar', 1)]
+    >>> sorted(b.items())
+    [('bar', 2)]
+
+    >>> a, b = {"bar": 1}, {"bar": 2}
+    >>> _match_values(a, b, ["foo"])
+    >>> sorted(a.items())
+    [('bar', 1)]
+    >>> sorted(b.items())
+    [('bar', 2)]
+
+    """
+    for key in keys:
+        try:
+            d1.setdefault(key, d2[key])
+        except KeyError:
+            pass
+        try:
+            d2.setdefault(key, d1[key])
+        except KeyError:
+            pass
+
+    mismatch = []
+    for key in keys:
+        try:
+            if d1[key] != d2[key]:
+                mismatch.append(repr(key))
+        except KeyError:
+            pass
+    if mismatch:
+        warnings.warn(
+            f"both dictionaries contain the key {', '.join(mismatch)} but their values do not match"
+        )
