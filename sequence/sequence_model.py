@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 import warnings
 from collections import OrderedDict, defaultdict
-from collections.abc import Hashable, Sequence
+from collections.abc import Hashable, Iterable
 from typing import Optional
 
 import numpy as np
@@ -129,7 +129,7 @@ class SequenceModel:
 
     @staticmethod
     def load_processes(
-        grid, processes: Sequence[str], context: dict[str, dict]
+        grid, processes: Iterable[str], context: dict[str, dict]
     ) -> dict:
         """Instantiate processes.
 
@@ -137,7 +137,7 @@ class SequenceModel:
         ----------
         grid : :class:`~sequence.grid.SequenceModelGrid`
             A Sequence grid.
-        processes : Sequence[str], optional
+        processes : Iterable[str], optional
             List of the names of the processes to create.
         context : dict
             A context from which to draw parameters to create the
@@ -267,7 +267,7 @@ class SequenceModel:
             self._n_archived_layers += 1
 
 
-def _match_values(d1: dict, d2: dict, keys: Sequence[Hashable]):
+def _match_values(d1: dict, d2: dict, keys: Iterable[Hashable]):
     """Match values between two dictionaries.
 
     Parameters
@@ -276,7 +276,7 @@ def _match_values(d1: dict, d2: dict, keys: Sequence[Hashable]):
         The first dictionary.
     d2 : dict
         The second dictionary.
-    keys : sequence
+    keys : iterable
         The keys to match between dictionaries.
 
     Examples
