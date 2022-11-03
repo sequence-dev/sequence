@@ -10,7 +10,7 @@ def test_bad_filepath(tmpdir):
     grid.add_full("bedrock_surface__elevation", 0.0, at="node")
     grid.add_full("topographic__elevation", 0.0, at="node")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         SubsidenceTimeSeries(grid)
 
     with tmpdir.as_cwd():
