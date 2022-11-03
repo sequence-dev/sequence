@@ -99,6 +99,8 @@ class Fluvial(Component):
 
         if "delta_sediment_sand__volume_fraction" not in grid.at_node:
             grid.add_zeros("delta_sediment_sand__volume_fraction", at="node")
+        if "bedrock_surface__increment_of_elevation" not in grid.at_node:
+            grid.add_zeros("bedrock_surface__increment_of_elevation", at="node")
 
     def run_one_step(self, dt):
         # Upstream boundary conditions  */
