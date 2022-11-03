@@ -22,13 +22,16 @@ from .subsidence import SubsidenceTimeSeries
 
 class SequenceModel:
 
+    ALL_PROCESSES = (
+        "sea_level",
+        "subsidence",
+        "compaction",
+        "submarine_diffusion",
+        "fluvial",
+        "flexure",
+    )
     DEFAULT_PARAMS = {
-        "grid": {
-            "shape": [3, 100],
-            "xy_spacing": 1000.0,
-            "xy_of_lower_left": [0.0, 0.0],
-            "bc": {"top": "closed", "bottom": "closed"},
-        },
+        "grid": {"n_cols": 100, "spacing": 1000.0},
         "clock": {"start": 0.0, "stop": 600000.0, "step": 100.0},
         "output": {
             "interval": 10,
@@ -189,6 +192,11 @@ class SequenceModel:
     def clock(self):
         """Return the model's clock."""
         return self._clock
+
+    @property
+    def components(self):
+        """Return the name of enabled components."""
+        return tuple(self._components)
 
     def set_params(self, params: dict[str, dict]):
         """Update the parameters for the model's processes.
