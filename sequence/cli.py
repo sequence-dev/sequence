@@ -70,7 +70,13 @@ def _contents_of_input_file(infile, set):
 
     contents = {
         "sequence.yaml": yaml.dump(params, default_flow_style=False),
-        "sequence.toml": toml.dumps(dict(sequence=dict(_time=0.0, **params))),
+        "sequence.toml": toml.dumps(
+            dict(
+                sequence=dict(
+                    _time=0.0, processes=SequenceModel.ALL_PROCESSES, **params
+                )
+            )
+        ),
         "bathymetry.csv": as_csv(
             [[0.0, 20.0], [100000.0, -80.0]], header="X [m], Elevation [m]"
         ),
@@ -222,13 +228,9 @@ def run(ctx, with_citations, dry_run):
     run_dir = pathlib.Path.cwd()
 
     times, names = _find_config_files(".")
-    out(
-        f"reading config file{'s' if len(names) > 1 else ''}: {', '.join(repr(name) for name in names)}"
-    )
+    if not silent:
+        out(f"config_files = [{', '.join(repr(name) for name in names)}]")
     params = TimeVaryingConfig.from_files(names, times=times)
-
-    if verbose:
-        out(params.dump())
 
     model_params = params.as_dict()
     model_params.pop("plot", None)
@@ -236,23 +238,7 @@ def run(ctx, with_citations, dry_run):
     grid = SequenceModel.load_grid(
         model_params["grid"], bathymetry=model_params["bathymetry"]
     )
-    processes = model_params.get(
-        "processes",
-        [
-            "sea_level",
-            "subsidence",
-            "compaction",
-            "submarine_diffusion",
-            "fluvial",
-            "flexure",
-        ],
-    )
-    if len(processes):
-        out(
-            f"creating a Sequence model using the following processses: {', '.join(repr(name) for name in processes)}"
-        )
-    else:
-        out("all processes have been disabled")
+    processes = model_params.get("processes", SequenceModel.ALL_PROCESSES)
     model = SequenceModel(
         grid,
         clock=model_params["clock"],
@@ -260,7 +246,23 @@ def run(ctx, with_citations, dry_run):
         processes=SequenceModel.load_processes(grid, processes, model_params),
     )
 
-    if with_citations:
+    if verbose or not silent:
+        out("enabled = [")
+        for name in model.components:
+            out(f"  {name!r},")
+        out("]")
+        out("disabled = [")
+        for name in set(SequenceModel.ALL_PROCESSES) - set(model.components):
+            out(f"  {name!r},")
+        out("]")
+
+    if not silent and verbose:
+        out(params.dump())
+
+    if not silent and len(processes) == 0:
+        out("⚠️  ALL PROCESSES HAVE BEEN DISABLED! ⚠️")
+
+    if not silent and with_citations:
         from landlab.core.model_component import registry
 
         out("👇👇👇These are the citations to use👇👇👇")
