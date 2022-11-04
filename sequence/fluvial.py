@@ -1,4 +1,8 @@
-#! /usr/bin/env python
+"""Calculate the fraction of sand on the delta plain.
+
+This module contains *Landlab* components that add a sand fraction to a
+`SequenceModelGrid`.
+"""
 import numpy as np
 from landlab import Component
 
@@ -6,6 +10,7 @@ from .shoreline import find_shoreline
 
 
 class Fluvial(Component):
+    """*Landlab* component that calculates delta-plain sand fraction."""
 
     _name = "Sand Percent Calculator"
 
@@ -51,11 +56,12 @@ class Fluvial(Component):
         **kwds
     ):
         """Generate percent sand/mud for fluvial section.
-        Add hemipelagic mud to seaward end of section.
+
+        Add hemipelagic mud to the seaward end of section.
 
         Parameters
         ----------
-        grid: ModelGrid
+        grid: SequenceModelGrid
             A landlab grid.
         sand_frac: str, optional
             Fraction of sand on the delta.
@@ -71,9 +77,7 @@ class Fluvial(Component):
             Hemipelagic sedimentation.
         sea_level: float, optional
             The current sea level (m).
-
         """
-
         super().__init__(grid, **kwds)
 
         # fixed parameters
@@ -103,6 +107,13 @@ class Fluvial(Component):
             grid.add_zeros("bedrock_surface__increment_of_elevation", at="node")
 
     def run_one_step(self, dt):
+        """Update the component one time step.
+
+        Parameters
+        ----------
+        dt : float
+            The time step to update the component by.
+        """
         # Upstream boundary conditions  */
         mud_vol = self.sediment_load * (1.0 - self.sand_frac) / self.sand_frac
         sand_vol = self.sediment_load

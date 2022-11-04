@@ -1,14 +1,13 @@
+"""Write a `SequenceModelGrid` to a file."""
 import errno
 import os
 
 from landlab import Component
-from landlab.bmi.bmi_bridge import TimeStepper
 
 from .netcdf import to_netcdf
 
 
 class OutputWriter(Component):
-
     """Write output to a netcdf file."""
 
     def __init__(
@@ -18,15 +17,33 @@ class OutputWriter(Component):
         interval=1,
         fields=None,
         clobber=False,
-        clock=None,
+        # clock=None,
         rows=None,
     ):
+        """Create an output-file writer.
+
+        Parameters
+        ----------
+        grid : SequenceModelGrid
+            The grid to write to a file.
+        filepath : path-like
+            Path to the output file.
+        interval : int, optional
+            The number of time steps between updates to the output file.
+        fields : list of str, optional
+            Names of (at-node) fields to include in the output file.
+        clobber : bool, optional
+            If `True` and the provided file already exists, quietly overwrite
+            it, otherwise raise an exception.
+        rows : iterable of int
+            The rows of the grid to include in the file.
+        """
         if filepath is None:
             raise ValueError("filepath must be provided")
 
         super().__init__(grid)
 
-        self._clock = clock or TimeStepper()
+        # self._clock = clock or TimeStepper()
         self._clobber = clobber
         self.interval = interval
         self.fields = fields
@@ -41,6 +58,13 @@ class OutputWriter(Component):
         self._step_count = 0
 
     def run_one_step(self, dt=None):
+        """Update the writer by a time step.
+
+        Parameters
+        ----------
+        dt : float, optional
+            The time step to update the component by.
+        """
         dt = 1.0 if dt is None else float(dt)
         if self._step_count % self.interval == 0:
             to_netcdf(
@@ -56,6 +80,7 @@ class OutputWriter(Component):
 
     @property
     def filepath(self):
+        """Return the path to the output file."""
         return self._filepath
 
     @filepath.setter
@@ -72,6 +97,7 @@ class OutputWriter(Component):
 
     @property
     def interval(self):
+        """Return the interval for which output will be written."""
         return self._interval
 
     @interval.setter
@@ -84,6 +110,7 @@ class OutputWriter(Component):
 
     @property
     def fields(self):
+        """Return the names of the fields to include in the output file."""
         return self._fields
 
     @fields.setter

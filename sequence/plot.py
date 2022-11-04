@@ -1,3 +1,4 @@
+"""Plot the layers of a `SequenceModelGrid`."""
 from functools import partial
 
 import matplotlib.pyplot as plt
@@ -9,7 +10,7 @@ from scipy.interpolate import interp1d
 from .errors import MissingRequiredVariable
 
 
-def _plot(
+def plot_layers(
     elevation_at_layer,
     x_of_stack=None,
     x_of_shore_at_layer=None,
@@ -28,6 +29,52 @@ def _plot(
     y_label="Elevation (m)",
     legend_location="lower left",
 ):
+    """Create a plot of sediment layers along a profile.
+
+    Parameters
+    ----------
+    elevation_at_layer : array-like
+        Elevations along each layer to plot.
+    x_of_stack : array-like, optional
+        X-coordinate of each stack. If not provided, use the stack index.
+    x_of_shore_at_layer : array-like, optional
+        The x-position of the shoreline at each layer.
+    x_of_shelf_edge_at_layer : array-like, optional
+        The x-position of the shelf edge at each layer.
+    color_water : color, optional
+        A `matplotlib.colors` color to use for water.
+    color_land : color, optional
+        A `matplotlib.colors` color to use for land.
+    color_shoreface : color, optional
+        A `matplotlib.colors` color to use for the shoreface.
+    color_shelf : color, optional
+        A `matplotlib.colors` color to use for the shelf.
+    layer_line_width : float, optional
+        Width of the line to use for outlining layers.
+    layer_line_color : color, optional
+        A `matplotlib.colors` color to use for layer outlines.
+    layer_start : int, optional
+        The first layer to plot.
+    layer_stop : int, optional
+        The last layer to plot.
+    n_layers : int, optional
+        The number of layers to plot.
+    title : str, optional
+        The title to use for the plot.
+    x_label : str, optional
+        The label to use for the x-axis.
+    y_label : str, optional
+        The label to use for the y-axis.
+    legend_location : str, optional
+        The location of the legend. Valid values are those accepted by the *loc*
+        keyword use in :func:`matplotlib.pyplot.legend`.
+
+
+    See Also
+    --------
+    :func:`plot_file` : Plot a `SequenceModelGrid`'s layers from a file.
+    :func:`plot_grid` : Plot a `SequenceModelGrid`'s layers.
+    """
     if x_of_stack is None:
         x_of_stack = np.arange(elevation_at_layer.shape[1])
 
@@ -56,7 +103,7 @@ def _plot(
         plt.plot([x_water[0], x_water[-1]], [y_water[0], y_water[0]], color="k")
 
     if plot_land:
-        fill_between_layers(
+        _fill_between_layers(
             x_of_stack,
             elevation_at_layer,
             lower=None,
@@ -65,7 +112,7 @@ def _plot(
         )
 
     if plot_shoreface:
-        fill_between_layers(
+        _fill_between_layers(
             x_of_stack,
             elevation_at_layer,
             lower=stack_of_shore,
@@ -74,7 +121,7 @@ def _plot(
         )
 
     if plot_shelf:
-        fill_between_layers(
+        _fill_between_layers(
             x_of_stack,
             elevation_at_layer,
             lower=stack_of_shelf_edge,
@@ -115,6 +162,18 @@ def _plot(
 
 
 def plot_grid(grid, **kwds):
+    """Plot a :class:`~SequenceModelGrid`.
+
+    Parameters
+    ----------
+    grid : SequenceModelGrid
+        The grid to plot.
+
+    See Also
+    --------
+    :func:`plot_layers` : Plot layers from a 2D array of elevations.
+    :func:`plot_file` : Plot a `SequenceModelGrid`'s layers from a file.
+    """
     elevation_at_layer = (
         grid.at_node["bedrock_surface__elevation"][grid.node_at_cell] + grid.at_layer.z
     )
@@ -131,7 +190,7 @@ def plot_grid(grid, **kwds):
 
     kwds.setdefault("title", f"time = {time_at_layer[-1, 0]} years")
 
-    _plot(
+    plot_layers(
         elevation_at_layer,
         x_of_stack=x_of_stack,
         x_of_shore_at_layer=x_of_shore,
@@ -141,6 +200,18 @@ def plot_grid(grid, **kwds):
 
 
 def plot_file(filename, **kwds):
+    """Plot a `SequenceModelGrid` from a *Sequence* output file.
+
+    Parameters
+    ----------
+    filename : path-like
+        Path to the file to plot.
+
+    See Also
+    --------
+    :func:`plot_layers` : Plot layers from a 2D array of elevations.
+    :func:`plot_grid` : Plot a `SequenceModelGrid`'s layers.
+    """
     kwds.setdefault("title", f"{filename}")
     with xr.open_dataset(filename) as ds:
         try:
@@ -163,7 +234,7 @@ def plot_file(filename, **kwds):
     x_of_shore = interp1d(time, x_of_shore)(time_at_layer[:, 0])
     x_of_shelf_edge = interp1d(time, x_of_shelf_edge)(time_at_layer[:, 0])
 
-    _plot(
+    plot_layers(
         elevation_at_layer,
         x_of_stack=x_of_stack,
         x_of_shore_at_layer=x_of_shore,
@@ -181,7 +252,7 @@ def _get_layers_to_plot(start, stop, num=-1):
     return slice(start, stop, step)
 
 
-def fill_between_layers(x, y, lower=None, upper=None, fc=None):
+def _fill_between_layers(x, y, lower=None, upper=None, fc=None):
     n_layers = len(y)
 
     if lower is None:
@@ -191,7 +262,7 @@ def fill_between_layers(x, y, lower=None, upper=None, fc=None):
         upper = np.full(n_layers, len(x) - 1)
 
     for layer in range(n_layers - 1):
-        xi, yi = outline_layer(
+        xi, yi = _outline_layer(
             x,
             y[layer],
             y[layer + 1],
@@ -201,7 +272,7 @@ def fill_between_layers(x, y, lower=None, upper=None, fc=None):
         plt.fill(xi, yi, fc=fc)
 
 
-def outline_layer(
+def _outline_layer(
     x, y_of_bottom_layer, y_of_top_layer, bottom_limits=None, top_limits=None
 ):
     if bottom_limits is None:
@@ -234,7 +305,7 @@ def outline_layer(
         is_left = slice(top_limits[0], bottom_limits[0] + 1)
 
     x_of_left = x[is_left]
-    y_of_left = interp_between_layers(
+    y_of_left = _interp_between_layers(
         x_of_left[::step],
         y_of_top_layer[is_left][::step],
         y_of_bottom_layer[is_left][::step],
@@ -249,7 +320,7 @@ def outline_layer(
         step = 1
         is_right = slice(bottom_limits[1], top_limits[1] + 1)
     x_of_right = x[is_right]
-    y_of_right = interp_between_layers(
+    y_of_right = _interp_between_layers(
         x_of_right[::step],
         y_of_bottom_layer[is_right][::step],
         y_of_top_layer[is_right][::step],
@@ -263,7 +334,7 @@ def outline_layer(
     )
 
 
-def interp_between_layers(x, y_of_bottom, y_of_top, kind="linear"):
+def _interp_between_layers(x, y_of_bottom, y_of_top, kind="linear"):
     x = np.asarray(x)
     y_of_top, y_of_bottom = np.asarray(y_of_top), np.asarray(y_of_bottom)
 

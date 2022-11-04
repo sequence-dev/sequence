@@ -1,9 +1,4 @@
-"""
-Sequence-specific :class:`~landlab.grid.base.ModelGrid`
-=======================================================
-
-Define the grid used for creating *Sequence* models.
-"""
+"""Define the grid used for creating *Sequence* models."""
 import os
 
 import numpy as np
@@ -37,7 +32,6 @@ class SequenceModelGrid(RasterModelGrid):
         >>> grid.spacing
         (1.0, 10.0)
         """
-
         super().__init__((3, n_cols), xy_spacing=(spacing, 1.0))
 
         self.status_at_node[self.nodes_at_top_edge] = self.BC_NODE_IS_CLOSED

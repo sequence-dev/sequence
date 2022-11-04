@@ -1,8 +1,10 @@
+"""Subside a `SequenceModelGrid` using flexure."""
 import numpy as np
 from landlab.components.flexure import Flexure1D
 
 
 class SedimentFlexure(Flexure1D):
+    """*Landlab* component that deflects a `SequenceModelGrid` due sediment loading."""
 
     _name = "Sediment-loading flexure"
 
@@ -124,18 +126,53 @@ class SedimentFlexure(Flexure1D):
 
     @staticmethod
     def validate_density(density):
+        """Validate a density value.
+
+        Parameters
+        ----------
+        density : float
+            The density value to validate.
+
+        Returns
+        -------
+        float
+            The density value.
+
+        Raises
+        ------
+        ValueError
+            Raised if the value is invalid.
+        """
         if density <= 0.0:
             raise ValueError(f"negative or zero density ({density})")
         return density
 
     @staticmethod
     def validate_isostasy_time(time):
+        """Validate an isostasy time value.
+
+        Parameters
+        ----------
+        time : float
+            The isostasy time value to validate.
+
+        Returns
+        -------
+        float
+            The isostasy time value.
+
+        Raises
+        ------
+        ValueError
+            Raised if the value is invalid.
+        """
         if time < 0.0:
             raise ValueError(f"negative isostasy time ({time})")
         return time
 
     @property
     def sand_density(self):
+        """Return the density of sand."""
         return self._sand_density
 
     @sand_density.setter
@@ -148,10 +185,12 @@ class SedimentFlexure(Flexure1D):
 
     @property
     def sand_bulk_density(self):
+        """Return the bulk density of sand."""
         return self._rho_sand
 
     @property
     def mud_density(self):
+        """Return teh density of mud."""
         return self._mud_density
 
     @mud_density.setter
@@ -164,10 +203,12 @@ class SedimentFlexure(Flexure1D):
 
     @property
     def mud_bulk_density(self):
+        """Return the bulk density of mud."""
         return self._rho_mud
 
     @property
     def water_density(self):
+        """Return the density of water."""
         return self._water_density
 
     @water_density.setter
@@ -181,7 +222,7 @@ class SedimentFlexure(Flexure1D):
         )
 
     def update(self):
-
+        """Update the component by a single time step."""
         if self._isostasytime > 0.0:
             isostasyfrac = 1 - np.exp(-1.0 * self._dt / self._isostasytime)
         else:
@@ -224,5 +265,12 @@ class SedimentFlexure(Flexure1D):
         self.grid.at_node["topographic__elevation"] -= dz
 
     def run_one_step(self, dt=100.0):
+        """Update the component by a time step.
+
+        Parameters
+        ----------
+        dt : float, optional
+            The time step over which to update the component.
+        """
         self._dt = dt
         self.update()

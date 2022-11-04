@@ -1,7 +1,4 @@
-"""
-Subside a grid
-==============
-"""
+"""Subside a `SequenceModelGrid`."""
 import os
 
 import numpy as np
@@ -10,7 +7,6 @@ from scipy import interpolate
 
 
 class SubsidenceTimeSeries(Component):
-
     """A *Landlab* component that subsides a grid."""
 
     _name = "Subsider"

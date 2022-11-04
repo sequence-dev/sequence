@@ -1,6 +1,7 @@
-"""
-Read bathymetry
-===============
+"""Read bathymetry.
+
+This module contains *Landlab* components to read bathymetry into a
+`SequenceModelGrid`.
 """
 import numpy as np
 from landlab import Component
@@ -8,6 +9,7 @@ from scipy import interpolate
 
 
 class BathymetryReader(Component):
+    """Landlab component that reads bathymetry from a file."""
 
     _name = "Bathymetry"
 
@@ -29,7 +31,7 @@ class BathymetryReader(Component):
 
         Parameters
         ----------
-        grid: RasterModelGrid
+        grid: SequenceModelGrid
             A landlab grid.
         filepath: str
             Name of csv-formatted bathymetry file.
@@ -55,15 +57,25 @@ class BathymetryReader(Component):
 
     @property
     def x(self):
+        """Return the x-coordinates of the grid."""
         return self.grid.x_of_node[self.grid.nodes_at_bottom_edge]
 
     @property
     def z(self):
+        """Return the elevations along the grid."""
         return self.grid.at_node["topographic__elevation"][
             self.grid.nodes_at_bottom_edge
         ]
 
     def run_one_step(self, dt=None):
+        """Update the grid's bathymetry.
+
+        Parameters
+        ----------
+        dt : float, optional
+            Time step to update the component by. Currently this
+            value is unused.
+        """
         z = self.grid.at_node["topographic__elevation"].reshape(self.grid.shape)
         z[:] = self._bathymetry(self.grid.x_of_node[self.grid.nodes_at_bottom_edge])
 

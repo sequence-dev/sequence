@@ -1,3 +1,7 @@
+"""Read input files.
+
+This module contains utilities for reading *Sequence* input data.
+"""
 import inspect
 import pathlib
 import warnings
@@ -8,6 +12,20 @@ import yaml
 
 
 def load_config(stream, fmt=None):
+    """Load model configuration from a file-like object.
+
+    Parameters
+    ----------
+    stream : file-like
+        A test stream that contains the configuration.
+    fmt : str, optional
+        The format of the configuration (e.g. 'toml', 'yaml').
+
+    Returns
+    -------
+    TimeVaryingConfig
+        The, possibly time-varying, configuration.
+    """
     if fmt is None and isinstance(stream, (str, pathlib.Path)):
         fmt = pathlib.Path(stream).suffix[1:]
 
@@ -26,28 +44,29 @@ def load_config(stream, fmt=None):
 
 
 class TimeVaryingConfig:
-    """A configuration dictionary that is able to change with time.
-
-    Parameters
-    ----------
-    times : iterable of int
-        Time keys for each dictionary.
-    dicts : iterable of dict
-        Dictionary to use at each time.
-
-    Examples
-    --------
-    >>> from sequence.input_reader import TimeVaryingConfig
-    >>> params = TimeVaryingConfig([0, 1], [dict(foo=0, bar=1), dict(foo=1)])
-    >>> sorted(params.items())
-    [(('bar',), 1), (('foo',), 0)]
-    >>> params.update(1)
-    {'foo': 1}
-    >>> sorted(params.items())
-    [(('bar',), 1), (('foo',), 1)]
-    """
+    """A configuration dictionary that is able to change with time."""
 
     def __init__(self, times, dicts):
+        """Create a time-varying configuration.
+
+        Parameters
+        ----------
+        times : iterable of int
+            Time keys for each dictionary.
+        dicts : iterable of dict
+            Dictionary to use at each time.
+
+        Examples
+        --------
+        >>> from sequence.input_reader import TimeVaryingConfig
+        >>> params = TimeVaryingConfig([0, 1], [dict(foo=0, bar=1), dict(foo=1)])
+        >>> sorted(params.items())
+        [(('bar',), 1), (('foo',), 0)]
+        >>> params.update(1)
+        {'foo': 1}
+        >>> sorted(params.items())
+        [(('bar',), 1), (('foo',), 1)]
+        """
         self._times = tuple(times)
         self._dicts = [_flatten_dict(d) for d in dicts]
         self._time = 0
@@ -60,12 +79,26 @@ class TimeVaryingConfig:
         self._current = self._dicts[0]
 
     def items(self):
+        """Return the items of the current configuration."""
         return self._current.items()
 
     def as_dict(self):
+        """Represent the current configuration as a `dict`."""
         return _expand_dict(self._current)
 
     def __call__(self, time):
+        """Return the configuration at a given time.
+
+        Parameters
+        ----------
+        time : float
+            The time of the configuration.
+
+        Returns
+        -------
+        dict
+            The configuration at the time.
+        """
         d = {}
         for next_dict in self._dicts[: self._bisect_times(time)]:
             d.update(next_dict)
@@ -75,10 +108,37 @@ class TimeVaryingConfig:
         return np.searchsorted(self._times, time, side="right")
 
     def diff(self, start, stop):
+        """Return the difference between two different configurations.
+
+        Parameters
+        ----------
+        start : float
+            The time of the first configuration.
+        stop : float
+            The time of the second configuration.
+
+        Returns
+        -------
+        dict
+            The key/values that have changed between the two configurations.
+        """
         start, stop = self(start), self(stop)
         return {k: stop[k] for k, _ in set(stop.items()) - set(start.items())}
 
     def update(self, inc):
+        """Update the configurations by a time step.
+
+        Parameters
+        ----------
+        inc : float
+            The amount of time to increment the configuration by.
+
+        Returns
+        -------
+        dict
+            The difference between the current configuration and the
+            new configuration.
+        """
         next_time = self._time + inc
         prev, next_ = self._bisect_times([self._time, next_time])
         if next_ > prev:
@@ -91,6 +151,18 @@ class TimeVaryingConfig:
         return diff
 
     def dump(self, fmt="toml"):
+        """Write the current configurations to a string.
+
+        Parameters
+        ----------
+        fmt : str, optional
+            Format to dump the configuration to.
+
+        Returns
+        -------
+        str
+            The configuration in the requested format.
+        """
         docs = [_expand_dict(self._dicts[0])]
         for prev, next_ in zip(self._times[:-1], self._times[1:]):
             docs.append(_expand_dict(self.diff(prev, next_)))
@@ -106,6 +178,15 @@ class TimeVaryingConfig:
 
     @classmethod
     def from_files(cls, names, times=None):
+        """Load a configuration from a set of files.
+
+        Parameters
+        ----------
+        names : iterable of path-like
+            Names of files to read.
+        times : iterable of float
+            Times associated with each file.
+        """
         dicts = []
         for name in [pathlib.Path(n) for n in names]:
             with open(name) as fp:
@@ -117,6 +198,15 @@ class TimeVaryingConfig:
 
     @classmethod
     def from_file(cls, name, fmt=None):
+        """Load a configuration from a file.
+
+        Parameters
+        ----------
+        name : path-like
+            The name of the configuration file to read.
+        fmt : str, optional
+            The format of the configuration file.
+        """
         filepath = pathlib.Path(name)
         if fmt is None:
             fmt = filepath.suffix[1:]
@@ -131,6 +221,18 @@ class TimeVaryingConfig:
 
     @staticmethod
     def load_yaml(stream):
+        """Load a configuration in *yaml*-format.
+
+        Parameters
+        ----------
+        stream : file-like
+            The *yaml*-formatted configuration.
+
+        Returns
+        -------
+        list of (float, dict)
+            The configurations and their associated times.
+        """
         doc = yaml.safe_load_all(stream)
         params = []
         for d in doc:
@@ -142,6 +244,19 @@ class TimeVaryingConfig:
 
     @staticmethod
     def load_toml(stream):
+        """Load a configuration in *toml*-format.
+
+        Parameters
+        ----------
+        stream : file-like
+            The *toml*-formatted configuration.
+
+        Returns
+        -------
+        list of (float, dict)
+            The configurations and their associated times.
+        """
+
         def _tomlkit_to_popo(d):
             try:
                 result = getattr(d, "value")
@@ -182,6 +297,23 @@ class TimeVaryingConfig:
 
     @staticmethod
     def get_loader(fmt):
+        """Get a configuration loader for a given format.
+
+        Parameters
+        ----------
+        fmt : str
+            The configuration format (e.g. 'toml', 'yaml').
+
+        Returns
+        -------
+        func
+            A loader function for the format.
+
+        Raises
+        ------
+        ValueError
+            If a loader for the format can't be found.
+        """
         try:
             return getattr(TimeVaryingConfig, f"load_{fmt}")
         except AttributeError:
@@ -190,6 +322,13 @@ class TimeVaryingConfig:
 
     @staticmethod
     def get_supported_formats():
+        """Return a list of supported configuration formats.
+
+        Returns
+        -------
+        list of str
+            Names of the supported formats.
+        """
         return [
             name.split("_", maxsplit=1)[1]
             for name, _ in inspect.getmembers(TimeVaryingConfig, inspect.isfunction)
@@ -208,7 +347,7 @@ def _flatten_dict(d, sep=None):
         Separator to use when creating flattened keys.
 
     Returns
-    ------
+    -------
     dict
         A flattened version of the dictionary.
 

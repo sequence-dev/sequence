@@ -1,6 +1,4 @@
-"""
-Find the grid's shoreline
-=========================
+"""Find the shoreline of a `SequenceModelGrid`.
 
 This module contains methods for calculating a grid's shoreline and
 shelf edge.
@@ -15,7 +13,6 @@ from .errors import ShelfEdgeError, ShorelineError
 
 
 class ShorelineFinder(Component):
-
     """Find a grid's shoreline."""
 
     _name = "Shoreline finder"
@@ -92,9 +89,11 @@ class ShorelineFinder(Component):
 
     @property
     def alpha(self) -> float:
+        """Return the *alpha* parameter used to calculate the shoreline."""
         return self._alpha
 
     def update(self):
+        """Update the component one time step to find the new shoreline."""
         x = self.grid.x_of_node[self.grid.node_at_cell]
         z = self.grid.at_node["topographic__elevation"][self.grid.node_at_cell]
         dz = self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell]
@@ -114,6 +113,14 @@ class ShorelineFinder(Component):
         self.grid.at_grid["x_of_shelf_edge"] = x_of_shelf_edge
 
     def run_one_step(self, dt=None):
+        """Update the component on time step.
+
+        Parameters
+        ----------
+        dt : float, optional
+            The time step to update the component by. Since this component
+            is not time-varying, this value is ignored.
+        """
         self.update()
 
 
@@ -261,7 +268,7 @@ def find_shoreline(x, z, sea_level=0.0, kind="cubic"):
     return x_of_shoreline
 
 
-def find_shoreline_polyfit(x, z, sea_level=0.0):
+def _find_shoreline_polyfit(x, z, sea_level=0.0):
     try:
         index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
     except ValueError:

@@ -1,7 +1,4 @@
-"""
-Command Line Interface
-----------------------
-"""
+"""The command line interface for *Sequence*."""
 import os
 import pathlib
 import re
@@ -12,11 +9,11 @@ import numpy as np
 import rich_click as click
 import tomlkit as toml
 import yaml
+from landlab.core import load_params
 
 from .errors import MissingRequiredVariable
 from .input_reader import TimeVaryingConfig
 from .plot import plot_file
-from .raster_model import load_model_params, load_params_from_strings
 from .sequence_model import SequenceModel
 
 click.rich_click.ERRORS_SUGGESTION = (
@@ -52,15 +49,19 @@ def _err(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
 
 
 def out(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+    """Print a user info message."""
     _out(message, nl=nl, **styles)
 
 
 def err(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+    """Print a user error message."""
     _err(message, nl=nl, **styles)
 
 
 def _contents_of_input_file(infile, set):
-    params = load_model_params(defaults=SequenceModel.DEFAULT_PARAMS, dotted_params=set)
+    params = _load_model_params(
+        defaults=SequenceModel.DEFAULT_PARAMS, dotted_params=set
+    )
 
     def as_csv(data, header=None):
         with StringIO() as fp:
@@ -157,7 +158,7 @@ def _find_config_files(pathname):
     return zip(*sorted(items))
 
 
-class silent_progressbar:
+class _silent_progressbar:
     def __init__(self, **kwds):
         pass
 
@@ -189,7 +190,7 @@ class silent_progressbar:
     "-v", "--verbose", is_flag=True, help="Also emit status messages to stderr."
 )
 def sequence(cd, silent, verbose) -> None:
-    """# Sequence
+    """# Sequence.
 
     Sequence is a modular 2D (i.e., profile) sequence stratigraphic model
     that is written in Python and implemented within the Landlab framework.
@@ -270,7 +271,7 @@ def run(ctx, with_citations, dry_run):
         out("👆👆👆These are the citations to use👆👆👆")
 
     if not dry_run:
-        progressbar = silent_progressbar if silent else click.progressbar
+        progressbar = _silent_progressbar if silent else click.progressbar
         try:
             with progressbar(
                 length=int(model.clock.stop // model.clock.step),
@@ -318,7 +319,7 @@ def generate(infile, set):
 @sequence.command()
 @click.option("--set", multiple=True, help="Set model parameters")
 def setup(set):
-    """Setup a folder of input files for a simulation."""
+    """Create a folder of input files for a simulation."""
     # folder = pathlib.Path(destination)
     folder = pathlib.Path.cwd()
 
@@ -365,7 +366,7 @@ def plot(set, verbose):
         )
     else:
         config = {}
-    config.update(**load_params_from_strings(set))
+    config.update(**_load_params_from_strings(set))
 
     if verbose:
         out(toml.dumps(dict(sequence=dict(plot=config))))
@@ -377,3 +378,64 @@ def plot(set, verbose):
             f"{folder / 'sequence.nc'}: output file is missing a required variable ({error})"
         )
         raise click.Abort()
+
+
+def _load_params_from_strings(values):
+    params = {}
+    for param in values:
+        dotted_name, value = param.split("=")
+        params.update(_dots_to_dict(dotted_name, yaml.safe_load(value)))
+
+    return params
+
+
+def _dots_to_dict(name, value):
+    base = {}
+    level = base
+    names = name.split(".")
+    for k in names[:-1]:
+        level[k] = {}
+        level = level[k]
+    level[names[-1]] = value
+    return base
+
+
+def _dict_to_dots(d):
+    dots = []
+    for names in _walk_dict(d):
+        dots.append(".".join(names[:-1]) + "=" + str(names[-1]))
+    return dots
+
+
+def _load_model_params(param_file=None, defaults=None, dotted_params=()):
+    params = defaults or {}
+
+    if param_file:
+        params_from_file = load_params(param_file)
+        dotted_params = _dict_to_dots(params_from_file) + dotted_params
+        # for group in params.keys():
+        #     params[group].update(params_from_file.get(group, {}))
+
+    params_from_cl = _load_params_from_strings(dotted_params)
+    for group in params.keys():
+        params[group].update(params_from_cl.get(group, {}))
+
+    return params
+
+
+def _walk_dict(indict, prev=None):
+    prev = prev[:] if prev else []
+
+    if isinstance(indict, dict):
+        for key, value in indict.items():
+            if isinstance(value, dict):
+                yield from _walk_dict(value, [key] + prev)
+            elif isinstance(value, list) or isinstance(value, tuple):
+                yield prev + [key, value]
+                # for v in value:
+                #     for d in _walk_dict(v, [key] + prev):
+                #         yield d
+            else:
+                yield prev + [key, value]
+    else:
+        yield indict

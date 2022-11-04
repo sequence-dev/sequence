@@ -1,3 +1,4 @@
+"""A sequence-stratigraphic model of a 1D profile written with *Landlab*."""
 from ._version import __version__
 from .grid import SequenceModelGrid
 from .sequence import Sequence
