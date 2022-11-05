@@ -1,6 +1,6 @@
 import pytest
 
-from sequence.grid import SequenceModelGrid
+from sequence import SequenceModelGrid
 
 
 def test_init():

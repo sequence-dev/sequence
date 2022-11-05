@@ -1,6 +1,4 @@
-"""
-Components that adjust sea level
-================================
+"""Components that adjust sea level.
 
 This module contains *Landlab* components used for adjusting
 a grid's sea level.
@@ -11,7 +9,6 @@ from scipy import interpolate
 
 
 class SeaLevelTimeSeries(Component):
-
     """Modify sea level through a time series."""
 
     _name = "Sea Level Changer"
@@ -70,6 +67,7 @@ class SeaLevelTimeSeries(Component):
 
     @property
     def filepath(self):
+        """Return the path to the sea-level file."""
         return self._filepath
 
     @filepath.setter
@@ -101,7 +99,6 @@ class SeaLevelTimeSeries(Component):
 
 
 class SinusoidalSeaLevel(SeaLevelTimeSeries):
-
     """Adjust a grid's sea level using a sine curve."""
 
     def __init__(
@@ -148,80 +145,3 @@ class SinusoidalSeaLevel(SeaLevelTimeSeries):
         )
 
         self._time = start
-
-
-def _sea_level_type(dictionary):
-    from .sea_level import _sea_level_file
-
-    sl_type = dictionary["sl_type"]
-    if sl_type == "sinusoid":
-        return _sea_level_function(dictionary)
-    else:
-        sl_file_name = dictionary["sl_file_name"]
-        return _sea_level_file(sl_file_name, dictionary)
-
-
-def _sea_level_function(dictionary):
-    # time is an array of x values (ex. arange(0,1000, pi/4))
-    # amplitude is the amplitude of the sin function
-    # phase is th phase shift
-    # t is the title of the graph (String)
-    # xt is the title of the x axis (string)
-    # xy is the title of the y axis (STRING)
-    # Function starts at 0 or P.
-    # Fs is the period of the function. (10,000)
-    phase = dictionary["sea_level_phase"]
-    amplitude = dictionary["sea_level_amplitude"]
-    slope = dictionary["sea_level_linear"]
-    Fs = dictionary["sea_level_period"]
-    start_time = dictionary["start_time"]
-    run_duration = dictionary["run_duration"]
-    dt = dictionary["dt"]
-
-    time = np.arange(start_time, start_time + run_duration, dt)
-    sl_array = (
-        amplitude
-        * (
-            np.sin((2 * np.pi * (phase + time)) / Fs)
-            + 0.3 * np.sin((2 * np.pi * (2 * phase + 2 * time)) / Fs)
-        )
-        + slope * time
-    )
-    return time, sl_array
-
-
-def _sea_level_file(filename, dictionary):
-    """
-    reading in the file above
-    x is an array of x values (ex. x = arange(0, 10))
-    y is an array of y values (ex. y = np.exp(x/2.0))
-    start time (default should be 0)
-    dt
-    run duration
-
-    Note: The array of x values can be pretermined to a set of
-          values. Goes backwards so the start will be at -12500 years
-          There will be a sea level array that stores these values
-    """
-    start_time = dictionary["start_time"]
-    run_duration = dictionary["run_duration"]
-    dt = dictionary["dt"]
-
-    xes = []
-    ys = []
-    with open(filename) as f:
-        for line in f:
-            x, y = line.split()
-            xes.append(x)
-            ys.append(y)
-    x = []
-    for item in xes:
-        x.append(float(item))
-    y = []
-    for item in ys:
-        y.append(float(item))
-
-    f = interpolate.interp1d(x, y, kind="cubic")
-    times = np.arange(start_time, start_time + run_duration, dt)
-    sl_array = f(times)
-    return times, sl_array

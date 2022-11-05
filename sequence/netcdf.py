@@ -1,3 +1,4 @@
+"""Write a `SequenceModelGrid` to a NetCDF file."""
 import os
 import warnings
 from collections import defaultdict
@@ -64,7 +65,6 @@ def _create_grid_coordinates(root, grid, at="node", ids=None):
 
 
 def _set_grid_coordinates(root, grid, at="node", ids=None):
-
     """Set the values for the coordinates of a field location."""
     if ids is None:
         ids = Ellipsis

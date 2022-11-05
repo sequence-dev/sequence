@@ -187,5 +187,6 @@ napoleon_include_special_with_doc = True
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
     "landlab": ("https://landlab.readthedocs.io/en/master/", None),
 }

@@ -64,11 +64,11 @@ repos:
     - id: forbid-new-submodules
     - id: trailing-whitespace
 
-# - repo: https://github.com/PyCQA/pydocstyle
-#   rev: 6.1.1
-#   hooks:
-#     - id: pydocstyle
-#       files: sequence/.*\.py$
-#       args:
-#         - --convention=numpy
-#         - --add-select=D417
+- repo: https://github.com/PyCQA/pydocstyle
+  rev: 6.1.1
+  hooks:
+    - id: pydocstyle
+      files: sequence/.*\.py$
+      args:
+        - --convention=numpy
+        - --add-select=D417

@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+"""Build a `SequenceModelGrid` model from collection of components."""
 import warnings
 from collections import OrderedDict, defaultdict
 from collections.abc import Hashable, Iterable
@@ -9,9 +9,9 @@ from compaction.landlab import Compact
 from landlab import FieldError
 from landlab.bmi.bmi_bridge import TimeStepper
 
+from ._grid import SequenceModelGrid
 from .bathymetry import BathymetryReader
 from .fluvial import Fluvial
-from .grid import SequenceModelGrid
 from .output_writer import OutputWriter
 from .sea_level import SeaLevelTimeSeries, SinusoidalSeaLevel
 from .sediment_flexure import SedimentFlexure
@@ -21,6 +21,7 @@ from .subsidence import SubsidenceTimeSeries
 
 
 class SequenceModel:
+    """Orchestrate a set of components that operate on a `SequenceModelGrid`."""
 
     ALL_PROCESSES = (
         "sea_level",
@@ -86,6 +87,19 @@ class SequenceModel:
         processes: Optional[dict] = None,
         output: Optional[dict] = None,
     ):
+        """Create a model on a `SequenceModelGrid`.
+
+        Parameters
+        ----------
+        grid : SequenceModelGrid
+            The grid on which the model is run.
+        clock : dict
+            Parameters for the model's clock.
+        processes : iterable of components
+            A list of the components to run as part of the model.
+        output : component
+            A component used to write output files.
+        """
         if processes is None:
             processes = {}
 
@@ -120,6 +134,15 @@ class SequenceModel:
 
     @staticmethod
     def load_grid(params: dict, bathymetry: Optional[dict] = None):
+        """Load a `SequenceModelGrid`.
+
+        Parameters
+        ----------
+        params : dict
+            Parameters used to create the grid.
+        bathymetry : dict, optional
+            Parameters used to set the initial bathymetry of the grid.
+        """
         grid = SequenceModelGrid.from_dict(params)
 
         if bathymetry is not None:
@@ -138,7 +161,7 @@ class SequenceModel:
 
         Parameters
         ----------
-        grid : :class:`~sequence.grid.SequenceModelGrid`
+        grid : SequenceModelGrid
             A Sequence grid.
         processes : Iterable[str], optional
             List of the names of the processes to create.
@@ -228,6 +251,13 @@ class SequenceModel:
             pass
 
     def advance_components(self, dt: float):
+        """Update each of the components by a time step.
+
+        Parameters
+        ----------
+        dt : float
+            The time step to advance the components.
+        """
         for component in self._components.values():
             component.run_one_step(dt)
 

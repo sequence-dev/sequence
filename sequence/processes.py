@@ -1,3 +1,4 @@
+"""All available processes to include in a *Sequence* model."""
 from compaction.landlab import Compact
 
 from .fluvial import Fluvial
