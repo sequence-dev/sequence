@@ -7,7 +7,7 @@ from landlab import RasterModelGrid
 try:
     import tomllib
 except ModuleNotFoundError:
-    import tomli as tomllib
+    import tomli as tomllib  # type: ignore
 
 
 class SequenceModelGrid(RasterModelGrid):

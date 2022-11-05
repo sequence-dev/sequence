@@ -2,7 +2,7 @@
 import warnings
 from collections import OrderedDict, defaultdict
 from collections.abc import Hashable, Iterable
-from typing import Optional
+from typing import Dict, Optional
 
 import numpy as np
 from compaction.landlab import Compact
@@ -104,11 +104,8 @@ class SequenceModel:
             processes = {}
 
         self._grid = grid
-
         self._clock = TimeStepper(**clock)
-
         self._components = OrderedDict(processes)
-
         if output is not None:
             self._components["output"] = OutputWriter(self._grid, **output)
 
@@ -131,6 +128,8 @@ class SequenceModel:
             self._components["sea_level"].time = self.clock.time
         except KeyError:
             pass
+
+        self._n_archived_layers = 0
 
     @staticmethod
     def load_grid(params: dict, bathymetry: Optional[dict] = None):
@@ -173,7 +172,7 @@ class SequenceModel:
             processes = list(processes) + ["fluvial"]
         if "shoreline" not in processes:
             processes = list(processes) + ["shoreline"]
-        params = defaultdict(dict)
+        params: Dict[str, dict] = defaultdict(dict)
         params.update(
             {process: context.get(process, {}).copy() for process in processes}
         )
@@ -284,11 +283,6 @@ class SequenceModel:
             layer_properties["percent_sand"] = percent_sand[self.grid.node_at_cell]
 
         self.grid.event_layers.add(dz[self.grid.node_at_cell], **layer_properties)
-
-        try:
-            self._n_archived_layers
-        except AttributeError:
-            self._n_archived_layers = 0
 
         if (
             self.grid.event_layers.number_of_layers - self._n_archived_layers
