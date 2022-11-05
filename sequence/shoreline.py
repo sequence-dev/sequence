@@ -59,7 +59,7 @@ class ShorelineFinder(Component):
 
         Parameters
         ----------
-        grid : :class:`~sequence.grid.SequenceModelGrid`
+        grid : SequenceModelGrid
             A Sequence grid.
         alpha : float, optional
             Parameter used to find the shoreline when

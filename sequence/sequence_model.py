@@ -9,9 +9,9 @@ from compaction.landlab import Compact
 from landlab import FieldError
 from landlab.bmi.bmi_bridge import TimeStepper
 
+from ._grid import SequenceModelGrid
 from .bathymetry import BathymetryReader
 from .fluvial import Fluvial
-from .grid import SequenceModelGrid
 from .output_writer import OutputWriter
 from .sea_level import SeaLevelTimeSeries, SinusoidalSeaLevel
 from .sediment_flexure import SedimentFlexure
@@ -161,7 +161,7 @@ class SequenceModel:
 
         Parameters
         ----------
-        grid : :class:`~sequence.grid.SequenceModelGrid`
+        grid : SequenceModelGrid
             A Sequence grid.
         processes : Iterable[str], optional
             List of the names of the processes to create.

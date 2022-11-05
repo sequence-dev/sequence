@@ -37,7 +37,7 @@ class SubsidenceTimeSeries(Component):
 
         Parameters
         ----------
-        grid: :class:`~sequence.grid.SequenceModelGrid`
+        grid: SequenceModelGrid
             A landlab grid.
         filepath: os.PathLike
             Name of csv-formatted subsidence file.

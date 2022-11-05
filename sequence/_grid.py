@@ -25,7 +25,7 @@ class SequenceModelGrid(RasterModelGrid):
 
         Examples
         --------
-        >>> from sequence.grid import SequenceModelGrid
+        >>> from sequence import SequenceModelGrid
         >>> grid = SequenceModelGrid(500, spacing=10.0)
         >>> grid.shape
         (3, 500)
