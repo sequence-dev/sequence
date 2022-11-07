@@ -157,14 +157,7 @@ def _find_config_files(
     toml_files = list(pathname.glob("sequence*.toml"))
     yaml_files = list(pathname.glob("sequence*.yaml"))
 
-    config_files = toml_files if toml_files else yaml_files
-
-    # items: list[tuple[int, str]] = []
-    # for index, config_file in enumerate(config_files):
-    #     time = _time_from_filename(config_file)
-    #     if time is None:
-    #         time = index
-    #     items.append((time, str(config_file)))
+    config_files = sorted(toml_files if toml_files else yaml_files)
 
     times: list[int] = []
     names: list[str] = []
@@ -174,8 +167,11 @@ def _find_config_files(
             time = index
         times.append(time)
         names.append(str(config_file))
+
+    names = [name for _, name in sorted(zip(times, names))]
+    times.sort()
+
     return times, names
-    # return tuple(zip(*sorted(items)))
 
 
 @click.group(chain=True)
