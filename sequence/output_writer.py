@@ -1,9 +1,12 @@
 """Write a `SequenceModelGrid` to a file."""
 import errno
 import os
+from os import PathLike
+from typing import Iterable, Optional, Union
 
 from landlab import Component
 
+from ._grid import SequenceModelGrid
 from .netcdf import to_netcdf
 
 
@@ -12,13 +15,13 @@ class OutputWriter(Component):
 
     def __init__(
         self,
-        grid,
-        filepath=None,
-        interval=1,
-        fields=None,
-        clobber=False,
+        grid: SequenceModelGrid,
+        filepath: Union[str, PathLike[str]],
+        interval: int = 1,
+        fields: Optional[Iterable[str]] = None,
+        clobber: bool = False,
         # clock=None,
-        rows=None,
+        rows: Optional[Iterable[str]] = None,
     ):
         """Create an output-file writer.
 
@@ -38,8 +41,10 @@ class OutputWriter(Component):
         rows : iterable of int
             The rows of the grid to include in the file.
         """
-        if filepath is None:
-            raise ValueError("filepath must be provided")
+        # if filepath is None:
+        #     raise ValueError("filepath must be provided")
+        if fields is None:
+            fields = []
 
         super().__init__(grid)
 
@@ -57,7 +62,7 @@ class OutputWriter(Component):
         self._time = 0.0
         self._step_count = 0
 
-    def run_one_step(self, dt=None):
+    def run_one_step(self, dt: Optional[float] = None) -> None:
         """Update the writer by a time step.
 
         Parameters
@@ -79,12 +84,12 @@ class OutputWriter(Component):
         self._step_count += 1
 
     @property
-    def filepath(self):
+    def filepath(self) -> Union[str, PathLike[str]]:
         """Return the path to the output file."""
         return self._filepath
 
     @filepath.setter
-    def filepath(self, new_val):
+    def filepath(self, new_val: Union[str, PathLike[str]]) -> None:
         if os.path.isfile(new_val) and not self._clobber:
             raise RuntimeError("file exists")
         try:
@@ -93,15 +98,15 @@ class OutputWriter(Component):
             if err.errno != errno.ENOENT:
                 raise
         finally:
-            self._filepath = new_val
+            self._filepath = str(new_val)
 
     @property
-    def interval(self):
+    def interval(self) -> int:
         """Return the interval for which output will be written."""
         return self._interval
 
     @interval.setter
-    def interval(self, new_val):
+    def interval(self, new_val: int) -> None:
         if new_val < 0:
             raise TypeError("interval not an integer")
         elif not isinstance(new_val, int):
@@ -109,13 +114,15 @@ class OutputWriter(Component):
         self._interval = new_val
 
     @property
-    def fields(self):
+    def fields(self) -> Iterable[str]:
         """Return the names of the fields to include in the output file."""
         return self._fields
 
     @fields.setter
-    def fields(self, new_val):
-        if new_val is None:
-            self._fields = None
-        else:
-            self._fields = tuple(new_val)
+    def fields(self, new_val: Iterable[str]) -> None:
+        self._fields = tuple(new_val)
+
+        # if new_val is None:
+        #     self._fields = None
+        # else:
+        #     self._fields = tuple(new_val)

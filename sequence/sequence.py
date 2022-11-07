@@ -1,9 +1,13 @@
 """*Sequence*'s main API for constructing sequence-stratigraphic models."""
+from typing import Any, Iterable, Optional
+
 import numpy as np
 from landlab import Component
 from landlab.layers import EventLayers
+from numpy.typing import ArrayLike, NDArray
 from tqdm import trange
 
+from ._grid import SequenceModelGrid
 from .plot import plot_grid
 
 
@@ -47,7 +51,12 @@ class Sequence(Component):
         },
     }
 
-    def __init__(self, grid, time_step=100.0, components=None):
+    def __init__(
+        self,
+        grid: SequenceModelGrid,
+        time_step: float = 100.0,
+        components: Optional[Iterable] = None,
+    ):
         """Create a Sequence model.
 
         Parameters
@@ -66,6 +75,7 @@ class Sequence(Component):
 
         self._time = 0.0
         self._time_step = time_step
+        self._n_archived_layers = 0
 
         self.grid.at_layer_grid = EventLayers(1)
 
@@ -83,11 +93,11 @@ class Sequence(Component):
         self.add_layer(initial_sediment_thickness[self.grid.node_at_cell])
 
     @property
-    def time(self):
+    def time(self) -> float:
         """Return the current model time (in years)."""
         return self._time
 
-    def update(self, dt=None):
+    def update(self, dt: Optional[float] = None) -> None:
         """Update the model of a given time step.
 
         Parameters
@@ -107,7 +117,12 @@ class Sequence(Component):
             self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell]
         )
 
-    def run(self, until=None, dt=None, progress_bar=True):
+    def run(
+        self,
+        until: Optional[float] = None,
+        dt: Optional[float] = None,
+        progress_bar: bool = True,
+    ) -> None:
         """Run the model to a given time.
 
         Parameters
@@ -130,7 +145,7 @@ class Sequence(Component):
         for _ in trange(n_steps, desc="🚀", disable=not progress_bar):
             self.update(dt=min(dt, until - self._time))
 
-    def layer_properties(self):
+    def layer_properties(self) -> dict[str, ArrayLike]:
         """Return the properties being tracked at each layer.
 
         Returns
@@ -162,8 +177,8 @@ class Sequence(Component):
 
         return properties
 
-    def layer_reducers(self):
-        """Return layer-reducers for each property.
+    def layer_reducers(self) -> dict[str, Any]:
+        """Return layer-r seducers for each property.
 
         Returns
         -------
@@ -182,7 +197,7 @@ class Sequence(Component):
 
         return reducers
 
-    def add_layer(self, dz_at_cell):
+    def add_layer(self, dz_at_cell: NDArray[np.floating]) -> None:
         """Add a new layer to each cell.
 
         Properties
@@ -208,11 +223,6 @@ class Sequence(Component):
             x_of_shelf_edge=x_of_shelf_edge,
         )
 
-        try:
-            self._n_archived_layers
-        except AttributeError:
-            self._n_archived_layers = 0
-
         if (
             self.grid.event_layers.number_of_layers - self._n_archived_layers
         ) % 20 == 0:
@@ -223,6 +233,6 @@ class Sequence(Component):
             )
             self._n_archived_layers += 1
 
-    def plot(self):
+    def plot(self) -> None:
         """Plot the grid."""
         plot_grid(self.grid)

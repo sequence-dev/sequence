@@ -4,11 +4,14 @@ This module contains methods for calculating a grid's shoreline and
 shelf edge.
 """
 import bisect
+from typing import Optional
 
 import numpy as np
 from landlab import Component
+from numpy.typing import NDArray
 from scipy import interpolate
 
+from ._grid import SequenceModelGrid
 from .errors import ShelfEdgeError, ShorelineError
 
 
@@ -54,7 +57,7 @@ class ShorelineFinder(Component):
         },
     }
 
-    def __init__(self, grid, alpha: float = 0.0005):
+    def __init__(self, grid: SequenceModelGrid, alpha: float = 0.0005):
         """Create a shoreline finder.
 
         Parameters
@@ -92,7 +95,7 @@ class ShorelineFinder(Component):
         """Return the *alpha* parameter used to calculate the shoreline."""
         return self._alpha
 
-    def update(self):
+    def update(self) -> None:
         """Update the component one time step to find the new shoreline."""
         x = self.grid.x_of_node[self.grid.node_at_cell]
         z = self.grid.at_node["topographic__elevation"][self.grid.node_at_cell]
@@ -112,7 +115,7 @@ class ShorelineFinder(Component):
         self.grid.at_grid["x_of_shore"] = x_of_shore
         self.grid.at_grid["x_of_shelf_edge"] = x_of_shelf_edge
 
-    def run_one_step(self, dt=None):
+    def run_one_step(self, dt: Optional[float] = None) -> None:
         """Update the component on time step.
 
         Parameters
@@ -124,7 +127,9 @@ class ShorelineFinder(Component):
         self.update()
 
 
-def find_shelf_edge_by_curvature(x, z, sea_level=0.0):
+def find_shelf_edge_by_curvature(
+    x: NDArray[np.floating], z: NDArray[np.floating], sea_level: float = 0.0
+) -> float:
     """Find the x-coordinate of the shelf edge.
 
     The shelf edge is the location where the curvature of *sea-floor elevations*
@@ -159,7 +164,12 @@ def find_shelf_edge_by_curvature(x, z, sea_level=0.0):
 
 
 # def find_shelf_edge(grid, x, wd, x_of_shore, sea_level=0.0, alpha = 0.0005):
-def find_shelf_edge(x, dz, x_of_shore=0.0, alpha=0.0005):
+def find_shelf_edge(
+    x: list[float],
+    dz: list[float],
+    x_of_shore: float = 0.0,
+    alpha: float = 0.0005,
+) -> float:
     """Find the shelf edge based on deposit thickness.
 
     Parameters
@@ -203,7 +213,12 @@ def find_shelf_edge(x, dz, x_of_shore=0.0, alpha=0.0005):
     return x[np.argmax(dz[ind_of_shore:]) + ind_of_shore]
 
 
-def find_shoreline(x, z, sea_level=0.0, kind="cubic"):
+def find_shoreline(
+    x: NDArray[np.floating],
+    z: NDArray[np.floating],
+    sea_level: float = 0.0,
+    kind: str = "cubic",
+) -> float:
     """Find the shoreline of a profile.
 
     Parameters
@@ -268,7 +283,9 @@ def find_shoreline(x, z, sea_level=0.0, kind="cubic"):
     return x_of_shoreline
 
 
-def _find_shoreline_polyfit(x, z, sea_level=0.0):
+def _find_shoreline_polyfit(
+    x: NDArray[np.floating], z: NDArray[np.floating], sea_level: float = 0.0
+) -> float:
     try:
         index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
     except ValueError:
@@ -311,7 +328,9 @@ def _find_shoreline_polyfit(x, z, sea_level=0.0):
     return x_of_shoreline
 
 
-def find_shoreline_index(x, z, sea_level=0.0):
+def find_shoreline_index(
+    x: NDArray[np.floating], z: NDArray[np.floating], sea_level: float = 0.0
+) -> int:
     """Find the landward-index of the shoreline.
 
     Parameters

@@ -3,9 +3,15 @@
 This module contains *Landlab* components used for adjusting
 a grid's sea level.
 """
+from os import PathLike
+from typing import Callable, Union
+
 import numpy as np
 from landlab import Component
+from numpy.typing import NDArray
 from scipy import interpolate
+
+from ._grid import SequenceModelGrid
 
 
 class SeaLevelTimeSeries(Component):
@@ -28,12 +34,19 @@ class SeaLevelTimeSeries(Component):
         }
     }
 
-    def __init__(self, grid, filepath, kind="linear", start=0.0, **kwds):
+    def __init__(
+        self,
+        grid: SequenceModelGrid,
+        filepath: Union[str, PathLike[str]],
+        kind: str = "linear",
+        start: float = 0.0,
+        # **kwds
+    ):
         """Generate sea level values.
 
         Parameters
         ----------
-        grid: ModelGrid
+        grid: SequenceModelGrid
             A landlab grid.
         filepath: str
             Name of csv-formatted sea-level file.
@@ -44,7 +57,7 @@ class SeaLevelTimeSeries(Component):
         start : float, optional
             Set the initial time for the component.
         """
-        super().__init__(grid, **kwds)
+        super().__init__(grid)  # , **kwds)
 
         self._filepath = filepath
         self._kind = kind
@@ -55,7 +68,9 @@ class SeaLevelTimeSeries(Component):
         self._time = start
 
     @staticmethod
-    def _sea_level_interpolator(data, kind="linear"):
+    def _sea_level_interpolator(
+        data: NDArray[np.floating], kind: str = "linear"
+    ) -> Callable[[Union[float, NDArray]], NDArray]:
         return interpolate.interp1d(
             data[:, 0],
             data[:, 1],
@@ -66,12 +81,12 @@ class SeaLevelTimeSeries(Component):
         )
 
     @property
-    def filepath(self):
+    def filepath(self) -> Union[str, PathLike[str]]:
         """Return the path to the sea-level file."""
         return self._filepath
 
     @filepath.setter
-    def filepath(self, new_path):
+    def filepath(self, new_path: Union[str, PathLike[str]]) -> None:
         self._filepath = new_path
         self._sea_level = SeaLevelTimeSeries._sea_level_interpolator(
             np.loadtxt(self._filepath, delimiter=","), kind=self._kind
@@ -83,7 +98,7 @@ class SeaLevelTimeSeries(Component):
         return self._time
 
     @time.setter
-    def time(self, new_time: float):
+    def time(self, new_time: float) -> None:
         self._time = new_time
 
     def run_one_step(self, dt: float) -> None:
@@ -103,14 +118,14 @@ class SinusoidalSeaLevel(SeaLevelTimeSeries):
 
     def __init__(
         self,
-        grid,
-        wave_length=1.0,
-        amplitude=1.0,
-        phase=0.0,
-        mean=0.0,
-        start=0.0,
-        linear=0.0,
-        **kwds
+        grid: SequenceModelGrid,
+        wave_length: float = 1.0,
+        amplitude: float = 1.0,
+        phase: float = 0.0,
+        mean: float = 0.0,
+        start: float = 0.0,
+        linear: float = 0.0,
+        # **kwds
     ):
         """Generate sea level values.
 
@@ -132,7 +147,7 @@ class SinusoidalSeaLevel(SeaLevelTimeSeries):
             Linear trend of the sea-level curve with time [m / y].
         """
         wave_length /= 2.0 * np.pi
-        super(SeaLevelTimeSeries, self).__init__(grid, **kwds)
+        super(SeaLevelTimeSeries, self).__init__(grid)  # , **kwds)
 
         self._sea_level = (
             lambda time: (

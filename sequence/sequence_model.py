@@ -82,7 +82,7 @@ class SequenceModel:
 
     def __init__(
         self,
-        grid,
+        grid: SequenceModelGrid,
         clock: Optional[dict] = None,
         processes: Optional[dict] = None,
         output: Optional[dict] = None,
@@ -112,6 +112,7 @@ class SequenceModel:
         self.grid.at_grid["x_of_shore"] = np.nan
         self.grid.at_grid["x_of_shelf_edge"] = np.nan
         self.grid.at_grid["sea_level__elevation"] = 0.0
+        self._n_archived_layers = 0
 
         z0 = grid.at_node["bedrock_surface__elevation"]
 
@@ -129,10 +130,8 @@ class SequenceModel:
         except KeyError:
             pass
 
-        self._n_archived_layers = 0
-
     @staticmethod
-    def load_grid(params: dict, bathymetry: Optional[dict] = None):
+    def load_grid(params: dict, bathymetry: Optional[dict] = None) -> SequenceModelGrid:
         """Load a `SequenceModelGrid`.
 
         Parameters
@@ -154,7 +153,7 @@ class SequenceModel:
 
     @staticmethod
     def load_processes(
-        grid, processes: Iterable[str], context: dict[str, dict]
+        grid: SequenceModelGrid, processes: Iterable[str], context: dict[str, dict]
     ) -> dict:
         """Instantiate processes.
 
@@ -206,21 +205,21 @@ class SequenceModel:
         return processes
 
     @property
-    def grid(self):
+    def grid(self) -> SequenceModelGrid:
         """Return the model's grid."""
         return self._grid
 
     @property
-    def clock(self):
+    def clock(self) -> TimeStepper:
         """Return the model's clock."""
         return self._clock
 
     @property
-    def components(self):
+    def components(self) -> tuple:
         """Return the name of enabled components."""
         return tuple(self._components)
 
-    def set_params(self, params: dict[str, dict]):
+    def set_params(self, params: dict[str, dict]) -> None:
         """Update the parameters for the model's processes.
 
         Parameters
@@ -233,7 +232,7 @@ class SequenceModel:
             for param, value in values.items():
                 setattr(c, param, value)
 
-    def run_one_step(self, dt: Optional[float] = None):
+    def run_one_step(self, dt: Optional[float] = None) -> None:
         """Run each component for one time step."""
         dt = dt or self.clock.step
         self.clock.dt = dt
@@ -241,7 +240,7 @@ class SequenceModel:
 
         self.advance_components(dt)
 
-    def run(self):
+    def run(self) -> None:
         """Run the model until complete."""
         try:
             while 1:
@@ -249,7 +248,7 @@ class SequenceModel:
         except StopIteration:
             pass
 
-    def advance_components(self, dt: float):
+    def advance_components(self, dt: float) -> None:
         """Update each of the components by a time step.
 
         Parameters
@@ -299,7 +298,7 @@ class SequenceModel:
             self._n_archived_layers += 1
 
 
-def _match_values(d1: dict, d2: dict, keys: Iterable[Hashable]):
+def _match_values(d1: dict, d2: dict, keys: Iterable[Hashable]) -> None:
     """Match values between two dictionaries.
 
     Parameters
