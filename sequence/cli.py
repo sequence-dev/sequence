@@ -421,8 +421,6 @@ def _load_model_params(
     if param_file:
         params_from_file = load_params(param_file)
         dotted_params = _dict_to_dots(params_from_file) + list(dotted_params)
-        # for group in params.keys():
-        #     params[group].update(params_from_file.get(group, {}))
 
     params_from_cl = _load_params_from_strings(dotted_params)
     for group in params.keys():
@@ -440,9 +438,6 @@ def _walk_dict(indict: Union[dict, Any], prev: Optional[list] = None) -> Iterato
                 yield from _walk_dict(value, [key] + prev)
             elif isinstance(value, list) or isinstance(value, tuple):
                 yield prev + [key, value]
-                # for v in value:
-                #     for d in _walk_dict(v, [key] + prev):
-                #         yield d
             else:
                 yield prev + [key, value]
     else:
