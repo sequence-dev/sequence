@@ -111,6 +111,9 @@ force_grid_wrap = 0
 combine_as_imports = true
 line_length = 88
 
+[tool.mypy]
+ignore_missing_imports = true
+
 [tool.towncrier]
 directory = "news"
 package = "sequence"
