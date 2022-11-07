@@ -143,9 +143,12 @@ def _set_field(
     if "time" in root.dimensions:
         n_times = len(root.dimensions["time"])
         for name in names:
-            root.variables[_netcdf_var_name(name, at)][n_times - 1, :] = grid[at][name][
-                ids
-            ]
+            if grid[at][name].ndim > 0:
+                values = grid[at][name][ids]
+            else:
+                values = grid[at][name]
+            root.variables[_netcdf_var_name(name, at)][n_times - 1, :] = values
+
     else:
         for name in names:
             root.variables[_netcdf_var_name(name, at)][:] = grid[at][name][ids]
