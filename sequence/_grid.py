@@ -1,13 +1,14 @@
 """Define the grid used for creating *Sequence* models."""
 import os
+import sys
 
 import numpy as np
 from landlab import RasterModelGrid
 
-try:
+if sys.version_info >= (3, 11):
     import tomllib
-except ModuleNotFoundError:
-    import tomli as tomllib  # type: ignore
+else:
+    import tomli as tomllib
 
 
 class SequenceModelGrid(RasterModelGrid):
