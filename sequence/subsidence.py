@@ -1,9 +1,13 @@
 """Subside a `SequenceModelGrid`."""
 import os
+from typing import Callable, Union
 
 import numpy as np
 from landlab import Component
+from numpy.typing import NDArray
 from scipy import interpolate
+
+from ._grid import SequenceModelGrid
 
 
 class SubsidenceTimeSeries(Component):
@@ -32,7 +36,9 @@ class SubsidenceTimeSeries(Component):
         },
     }
 
-    def __init__(self, grid, filepath: os.PathLike, kind: str = "linear"):
+    def __init__(
+        self, grid: SequenceModelGrid, filepath: os.PathLike, kind: str = "linear"
+    ):
         """Create a grid subsider from a time-series file.
 
         Parameters
@@ -70,7 +76,9 @@ class SubsidenceTimeSeries(Component):
         self._time = 0.0
 
     @staticmethod
-    def _subsidence_interpolator(data, kind="linear"):
+    def _subsidence_interpolator(
+        data: NDArray, kind: str = "linear"
+    ) -> Callable[[Union[float, NDArray]], NDArray]:
         return interpolate.interp1d(
             data[:, 0],
             data[:, 1],
@@ -91,7 +99,7 @@ class SubsidenceTimeSeries(Component):
         return str(self._filepath)
 
     @filepath.setter
-    def filepath(self, new_path: os.PathLike):
+    def filepath(self, new_path: os.PathLike) -> None:
         self._filepath = new_path
         subsidence = SubsidenceTimeSeries._subsidence_interpolator(
             np.loadtxt(self._filepath, delimiter=",", comments="#"), kind=self._kind

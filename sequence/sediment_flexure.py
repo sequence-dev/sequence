@@ -2,6 +2,8 @@
 import numpy as np
 from landlab.components.flexure import Flexure1D
 
+from ._grid import SequenceModelGrid
+
 
 class SedimentFlexure(Flexure1D):
     """*Landlab* component that deflects a `SequenceModelGrid` due sediment loading."""
@@ -65,12 +67,12 @@ class SedimentFlexure(Flexure1D):
 
     def __init__(
         self,
-        grid,
-        sand_density=2650,
-        mud_density=2720.0,
-        isostasytime=7000.0,
-        water_density=1030.0,
-        **kwds,
+        grid: SequenceModelGrid,
+        sand_density: float = 2650,
+        mud_density: float = 2720.0,
+        isostasytime: float = 7000.0,
+        water_density: float = 1030.0,
+        **kwds: dict,
         # **sediments,
     ):
         """Subside elevations due to sediment loading.
@@ -121,11 +123,13 @@ class SedimentFlexure(Flexure1D):
         self.subs_pool = self.grid.zeros(at="node")
 
     @staticmethod
-    def _calc_bulk_density(grain_density, water_density, porosity):
+    def _calc_bulk_density(
+        grain_density: float, water_density: float, porosity: float
+    ) -> float:
         return grain_density * (1.0 - porosity) + water_density * porosity
 
     @staticmethod
-    def validate_density(density):
+    def validate_density(density: float) -> float:
         """Validate a density value.
 
         Parameters
@@ -148,7 +152,7 @@ class SedimentFlexure(Flexure1D):
         return density
 
     @staticmethod
-    def validate_isostasy_time(time):
+    def validate_isostasy_time(time: float) -> float:
         """Validate an isostasy time value.
 
         Parameters
@@ -171,12 +175,12 @@ class SedimentFlexure(Flexure1D):
         return time
 
     @property
-    def sand_density(self):
+    def sand_density(self) -> float:
         """Return the density of sand."""
         return self._sand_density
 
     @sand_density.setter
-    def sand_density(self, density):
+    def sand_density(self, density: float) -> None:
         # porosity = 40%
         self._sand_density = SedimentFlexure.validate_density(density)
         self._rho_sand = SedimentFlexure._calc_bulk_density(
@@ -184,17 +188,17 @@ class SedimentFlexure(Flexure1D):
         )
 
     @property
-    def sand_bulk_density(self):
+    def sand_bulk_density(self) -> float:
         """Return the bulk density of sand."""
         return self._rho_sand
 
     @property
-    def mud_density(self):
+    def mud_density(self) -> float:
         """Return teh density of mud."""
         return self._mud_density
 
     @mud_density.setter
-    def mud_density(self, density):
+    def mud_density(self, density: float) -> None:
         # porosity = 65%
         self._mud_density = SedimentFlexure.validate_density(density)
         self._rho_mud = SedimentFlexure._calc_bulk_density(
@@ -202,17 +206,17 @@ class SedimentFlexure(Flexure1D):
         )
 
     @property
-    def mud_bulk_density(self):
+    def mud_bulk_density(self) -> float:
         """Return the bulk density of mud."""
         return self._rho_mud
 
     @property
-    def water_density(self):
+    def water_density(self) -> float:
         """Return the density of water."""
         return self._water_density
 
     @water_density.setter
-    def water_density(self, density):
+    def water_density(self, density: float) -> None:
         self._water_density = SedimentFlexure.validate_density(density)
         self._rho_sand = SedimentFlexure._calc_bulk_density(
             self.sand_density, self.water_density, 0.4
@@ -221,7 +225,7 @@ class SedimentFlexure(Flexure1D):
             self.mud_density, self.water_density, 0.65
         )
 
-    def update(self):
+    def update(self) -> None:
         """Update the component by a single time step."""
         if self._isostasytime > 0.0:
             isostasyfrac = 1 - np.exp(-1.0 * self._dt / self._isostasytime)
@@ -264,7 +268,7 @@ class SedimentFlexure(Flexure1D):
         self.grid.at_node["bedrock_surface__elevation"] -= dz
         self.grid.at_node["topographic__elevation"] -= dz
 
-    def run_one_step(self, dt=100.0):
+    def run_one_step(self, dt: float = 100.0) -> None:
         """Update the component by a time step.
 
         Parameters

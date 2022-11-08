@@ -3,9 +3,15 @@
 This module contains *Landlab* components to read bathymetry into a
 `SequenceModelGrid`.
 """
+from os import PathLike
+from typing import Union
+
 import numpy as np
 from landlab import Component
+from numpy.typing import NDArray
 from scipy import interpolate
+
+from ._grid import SequenceModelGrid
 
 
 class BathymetryReader(Component):
@@ -26,7 +32,12 @@ class BathymetryReader(Component):
         }
     }
 
-    def __init__(self, grid, filepath=None, kind="linear", **kwds):
+    def __init__(
+        self,
+        grid: SequenceModelGrid,
+        filepath: Union[str, PathLike[str]],
+        kind: str = "linear",
+    ):
         """Generate a bathymetric profile from a file.
 
         Parameters
@@ -40,7 +51,7 @@ class BathymetryReader(Component):
             'nearest', 'zero', 'slinear', 'quadratic', 'cubic').
             Default is 'linear'.
         """
-        super().__init__(grid, **kwds)
+        super().__init__(grid)
 
         data = np.loadtxt(filepath, delimiter=",", comments="#")
         self._bathymetry = interpolate.interp1d(
@@ -56,18 +67,18 @@ class BathymetryReader(Component):
             self.grid.add_zeros("topographic__elevation", at="node")
 
     @property
-    def x(self):
+    def x(self) -> NDArray[np.floating]:
         """Return the x-coordinates of the grid."""
         return self.grid.x_of_node[self.grid.nodes_at_bottom_edge]
 
     @property
-    def z(self):
+    def z(self) -> NDArray[np.floating]:
         """Return the elevations along the grid."""
         return self.grid.at_node["topographic__elevation"][
             self.grid.nodes_at_bottom_edge
         ]
 
-    def run_one_step(self, dt=None):
+    def run_one_step(self, dt: float = None) -> None:
         """Update the grid's bathymetry.
 
         Parameters
@@ -81,14 +92,14 @@ class BathymetryReader(Component):
 
 
 def _create_initial_profile(
-    x,
-    sl_plain=0.0008,
-    init_shore=19750.0,
-    hgt=15.0,
-    alpha=1 / 2000.0,
-    sl_sh=0.001,
-    wavebase=60.0,
-):
+    x: NDArray[np.floating],
+    sl_plain: float = 0.0008,
+    init_shore: float = 19750.0,
+    hgt: float = 15.0,
+    alpha: float = 1 / 2000.0,
+    sl_sh: float = 0.001,
+    wavebase: float = 60.0,
+) -> NDArray[np.floating]:
 
     # check shoreline is in array, else put in center of array
     if x[-1] < init_shore:

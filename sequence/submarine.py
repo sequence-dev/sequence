@@ -1,8 +1,11 @@
 """Diffuse sediment along a profile."""
+from typing import Any
+
 import numpy as np
 from landlab.components import LinearDiffuser
 from numpy.typing import NDArray
 
+from ._grid import SequenceModelGrid
 from .shoreline import find_shoreline
 
 
@@ -42,7 +45,7 @@ class SubmarineDiffuser(LinearDiffuser):
 
     def __init__(
         self,
-        grid,
+        grid: SequenceModelGrid,
         sea_level: float = 0.0,
         plain_slope: float = 0.0008,
         wave_base: float = 60.0,
@@ -52,7 +55,7 @@ class SubmarineDiffuser(LinearDiffuser):
         sediment_load: float = 3.0,
         load_sealevel: float = 0.0,
         basin_width: float = 500000.0,
-        **kwds
+        **kwds: Any,
     ):
         """Diffuse the ocean bottom.
 
@@ -113,7 +116,7 @@ class SubmarineDiffuser(LinearDiffuser):
         return self._plain_slope
 
     @plain_slope.setter
-    def plain_slope(self, value):
+    def plain_slope(self, value: float) -> None:
         self._plain_slope = float(value)
         self._ksh = self._load / self._plain_slope
 
@@ -123,7 +126,7 @@ class SubmarineDiffuser(LinearDiffuser):
         return self._wave_base
 
     @wave_base.setter
-    def wave_base(self, value):
+    def wave_base(self, value: float) -> None:
         self._wave_base = float(value)
 
     @property
@@ -132,7 +135,7 @@ class SubmarineDiffuser(LinearDiffuser):
         return self._shoreface_height
 
     @shoreface_height.setter
-    def shoreface_height(self, value):
+    def shoreface_height(self, value: float) -> None:
         self._shoreface_height = float(value)
 
     @property
@@ -141,7 +144,7 @@ class SubmarineDiffuser(LinearDiffuser):
         return self._alpha
 
     @alpha.setter
-    def alpha(self, value):
+    def alpha(self, value: float) -> None:
         self._alpha = float(value)
 
     @property
@@ -150,7 +153,7 @@ class SubmarineDiffuser(LinearDiffuser):
         return self._shelf_slope
 
     @shelf_slope.setter
-    def shelf_slope(self, value):
+    def shelf_slope(self, value: float) -> None:
         self._shelf_slope = float(value)
 
     @property
@@ -159,7 +162,7 @@ class SubmarineDiffuser(LinearDiffuser):
         return self._load0
 
     @sediment_load.setter
-    def sediment_load(self, value):
+    def sediment_load(self, value: float) -> None:
         self._load0 = float(value)
         self._load = self._load0 * (1 + self._sea_level * self._load_sl)
         self._ksh = self._load / self._plain_slope
@@ -170,7 +173,7 @@ class SubmarineDiffuser(LinearDiffuser):
     #     return self._k0
 
     @property
-    def load0(self):
+    def load0(self) -> float:
         """Return the sediment load entering the profile."""
         return self._load0
 
@@ -190,10 +193,10 @@ class SubmarineDiffuser(LinearDiffuser):
         return self.grid.at_grid["sea_level__elevation"]
 
     @sea_level.setter
-    def sea_level(self, sea_level):
+    def sea_level(self, sea_level: float) -> None:
         self.grid.at_grid["sea_level__elevation"] = sea_level
 
-    def calc_diffusion_coef(self, x_of_shore: float) -> NDArray[float]:
+    def calc_diffusion_coef(self, x_of_shore: float) -> NDArray[np.floating]:
         """Calculate and store diffusion coefficient values.
 
         Parameters

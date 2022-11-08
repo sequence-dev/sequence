@@ -3,13 +3,16 @@ import os
 import pathlib
 import re
 from io import StringIO
-from typing import Any, Optional
+from os import PathLike
+from typing import Any, Iterable, Iterator, Optional, Union
 
 import numpy as np
 import rich_click as click
 import tomlkit as toml
 import yaml
 from landlab.core import load_params
+from numpy.typing import ArrayLike
+from tqdm import tqdm
 
 from .errors import MissingRequiredVariable
 from .input_reader import TimeVaryingConfig
@@ -58,12 +61,12 @@ def err(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
     _err(message, nl=nl, **styles)
 
 
-def _contents_of_input_file(infile, set):
+def _contents_of_input_file(infile: Union[str, PathLike[str]], set: str) -> str:
     params = _load_model_params(
         defaults=SequenceModel.DEFAULT_PARAMS, dotted_params=set
     )
 
-    def as_csv(data, header=None):
+    def as_csv(data: ArrayLike, header: str = "") -> str:
         with StringIO() as fp:
             np.savetxt(fp, data, header=header, delimiter=",", fmt="%.1f")
             contents = fp.getvalue()
@@ -82,10 +85,16 @@ def _contents_of_input_file(infile, set):
             [[0.0, 20.0], [100000.0, -80.0]], header="X [m], Elevation [m]"
         ),
         "sealevel.csv": as_csv(
-            [[0.0, 0.0], [200000, -10]], header="Time [y], Sea-Level Elevation [m]"
+            [[0.0, 0.0], [200000.0, -10.0]], header="Time [y], Sea-Level Elevation [m]"
         ),
         "subsidence.csv": as_csv(
-            [[0.0, 0], [30000.0, 0], [35000.0, 0], [50000.0, 0], [100000.0, 0]],
+            [
+                [0.0, 0.0],
+                [30000.0, 0.0],
+                [35000.0, 0.0],
+                [50000.0, 0.0],
+                [100000.0, 0.0],
+            ],
             header="X [x], Subsidence Rate [m / y]",
         ),
     }
@@ -94,10 +103,10 @@ def _contents_of_input_file(infile, set):
             section_params, default_flow_style=False
         )
 
-    return contents[infile]
+    return contents[str(infile)]
 
 
-def _time_from_filename(name):
+def _time_from_filename(name: Union[str, PathLike[str]]) -> Union[int, None]:
     """Parse a time stamp from a file name.
 
     Parameters
@@ -128,7 +137,9 @@ def _time_from_filename(name):
         return None
 
 
-def _find_config_files(pathname):
+def _find_config_files(
+    pathname: Union[str, PathLike[str]]
+) -> tuple[list[int], list[str]]:
     """Find all of the time-varying config files for a simulation.
 
     Parameters
@@ -146,30 +157,21 @@ def _find_config_files(pathname):
     toml_files = list(pathname.glob("sequence*.toml"))
     yaml_files = list(pathname.glob("sequence*.yaml"))
 
-    config_files = toml_files if toml_files else yaml_files
+    config_files = sorted(toml_files if toml_files else yaml_files)
 
-    items = []
+    times: list[int] = []
+    names: list[str] = []
     for index, config_file in enumerate(config_files):
         time = _time_from_filename(config_file)
         if time is None:
             time = index
-        items.append((time, str(config_file)))
+        times.append(time)
+        names.append(str(config_file))
 
-    return zip(*sorted(items))
+    names = [name for _, name in sorted(zip(times, names))]
+    times.sort()
 
-
-class _silent_progressbar:
-    def __init__(self, **kwds):
-        pass
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        pass
-
-    def update(self, inc):
-        pass
+    return times, names
 
 
 @click.group(chain=True)
@@ -189,7 +191,7 @@ class _silent_progressbar:
 @click.option(
     "-v", "--verbose", is_flag=True, help="Also emit status messages to stderr."
 )
-def sequence(cd, silent, verbose) -> None:
+def sequence(cd: str, silent: bool, verbose: bool) -> None:
     """# Sequence.
 
     Sequence is a modular 2D (i.e., profile) sequence stratigraphic model
@@ -208,7 +210,7 @@ def sequence(cd, silent, verbose) -> None:
     "--with-citations", is_flag=True, help="print citations for components used"
 )
 @click.pass_context
-def run(ctx, with_citations, dry_run):
+def run(ctx: Any, with_citations: bool, dry_run: bool) -> None:
     """Run a simulation.
 
     ## Examples
@@ -271,12 +273,14 @@ def run(ctx, with_citations, dry_run):
         out("👆👆👆These are the citations to use👆👆👆")
 
     if not dry_run:
-        progressbar = _silent_progressbar if silent else click.progressbar
+        progressbar = tqdm(
+            total=int(model.clock.stop // model.clock.step),
+            desc=" ".join(["🚀", str(run_dir)]),
+            disable=True if silent else None,
+        )
+
         try:
-            with progressbar(
-                length=int(model.clock.stop // model.clock.step),
-                label=" ".join(["🚀", str(run_dir)]),
-            ) as bar:
+            with progressbar as bar:
                 while 1:
                     model.run_one_step()
                     model.set_params(params.update(1))
@@ -311,14 +315,14 @@ def run(ctx, with_citations, dry_run):
     ),
 )
 @click.option("--set", metavar="KEY=VALUE", multiple=True, help="Set model parameters")
-def generate(infile, set):
+def generate(infile: str, set: str) -> None:
     """Generate example input files."""
     print(_contents_of_input_file(infile, set))
 
 
 @sequence.command()
 @click.option("--set", multiple=True, help="Set model parameters")
-def setup(set):
+def setup(set: str) -> None:
     """Create a folder of input files for a simulation."""
     # folder = pathlib.Path(destination)
     folder = pathlib.Path.cwd()
@@ -354,7 +358,7 @@ def setup(set):
 @click.option(
     "-v", "--verbose", is_flag=True, help="Also emit status messages to stderr."
 )
-def plot(set, verbose):
+def plot(set: str, verbose: bool) -> None:
     """Plot a Sequence output file."""
     folder = pathlib.Path.cwd()
 
@@ -380,7 +384,7 @@ def plot(set, verbose):
         raise click.Abort()
 
 
-def _load_params_from_strings(values):
+def _load_params_from_strings(values: Iterable[str]) -> dict[str, Any]:
     params = {}
     for param in values:
         dotted_name, value = param.split("=")
@@ -389,8 +393,8 @@ def _load_params_from_strings(values):
     return params
 
 
-def _dots_to_dict(name, value):
-    base = {}
+def _dots_to_dict(name: str, value: Any) -> dict[str, Any]:
+    base: dict[str, Any] = {}
     level = base
     names = name.split(".")
     for k in names[:-1]:
@@ -400,21 +404,23 @@ def _dots_to_dict(name, value):
     return base
 
 
-def _dict_to_dots(d):
-    dots = []
+def _dict_to_dots(d: dict) -> list[str]:
+    dots: list[str] = []
     for names in _walk_dict(d):
         dots.append(".".join(names[:-1]) + "=" + str(names[-1]))
     return dots
 
 
-def _load_model_params(param_file=None, defaults=None, dotted_params=()):
+def _load_model_params(
+    param_file: Optional[str] = None,
+    defaults: Optional[dict] = None,
+    dotted_params: Iterable[str] = (),
+) -> dict[str, Any]:
     params = defaults or {}
 
     if param_file:
         params_from_file = load_params(param_file)
-        dotted_params = _dict_to_dots(params_from_file) + dotted_params
-        # for group in params.keys():
-        #     params[group].update(params_from_file.get(group, {}))
+        dotted_params = _dict_to_dots(params_from_file) + list(dotted_params)
 
     params_from_cl = _load_params_from_strings(dotted_params)
     for group in params.keys():
@@ -423,7 +429,7 @@ def _load_model_params(param_file=None, defaults=None, dotted_params=()):
     return params
 
 
-def _walk_dict(indict, prev=None):
+def _walk_dict(indict: Union[dict, Any], prev: Optional[list] = None) -> Iterator[Any]:
     prev = prev[:] if prev else []
 
     if isinstance(indict, dict):
@@ -432,9 +438,6 @@ def _walk_dict(indict, prev=None):
                 yield from _walk_dict(value, [key] + prev)
             elif isinstance(value, list) or isinstance(value, tuple):
                 yield prev + [key, value]
-                # for v in value:
-                #     for d in _walk_dict(v, [key] + prev):
-                #         yield d
             else:
                 yield prev + [key, value]
     else:

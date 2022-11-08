@@ -6,6 +6,7 @@ This module contains *Landlab* components that add a sand fraction to a
 import numpy as np
 from landlab import Component
 
+from ._grid import SequenceModelGrid
 from .shoreline import find_shoreline
 
 
@@ -45,15 +46,14 @@ class Fluvial(Component):
 
     def __init__(
         self,
-        grid,
-        sand_frac=0.5,
-        wave_base=60.0,
-        sediment_load=3.0,
-        sand_density=2650.0,
-        plain_slope=0.0008,
-        hemipelagic=0.0,
-        sea_level=0.0,
-        **kwds
+        grid: SequenceModelGrid,
+        sand_frac: float = 0.5,
+        wave_base: float = 60.0,
+        sediment_load: float = 3.0,
+        sand_density: float = 2650.0,
+        plain_slope: float = 0.0008,
+        hemipelagic: float = 0.0,
+        sea_level: float = 0.0,
     ):
         """Generate percent sand/mud for fluvial section.
 
@@ -78,7 +78,7 @@ class Fluvial(Component):
         sea_level: float, optional
             The current sea level (m).
         """
-        super().__init__(grid, **kwds)
+        super().__init__(grid)
 
         # fixed parameters
         self.sand_grain = 0.001  # grain size = 1 mm
@@ -106,7 +106,7 @@ class Fluvial(Component):
         if "bedrock_surface__increment_of_elevation" not in grid.at_node:
             grid.add_zeros("bedrock_surface__increment_of_elevation", at="node")
 
-    def run_one_step(self, dt):
+    def run_one_step(self, dt: float) -> None:
         """Update the component one time step.
 
         Parameters

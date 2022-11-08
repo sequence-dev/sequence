@@ -5,13 +5,17 @@ This module contains utilities for reading *Sequence* input data.
 import inspect
 import pathlib
 import warnings
+from os import PathLike
+from typing import Any, Callable, Iterable, Optional, Sequence, TextIO, Tuple, Union
 
 import numpy as np
 import tomlkit as toml
 import yaml
 
 
-def load_config(stream, fmt=None):
+def load_config(
+    stream: Union[TextIO, str, PathLike[str]], fmt: Optional[str] = None
+) -> Union[Iterable[Tuple[float, dict]], dict]:
     """Load model configuration from a file-like object.
 
     Parameters
@@ -26,12 +30,15 @@ def load_config(stream, fmt=None):
     TimeVaryingConfig
         The, possibly time-varying, configuration.
     """
-    if fmt is None and isinstance(stream, (str, pathlib.Path)):
-        fmt = pathlib.Path(stream).suffix[1:]
+    if fmt is None:
+        if isinstance(stream, (str, pathlib.Path)):
+            fmt = pathlib.Path(stream).suffix[1:]
+        else:
+            raise ValueError("unable to determine format")
 
     loader = TimeVaryingConfig.get_loader(fmt)
 
-    if isinstance(stream, (str, pathlib.Path)):
+    if isinstance(stream, (str, PathLike)):
         with open(stream) as fp:
             times_and_params = loader(fp)
     else:
@@ -46,7 +53,7 @@ def load_config(stream, fmt=None):
 class TimeVaryingConfig:
     """A configuration dictionary that is able to change with time."""
 
-    def __init__(self, times, dicts):
+    def __init__(self, times: Iterable[float], dicts: Iterable[dict]):
         """Create a time-varying configuration.
 
         Parameters
@@ -78,15 +85,15 @@ class TimeVaryingConfig:
 
         self._current = self._dicts[0]
 
-    def items(self):
+    def items(self) -> Iterable[tuple[float, dict]]:
         """Return the items of the current configuration."""
         return self._current.items()
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         """Represent the current configuration as a `dict`."""
         return _expand_dict(self._current)
 
-    def __call__(self, time):
+    def __call__(self, time: float) -> dict:
         """Return the configuration at a given time.
 
         Parameters
@@ -104,10 +111,10 @@ class TimeVaryingConfig:
             d.update(next_dict)
         return d
 
-    def _bisect_times(self, time):
-        return np.searchsorted(self._times, time, side="right")
+    def _bisect_times(self, time: float) -> int:
+        return int(np.searchsorted(self._times, time, side="right"))
 
-    def diff(self, start, stop):
+    def diff(self, start: float, stop: float) -> dict:
         """Return the difference between two different configurations.
 
         Parameters
@@ -122,10 +129,13 @@ class TimeVaryingConfig:
         dict
             The key/values that have changed between the two configurations.
         """
-        start, stop = self(start), self(stop)
-        return {k: stop[k] for k, _ in set(stop.items()) - set(start.items())}
+        start_params, stop_params = self(start), self(stop)
+        return {
+            k: stop_params[k]
+            for k, _ in set(stop_params.items()) - set(start_params.items())
+        }
 
-    def update(self, inc):
+    def update(self, inc: int) -> dict:
         """Update the configurations by a time step.
 
         Parameters
@@ -140,7 +150,10 @@ class TimeVaryingConfig:
             new configuration.
         """
         next_time = self._time + inc
-        prev, next_ = self._bisect_times([self._time, next_time])
+
+        prev = self._bisect_times(self._time)
+        next_ = self._bisect_times(next_time)
+
         if next_ > prev:
             self._current = self(next_time)
             diff = _expand_dict(self.diff(self._time, next_time))
@@ -150,7 +163,7 @@ class TimeVaryingConfig:
         self._time = next_time
         return diff
 
-    def dump(self, fmt="toml"):
+    def dump(self, fmt: str = "toml") -> str:
         """Write the current configurations to a string.
 
         Parameters
@@ -177,7 +190,11 @@ class TimeVaryingConfig:
             raise ValueError(f"unrecognized format: {fmt}")
 
     @classmethod
-    def from_files(cls, names, times=None):
+    def from_files(
+        cls,
+        names: Iterable[Union[str, PathLike[str]]],
+        times: Optional[Iterable[float]] = None,
+    ) -> "TimeVaryingConfig":
         """Load a configuration from a set of files.
 
         Parameters
@@ -197,7 +214,9 @@ class TimeVaryingConfig:
         return cls(times, dicts)
 
     @classmethod
-    def from_file(cls, name, fmt=None):
+    def from_file(
+        cls, name: PathLike, fmt: Optional[str] = None
+    ) -> "TimeVaryingConfig":
         """Load a configuration from a file.
 
         Parameters
@@ -220,7 +239,7 @@ class TimeVaryingConfig:
         return cls(*zip(*times_and_params))
 
     @staticmethod
-    def load_yaml(stream):
+    def load_yaml(stream: TextIO) -> list[tuple[float, dict]]:
         """Load a configuration in *yaml*-format.
 
         Parameters
@@ -243,7 +262,7 @@ class TimeVaryingConfig:
         return [(d.pop("_time", idx), d) for idx, d in enumerate(params)]
 
     @staticmethod
-    def load_toml(stream):
+    def load_toml(stream: TextIO) -> list[tuple[float, dict]]:
         """Load a configuration in *toml*-format.
 
         Parameters
@@ -257,7 +276,7 @@ class TimeVaryingConfig:
             The configurations and their associated times.
         """
 
-        def _tomlkit_to_popo(d):
+        def _tomlkit_to_popo(d: dict) -> Any:
             try:
                 result = getattr(d, "value")
             except AttributeError:
@@ -296,7 +315,7 @@ class TimeVaryingConfig:
         return [(d.pop("_time", idx), d) for idx, d in enumerate(params)]
 
     @staticmethod
-    def get_loader(fmt):
+    def get_loader(fmt: str) -> Callable[[TextIO], list[tuple[float, dict]]]:
         """Get a configuration loader for a given format.
 
         Parameters
@@ -321,7 +340,7 @@ class TimeVaryingConfig:
             raise ValueError(f"unrecognized format: {fmt!r} (not on of {fmts!r})")
 
     @staticmethod
-    def get_supported_formats():
+    def get_supported_formats() -> list[str]:
         """Return a list of supported configuration formats.
 
         Returns
@@ -336,7 +355,7 @@ class TimeVaryingConfig:
         ]
 
 
-def _flatten_dict(d, sep=None):
+def _flatten_dict(d: dict, sep: Optional[str] = None) -> dict:
     """Flatten a dictionary so that each value has it's own key.
 
     Parameters
@@ -369,7 +388,7 @@ def _flatten_dict(d, sep=None):
         return {sep.join(keys): value for keys, value in _walk_dict(d)}
 
 
-def _add_flattened_item(keys, value, base=None):
+def _add_flattened_item(keys: str, value: Any, base: Optional[dict] = None) -> None:
     expanded = {} if base is None else base
     parent, name = keys[:-1], keys[-1]
 
@@ -382,17 +401,17 @@ def _add_flattened_item(keys, value, base=None):
         value = list(value)
     level[name] = value
 
-    return base
 
-
-def _expand_dict(flat_dict):
-    expanded = {}
+def _expand_dict(flat_dict: dict[str, Any]) -> dict[str, Any]:
+    expanded: dict[str, Any] = {}
     for key, value in flat_dict.items():
         _add_flattened_item(key, value, base=expanded)
     return expanded
 
 
-def _walk_dict(indict, prev=None):
+def _walk_dict(
+    indict: dict[str, Any], prev: Optional[Sequence[str]] = None
+) -> Iterable:
     """Walk the elements of a dictionary.
 
     Parameters
@@ -418,15 +437,18 @@ def _walk_dict(indict, prev=None):
     >>> sorted(_walk_dict({"foo": {"bar": {"baz": 0, "foo": "bar"}}, "bar": 1}))
     [(('bar',), 1), (('foo', 'bar', 'baz'), 0), (('foo', 'bar', 'foo'), 'bar')]
     """
-    prev = tuple(prev) if prev else ()
+    if prev is not None:
+        prev_dicts = list(prev)
+    else:
+        prev_dicts = []
 
     if isinstance(indict, dict):
         for key, value in indict.items():
             if isinstance(value, dict):
-                yield from _walk_dict(value, prev + (key,))
+                yield from _walk_dict(value, prev_dicts + [key])
             elif isinstance(value, list) or isinstance(value, tuple):
-                yield prev + (key,), value
+                yield tuple(prev_dicts + [key]), value
             else:
-                yield prev + (key,), value
+                yield tuple(prev_dicts + [key]), value
     else:
         yield indict
