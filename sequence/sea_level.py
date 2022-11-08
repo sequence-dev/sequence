@@ -40,7 +40,6 @@ class SeaLevelTimeSeries(Component):
         filepath: Union[str, PathLike[str]],
         kind: str = "linear",
         start: float = 0.0,
-        # **kwds
     ):
         """Generate sea level values.
 
@@ -57,7 +56,7 @@ class SeaLevelTimeSeries(Component):
         start : float, optional
             Set the initial time for the component.
         """
-        super().__init__(grid)  # , **kwds)
+        super().__init__(grid)
 
         self._filepath = filepath
         self._kind = kind
@@ -125,13 +124,12 @@ class SinusoidalSeaLevel(SeaLevelTimeSeries):
         mean: float = 0.0,
         start: float = 0.0,
         linear: float = 0.0,
-        # **kwds
     ):
         """Generate sea level values.
 
         Parameters
         ----------
-        grid: ModelGrid
+        grid: SequenceModelGrid
             A landlab grid.
         wave_length : float, optional
             The wave length of the sea-level curve in [y].
@@ -147,7 +145,7 @@ class SinusoidalSeaLevel(SeaLevelTimeSeries):
             Linear trend of the sea-level curve with time [m / y].
         """
         wave_length /= 2.0 * np.pi
-        super(SeaLevelTimeSeries, self).__init__(grid)  # , **kwds)
+        super(SeaLevelTimeSeries, self).__init__(grid)
 
         self._sea_level = (
             lambda time: (

@@ -109,7 +109,7 @@ def _create_field(
     """Create variables at a field location(s)."""
     if names is None:
         names = grid[at]
-    # names = names or grid[at]
+
     dimensions = [at]
     if "time" in root.dimensions:
         dimensions = ["time"] + dimensions
@@ -240,7 +240,7 @@ def to_netcdf(
         raise ValueError("Grid layers are only available with the NETCDF4 format.")
     if at is None:
         at = ["node", "link", "face", "cell", "grid"]
-    # at = at or ["node", "link", "face", "cell", "grid"]
+
     if isinstance(at, str):
         at = [at]
     if isinstance(names, str):
@@ -276,15 +276,6 @@ def to_netcdf(
                 ids_dict[loc] = slice(None)
             else:
                 ids_dict[loc] = ids_
-    #     if len(at) == 1:
-    #         if not isinstance(names, dict):
-    #             names = {at[0]: names}
-    #         if not isinstance(ids, dict):
-    #             ids = {at[0]: ids}
-    #
-    #     names = defaultdict(lambda: None, names or {})
-    #     ids = defaultdict(lambda: slice(-1), ids or {})
-    #     # ids = defaultdict(lambda: Ellipsis, ids or {})
 
     if not os.path.isfile(filepath):
         mode = "w"

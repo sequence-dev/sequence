@@ -38,7 +38,6 @@ def load_config(
 
     loader = TimeVaryingConfig.get_loader(fmt)
 
-    # if isinstance(stream, (str, pathlib.Path)):
     if isinstance(stream, (str, PathLike)):
         with open(stream) as fp:
             times_and_params = loader(fp)
@@ -112,19 +111,8 @@ class TimeVaryingConfig:
             d.update(next_dict)
         return d
 
-    # def _bisect_times(
-    #     self, time: Union[float, Sequence[float]]
-    # ) -> Union[int, Sequence[int], NDArray[np.integer]]:
-    #     return np.searchsorted(self._times, time, side="right")
-
     def _bisect_times(self, time: float) -> int:
         return int(np.searchsorted(self._times, time, side="right"))
-
-        # if stop is None:
-        #     return np.searchsorted(self._times, start, side="right")
-        # else:
-        #     inds = np.searchsorted(self._times, [start, stop], side="right")
-        #     return inds[0], inds[1]
 
     def diff(self, start: float, stop: float) -> dict:
         """Return the difference between two different configurations.
@@ -163,7 +151,6 @@ class TimeVaryingConfig:
         """
         next_time = self._time + inc
 
-        # prev, next_ = self._bisect_times([self._time, next_time])
         prev = self._bisect_times(self._time)
         next_ = self._bisect_times(next_time)
 
@@ -414,8 +401,6 @@ def _add_flattened_item(keys: str, value: Any, base: Optional[dict] = None) -> N
         value = list(value)
     level[name] = value
 
-    # return base
-
 
 def _expand_dict(flat_dict: dict[str, Any]) -> dict[str, Any]:
     expanded: dict[str, Any] = {}
@@ -456,7 +441,6 @@ def _walk_dict(
         prev_dicts = list(prev)
     else:
         prev_dicts = []
-    # prev = tuple(prev) if prev else ()
 
     if isinstance(indict, dict):
         for key, value in indict.items():

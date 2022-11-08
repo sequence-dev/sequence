@@ -178,7 +178,7 @@ class Sequence(Component):
         return properties
 
     def layer_reducers(self) -> dict[str, Any]:
-        """Return layer-r seducers for each property.
+        """Return layer-reducers for each property.
 
         Returns
         -------

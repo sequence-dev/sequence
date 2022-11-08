@@ -20,7 +20,6 @@ class OutputWriter(Component):
         interval: int = 1,
         fields: Optional[Iterable[str]] = None,
         clobber: bool = False,
-        # clock=None,
         rows: Optional[Iterable[str]] = None,
     ):
         """Create an output-file writer.
@@ -41,14 +40,11 @@ class OutputWriter(Component):
         rows : iterable of int
             The rows of the grid to include in the file.
         """
-        # if filepath is None:
-        #     raise ValueError("filepath must be provided")
         if fields is None:
             fields = []
 
         super().__init__(grid)
 
-        # self._clock = clock or TimeStepper()
         self._clobber = clobber
         self.interval = interval
         self.fields = fields
@@ -121,8 +117,3 @@ class OutputWriter(Component):
     @fields.setter
     def fields(self, new_val: Iterable[str]) -> None:
         self._fields = tuple(new_val)
-
-        # if new_val is None:
-        #     self._fields = None
-        # else:
-        #     self._fields = tuple(new_val)

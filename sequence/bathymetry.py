@@ -37,7 +37,6 @@ class BathymetryReader(Component):
         grid: SequenceModelGrid,
         filepath: Union[str, PathLike[str]],
         kind: str = "linear",
-        # **kwds
     ):
         """Generate a bathymetric profile from a file.
 
@@ -52,7 +51,7 @@ class BathymetryReader(Component):
             'nearest', 'zero', 'slinear', 'quadratic', 'cubic').
             Default is 'linear'.
         """
-        super().__init__(grid)  # , **kwds)
+        super().__init__(grid)
 
         data = np.loadtxt(filepath, delimiter=",", comments="#")
         self._bathymetry = interpolate.interp1d(

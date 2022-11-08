@@ -54,7 +54,6 @@ class Fluvial(Component):
         plain_slope: float = 0.0008,
         hemipelagic: float = 0.0,
         sea_level: float = 0.0,
-        # **kwds
     ):
         """Generate percent sand/mud for fluvial section.
 
@@ -79,7 +78,7 @@ class Fluvial(Component):
         sea_level: float, optional
             The current sea level (m).
         """
-        super().__init__(grid)  # , **kwds)
+        super().__init__(grid)
 
         # fixed parameters
         self.sand_grain = 0.001  # grain size = 1 mm
