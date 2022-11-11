@@ -1,5 +1,6 @@
 
-Changed the subsidence components to only update the current amount of
-subsidence but to not update update secondary fields like the topographic
+Changed all components to only update the current amount of subsidence and
+deposited sediment but not to update secondary fields like the topographic
 elevation. This removes the dependence of these secondary fields on
-component ordering.
+component ordering and ensures these secondary fields are updated once, and only
+once, with each time step.
