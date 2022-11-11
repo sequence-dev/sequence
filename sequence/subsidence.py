@@ -20,20 +20,12 @@ class SubsidenceTimeSeries(Component):
     _info = {
         "bedrock_surface__increment_of_elevation": {
             "dtype": "float",
-            "intent": "out",
-            "optional": False,
-            "units": "m",
-            "mapping": "node",
-            "doc": "Increment of elevation",
-        },
-        "bedrock_surface__elevation": {
-            "dtype": "float",
             "intent": "inout",
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Surface elevation",
-        },
+            "doc": "Change in elevation due to subsidence",
+        }
     }
 
     def __init__(
@@ -52,8 +44,11 @@ class SubsidenceTimeSeries(Component):
             'nearest', 'zero', 'slinear', 'quadratic', 'cubic').
             Default is 'linear'.
         """
-        if "bedrock_surface__elevation" not in grid.at_node:
-            grid.add_empty("bedrock_surface__elevation", at="node")
+        if "bedrock_surface__increment_of_elevation" not in grid.at_node:
+            grid.add_zeros("bedrock_surface__increment_of_elevation", at="node")
+
+        if "lithosphere_surface__increment_of_elevation" not in grid.at_node:
+            grid.add_zeros("lithosphere_surface__increment_of_elevation", at="node")
 
         super().__init__(grid)
 
@@ -61,19 +56,22 @@ class SubsidenceTimeSeries(Component):
         self._kind = kind
 
         data = np.loadtxt(filepath, delimiter=",", comments="#")
-        subsidence = SubsidenceTimeSeries._subsidence_interpolator(
+        self._subsidence = SubsidenceTimeSeries._subsidence_interpolator(
             data, kind=self._kind
         )
-        if "bedrock_surface__increment_of_elevation" not in grid.at_node:
-            self.grid.add_empty("bedrock_surface__increment_of_elevation", at="node")
 
-        inc = self.grid.at_node["bedrock_surface__increment_of_elevation"].reshape(
-            self.grid.shape
-        )
-        inc[:] = subsidence(self.grid.x_of_node[self.grid.nodes_at_bottom_edge])
+        self._dz_dt = self._calc_subsidence_rate()
 
-        self._dz = inc.copy()
+        # self.grid.at_node["bedrock_surface__rate_of_subsidence"].reshape(
+        #     self.grid.shape
+        # )[:] += self._dz_dt
+
         self._time = 0.0
+
+    @property
+    def subsidence_rate(self) -> NDArray:
+        """Return the current subsidence rate."""
+        return self._dz_dt
 
     @staticmethod
     def _subsidence_interpolator(
@@ -88,6 +86,9 @@ class SubsidenceTimeSeries(Component):
             bounds_error=True,
         )
 
+    def _calc_subsidence_rate(self) -> NDArray:
+        return self._subsidence(self.grid.x_of_node[self.grid.nodes_at_bottom_edge])
+
     @property
     def time(self) -> float:
         """Return the current component time."""
@@ -101,14 +102,11 @@ class SubsidenceTimeSeries(Component):
     @filepath.setter
     def filepath(self, new_path: os.PathLike) -> None:
         self._filepath = new_path
-        subsidence = SubsidenceTimeSeries._subsidence_interpolator(
+        self._subsidence = SubsidenceTimeSeries._subsidence_interpolator(
             np.loadtxt(self._filepath, delimiter=",", comments="#"), kind=self._kind
         )
-        inc = self.grid.at_node["bedrock_surface__increment_of_elevation"].reshape(
-            self.grid.shape
-        )
-        inc[:] = subsidence(self.grid.x_of_node[self.grid.nodes_at_bottom_edge])
-        self._dz = inc.copy()
+
+        self._dz_dt = self._calc_subsidence_rate()
 
     def run_one_step(self, dt: float) -> None:
         """Update the component by a time step.
@@ -118,16 +116,8 @@ class SubsidenceTimeSeries(Component):
         dt : float
             The time step to update the component by.
         """
-        dz = self.grid.at_node["bedrock_surface__increment_of_elevation"]
-        z = self.grid.at_node["bedrock_surface__elevation"]
-        z_top = self.grid.at_node["topographic__elevation"]
-
-        dz = dz.reshape(self.grid.shape)
-        z = z.reshape(self.grid.shape)
-        z_top = z_top.reshape(self.grid.shape)
-
-        dz[:] = self._dz * dt
-        z[:] += dz
-        z_top[:] += dz
+        self.grid.get_profile("bedrock_surface__increment_of_elevation")[:] += (
+            self.subsidence_rate * dt
+        )
 
         self._time += dt
