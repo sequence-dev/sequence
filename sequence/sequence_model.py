@@ -2,12 +2,12 @@
 import warnings
 from collections import OrderedDict, defaultdict
 from collections.abc import Hashable, Iterable
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import numpy as np
 from compaction.landlab import Compact
-from landlab import FieldError
 from landlab.bmi.bmi_bridge import TimeStepper
+from numpy.typing import ArrayLike
 
 from ._grid import SequenceModelGrid
 from .bathymetry import BathymetryReader
@@ -256,32 +256,17 @@ class SequenceModel:
         dt : float
             The time step to advance the components.
         """
+        self.grid.at_node["sediment_deposit__thickness"].fill(0.0)
+
         for component in self._components.values():
             component.run_one_step(dt)
 
-        dz = self.grid.at_node["sediment_deposit__thickness"]
-        # percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
-        water_depth = (
-            self.grid.at_grid["sea_level__elevation"]
-            - self.grid.at_node["topographic__elevation"]
-        )
+        self._update_fields()
 
-        layer_properties = dict(
-            age=self.clock.time,
-            water_depth=water_depth[self.grid.node_at_cell],
-            t0=dz[self.grid.node_at_cell].clip(0.0),
-            # percent_sand=percent_sand[self.grid.node_at_cell],
+        self.grid.event_layers.add(
+            self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell],
+            **self.layer_properties(),
         )
-        if "compaction" in self._components:
-            layer_properties["porosity"] = self._components["compaction"].porosity_max
-        try:
-            percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
-        except FieldError:
-            pass
-        else:
-            layer_properties["percent_sand"] = percent_sand[self.grid.node_at_cell]
-
-        self.grid.event_layers.add(dz[self.grid.node_at_cell], **layer_properties)
 
         if (
             self.grid.event_layers.number_of_layers - self._n_archived_layers
@@ -289,13 +274,77 @@ class SequenceModel:
             self.grid.event_layers.reduce(
                 self._n_archived_layers,
                 self._n_archived_layers + 10,
-                age=np.max,
-                percent_sand=np.mean,
-                porosity=np.mean,
-                t0=np.sum,
-                water_depth=np.mean,
+                **self.layer_reducers(),
             )
             self._n_archived_layers += 1
+
+    def layer_properties(self) -> dict[str, ArrayLike]:
+        """Return the properties being tracked at each layer.
+
+        Returns
+        -------
+        properties : dict
+            A dictionary of the tracked properties where the keys
+            are the names of properties and the values are the
+            property values at each column.
+        """
+        dz = self.grid.at_node["sediment_deposit__thickness"]
+        water_depth = (
+            self.grid.at_grid["sea_level__elevation"]
+            - self.grid.at_node["topographic__elevation"]
+        )
+
+        properties = {
+            "age": self.clock.time,
+            "water_depth": water_depth[self.grid.node_at_cell],
+            "t0": dz[self.grid.node_at_cell].clip(0.0),
+            "porosity": 0.5,
+        }
+
+        if "compaction" in self._components:
+            properties["porosity"] = self._components["compaction"].porosity_max
+
+        try:
+            percent_sand = self.grid.at_node["delta_sediment_sand__volume_fraction"]
+        except KeyError:
+            pass
+        else:
+            properties["percent_sand"] = percent_sand[self.grid.node_at_cell]
+
+        return properties
+
+    def layer_reducers(self) -> dict[str, Any]:
+        """Return layer-reducers for each property.
+
+        Returns
+        -------
+        reducers : dict
+            A dictionary of reducers where keys are property names and values
+            are functions that act as layer reducers for those quantities.
+        """
+        reducers = {
+            "age": np.max,
+            "water_depth": np.mean,
+            "t0": np.sum,
+            "porosity": np.mean,
+        }
+        if "percent_sand" in self.grid.event_layers.tracking:
+            reducers["percent_sand"] = np.mean
+
+        return reducers
+
+    def _update_fields(self) -> None:
+        """Update fields that depend on other fields."""
+        if "bedrock_surface__increment_of_elevation" in self.grid.at_node:
+            self.grid.at_node["bedrock_surface__elevation"] += self.grid.at_node[
+                "bedrock_surface__increment_of_elevation"
+            ]
+            self.grid.at_node["bedrock_surface__increment_of_elevation"][:] = 0.0
+
+        self.grid.at_node["topographic__elevation"][self.grid.node_at_cell] = (
+            self.grid.at_node["bedrock_surface__elevation"][self.grid.node_at_cell]
+            + self.grid.event_layers.thickness
+        )
 
 
 def _match_values(d1: dict, d2: dict, keys: Iterable[Hashable]) -> None:

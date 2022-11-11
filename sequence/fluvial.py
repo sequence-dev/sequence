@@ -34,6 +34,14 @@ class Fluvial(Component):
             "mapping": "grid",
             "doc": "Position of sea level",
         },
+        "sediment_deposit__thickness": {
+            "dtype": "float",
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Thickness of deposition or erosion",
+        },
         "delta_sediment_sand__volume_fraction": {
             "dtype": "float",
             "intent": "out",
@@ -135,17 +143,17 @@ class Fluvial(Component):
         channel_width = sand_vol / qs
 
         x = self.grid.x_of_node.reshape(self.grid.shape)[1]
-        z = self.grid.at_node["topographic__elevation"].reshape(self.grid.shape)[1]
+        elevation = self.grid.get_profile("topographic__elevation")
 
         shore = find_shoreline(
-            x, z, sea_level=self.grid.at_grid["sea_level__elevation"]
+            x, elevation, sea_level=self.grid.at_grid["sea_level__elevation"]
         )
 
         land = x < shore
         water = x >= shore
         # land = self.grid.x_of_node[self.grid.node_at_cell] < shore
         # slope = np.gradient(z[1, land]) / self.grid.dx
-        slope = np.gradient(z) / self.grid.dx
+        slope = np.gradient(elevation) / self.grid.dx
         # slp = np.zeros(1)
         # slp[0] = self.plain_slope
         # slope = np.concatenate((slp,slop))
@@ -155,7 +163,7 @@ class Fluvial(Component):
         # )
 
         # channel_depth = np.zeros(self.grid.number_of_cells)
-        channel_depth = np.zeros_like(z)  # use upsteam slope
+        channel_depth = np.zeros_like(elevation)  # use upsteam slope
         # channel_depth[0] = (
         #    (self.sand_density - 1000.) / 1000. * self.sand_grain / self.plain_slope
         channel_depth[land] = (
@@ -170,28 +178,13 @@ class Fluvial(Component):
         # width_cb = channel_width/epsilon
 
         # Original: r_cb = (model.new_height[i]-model.height[i]+model.d_sl);
-        r_cb = (
-            self.grid.at_node["sediment_deposit__thickness"]
-            .reshape(self.grid.shape)[1]
-            .copy()
-            * epsilon
-        )
-        dz = (
-            self.grid.at_node["bedrock_surface__increment_of_elevation"]
-            .reshape(self.grid.shape)[1]
-            .copy()
-        )
+        r_cb = self.grid.get_profile("sediment_deposit__thickness") * epsilon
+        dz = self.grid.get_profile("bedrock_surface__increment_of_elevation").copy()
         # original: r_b = model.thickness[i];
-        r_b = (
-            self.grid.at_node["sediment_deposit__thickness"]
-            .reshape(self.grid.shape)[1]
-            .copy()
-        )
+        r_b = self.grid.get_profile("sediment_deposit__thickness").copy()
         # r_fp = np.zeros(self.grid.shape[1])
-        r_fp = np.zeros_like(z)
-        percent_sand = self.grid.at_node[
-            "delta_sediment_sand__volume_fraction"
-        ].reshape(self.grid.shape)[1]
+        r_fp = np.zeros_like(elevation)
+        percent_sand = self.grid.get_profile("delta_sediment_sand__volume_fraction")
         percent_sand.fill(0.0)
 
         for i in np.where(land)[0]:
@@ -295,25 +288,13 @@ class Fluvial(Component):
                 if add_mud[i] < 0.0:
                     add_mud[i] = 0.0
 
-        thickness = (
-            self.grid.at_node["sediment_deposit__thickness"]
-            .reshape(self.grid.shape)[1]
-            .copy()
-        )
-        thickness[water] += add_mud[water]
+        sediment_thickness = self.grid.get_profile("sediment_deposit__thickness")
+        sediment_thickness[water] += add_mud[water]
 
         np.divide(
-            thickness[water] - add_mud[water],
-            thickness[water],
-            where=thickness[water] > 0.0,
+            sediment_thickness[water] - add_mud[water],
+            sediment_thickness[water],
+            where=sediment_thickness[water] > 0.0,
             out=percent_sand[water],
         )
-
         np.clip(percent_sand[water], 0.0, 1.0, out=percent_sand[water])
-
-        plus_mud = np.zeros(self.grid.shape)
-        plus_mud[1] = add_mud
-        sdt = self.grid.at_node["sediment_deposit__thickness"].reshape(plus_mud.shape)
-        sdt[1][:] += plus_mud[1]
-        te = self.grid.at_node["topographic__elevation"].reshape(plus_mud.shape)
-        te[1][:] -= plus_mud[1]

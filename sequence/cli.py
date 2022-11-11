@@ -231,8 +231,12 @@ def run(ctx: Any, with_citations: bool, dry_run: bool) -> None:
     run_dir = pathlib.Path.cwd()
 
     times, names = _find_config_files(".")
+    if len(times) == 0:
+        err("[ERROR] unable to find a configuration file.")
+        raise click.Abort()
+
     if not silent:
-        out(f"config_files = [{', '.join(repr(name) for name in names)}]")
+        out(f"[INFO] config_files: {', '.join(repr(name) for name in names)}")
     params = TimeVaryingConfig.from_files(names, times=times)
 
     model_params = params.as_dict()
@@ -250,20 +254,16 @@ def run(ctx: Any, with_citations: bool, dry_run: bool) -> None:
     )
 
     if verbose or not silent:
-        out("enabled = [")
         for name in model.components:
-            out(f"  {name!r},")
-        out("]")
-        out("disabled = [")
+            out(f"[INFO] ✅ enabled: {name}")
         for name in set(SequenceModel.ALL_PROCESSES) - set(model.components):
-            out(f"  {name!r},")
-        out("]")
+            out(f"[INFO] ❌ disabled {name}")
 
     if not silent and verbose:
         out(params.dump())
 
     if not silent and len(processes) == 0:
-        out("⚠️  ALL PROCESSES HAVE BEEN DISABLED! ⚠️")
+        out("[WARN] ⚠️  ALL PROCESSES HAVE BEEN DISABLED! ⚠️")
 
     if not silent and with_citations:
         from landlab.core.model_component import registry

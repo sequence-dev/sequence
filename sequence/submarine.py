@@ -35,7 +35,7 @@ class SubmarineDiffuser(LinearDiffuser):
         },
         "sediment_deposit__thickness": {
             "dtype": "float",
-            "intent": "out",
+            "intent": "inout",
             "optional": False,
             "units": "m",
             "mapping": "node",
@@ -271,11 +271,9 @@ class SubmarineDiffuser(LinearDiffuser):
         dt : float
             Time step to advance component by.
         """
-        z_before = self.grid.at_node["topographic__elevation"].copy()
-
         shore = find_shoreline(
             self.grid.x_of_node[self.grid.node_at_cell],
-            z_before[self.grid.node_at_cell],
+            self.grid.at_node["topographic__elevation"][self.grid.node_at_cell],
             sea_level=self.grid.at_grid["sea_level__elevation"],
         )
 
@@ -289,10 +287,13 @@ class SubmarineDiffuser(LinearDiffuser):
         z[1, 0] = z[1, 1] + self._plain_slope * (x[1, 1] - x[1, 0])
         # self._load/self._load0)
 
+        z_before = self.grid.at_node["topographic__elevation"].copy()
+
         super().run_one_step(dt)
 
-        self.grid.at_node["sediment_deposit__thickness"][:] = (
-            self.grid.at_node["topographic__elevation"] - z_before
-        )
+        dz = self.grid.at_node["topographic__elevation"] - z_before
+        self.grid.at_node["topographic__elevation"][:] = z_before
+
+        self.grid.at_node["sediment_deposit__thickness"][:] += dz
 
         self._time += dt

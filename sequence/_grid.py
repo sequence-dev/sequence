@@ -4,6 +4,7 @@ import sys
 
 import numpy as np
 from landlab import RasterModelGrid
+from numpy.typing import NDArray
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -40,6 +41,21 @@ class SequenceModelGrid(RasterModelGrid):
 
         self.at_node["sediment_deposit__thickness"] = self.zeros(at="node")
         self.at_grid["sea_level__elevation"] = 0.0
+
+    def get_profile(self, name: str) -> NDArray:
+        """Return the values of a field along the grid's profile.
+
+        Parameters
+        ----------
+        name : str
+            The name of an at-node field.
+
+        Returns
+        -------
+        values : ndarray
+            The values of the field located at the middle row of nodes.
+        """
+        return self.at_node[name].reshape(self.shape)[1]
 
     @classmethod
     def from_toml(cls, filepath: os.PathLike[str]) -> "SequenceModelGrid":
