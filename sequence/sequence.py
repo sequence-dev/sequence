@@ -90,7 +90,14 @@ class Sequence(Component):
             - self.grid.at_node["bedrock_surface__elevation"]
         )
 
-        self.add_layer(initial_sediment_thickness[self.grid.node_at_cell])
+        if (initial_sediment_thickness[self.grid.node_at_cell] > 0.0).any():
+            self.add_layer(initial_sediment_thickness[self.grid.node_at_cell])
+
+        self.grid.at_node["topographic__elevation"][self.grid.node_at_cell] = (
+            self.grid.at_node["bedrock_surface__elevation"][self.grid.node_at_cell]
+            + self.grid.event_layers.thickness
+        )
+        self.grid.at_node["sediment_deposit__thickness"].fill(0.0)
 
     @property
     def time(self) -> float:
@@ -116,6 +123,11 @@ class Sequence(Component):
         self.add_layer(
             self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell]
         )
+        self.grid.at_node["topographic__elevation"][self.grid.node_at_cell] = (
+            self.grid.at_node["bedrock_surface__elevation"][self.grid.node_at_cell]
+            + self.grid.event_layers.thickness
+        )
+        self.grid.at_node["sediment_deposit__thickness"].fill(0.0)
 
     def run(
         self,
@@ -213,6 +225,10 @@ class Sequence(Component):
             x_of_shelf_edge = self.grid.at_grid["x_of_shelf_edge"]
         except KeyError:
             x_of_shelf_edge = np.nan
+
+        self.grid.at_node["topographic__elevation"][
+            self.grid.node_at_cell
+        ] += dz_at_cell
 
         self.grid.event_layers.add(dz_at_cell, **self.layer_properties())
         self.grid.at_layer_grid.add(
