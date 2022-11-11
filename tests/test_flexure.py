@@ -68,12 +68,7 @@ def test_flexure():
     flexure = SedimentFlexure(grid)
     flexure.run_one_step()
 
-    assert (
-        grid.at_node["lithosphere_surface__increment_of_elevation"].reshape(grid.shape)[
-            1, :
-        ]
-        > 0.0
-    ).all()
+    assert (grid.get_profile("lithosphere_surface__increment_of_elevation") > 0.0).all()
     assert (grid.at_node["topographic__elevation"] == initial_elevation).all()
 
 

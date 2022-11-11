@@ -62,10 +62,6 @@ class SubsidenceTimeSeries(Component):
 
         self._dz_dt = self._calc_subsidence_rate()
 
-        # self.grid.at_node["bedrock_surface__rate_of_subsidence"].reshape(
-        #     self.grid.shape
-        # )[:] += self._dz_dt
-
         self._time = 0.0
 
     @property
