@@ -1,6 +1,9 @@
 """Subside a `SequenceModelGrid` using flexure."""
+from typing import Union
+
 import numpy as np
 from landlab.components.flexure import Flexure1D
+from numpy.typing import NDArray
 
 from ._grid import SequenceModelGrid
 
@@ -33,27 +36,11 @@ class SedimentFlexure(Flexure1D):
         },
         "topographic__elevation": {
             "dtype": "float",
-            "intent": "inout",
+            "intent": "in",
             "optional": True,
             "units": "m",
             "mapping": "node",
             "doc": "land and ocean bottom elevation, positive up",
-        },
-        "bedrock_surface__elevation": {
-            "dtype": "float",
-            "intent": "inout",
-            "optional": True,
-            "units": "m",
-            "mapping": "node",
-            "doc": "New bedrock elevation following subsidence",
-        },
-        "bedrock_surface__increment_of_elevation": {
-            "dtype": "float",
-            "intent": "out",
-            "optional": True,
-            "units": "m",
-            "mapping": "node",
-            "doc": "Amount of subsidence due to sediment loading",
         },
         "delta_sediment_sand__volume_fraction": {
             "dtype": "float",
@@ -63,6 +50,14 @@ class SedimentFlexure(Flexure1D):
             "mapping": "node",
             "doc": "delta sand fraction",
         },
+        "bedrock_surface__increment_of_elevation": {
+            "dtype": "float",
+            "intent": "inout",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Total amount of subsidence",
+        },
     }
 
     def __init__(
@@ -70,7 +65,7 @@ class SedimentFlexure(Flexure1D):
         grid: SequenceModelGrid,
         sand_density: float = 2650,
         mud_density: float = 2720.0,
-        isostasytime: float = 7000.0,
+        isostasytime: Union[float, None] = 7000.0,
         water_density: float = 1030.0,
         **kwds: dict,
         # **sediments,
@@ -101,13 +96,16 @@ class SedimentFlexure(Flexure1D):
             self.mud_density, self.water_density, 0.65
         )
 
-        self._isostasytime = SedimentFlexure.validate_isostasy_time(isostasytime)
+        if np.isclose(isostasytime, 0.0):
+            isostasytime = None
+        self._isostasy_time = (
+            SedimentFlexure.validate_isostasy_time(isostasytime)
+            if isostasytime is not None
+            else None
+        )
+        self._dt = 1.0
 
-        self._dt = 100.0  # default timestep = 100 y
-
-        # grid.add_zeros("lithosphere__increment_of_overlying_pressure", at="node")
-
-        super().__init__(grid, **kwds)
+        super().__init__(grid, rows=1, **kwds)
 
         if "lithosphere__increment_of_overlying_pressure" not in grid.at_node:
             grid.add_zeros("lithosphere__increment_of_overlying_pressure", at="node")
@@ -120,7 +118,9 @@ class SedimentFlexure(Flexure1D):
         if "bedrock_surface__increment_of_elevation" not in grid.at_node:
             grid.add_empty("bedrock_surface__increment_of_elevation", at="node")
 
-        self.subs_pool = self.grid.zeros(at="node")
+        self.subs_pool = np.zeros_like(
+            self.grid.get_profile("lithosphere_surface__increment_of_elevation")
+        )
 
     @staticmethod
     def _calc_bulk_density(
@@ -175,6 +175,11 @@ class SedimentFlexure(Flexure1D):
         return time
 
     @property
+    def isostasy_time(self) -> Union[float, None]:
+        """Return the isostasy time."""
+        return self._isostasy_time
+
+    @property
     def sand_density(self) -> float:
         """Return the density of sand."""
         return self._sand_density
@@ -194,7 +199,7 @@ class SedimentFlexure(Flexure1D):
 
     @property
     def mud_density(self) -> float:
-        """Return teh density of mud."""
+        """Return the density of mud."""
         return self._mud_density
 
     @mud_density.setter
@@ -225,50 +230,144 @@ class SedimentFlexure(Flexure1D):
             self.mud_density, self.water_density, 0.65
         )
 
+    @staticmethod
+    def _calc_loading(
+        deposit_thickness: NDArray[np.floating],
+        z: NDArray[np.floating],
+        sediment_density: Union[float, NDArray[np.floating]],
+        water_density: float,
+    ) -> NDArray[np.floating]:
+        """Calculate the loading due to a, possibly submerged, sediment deposit.
+
+        Parameters
+        ----------
+        deposit_thickness : array-like
+            The amount of sediment deposited along the profile.
+        z : array-like
+            The elevation of the profile before the new sediment has
+            been added.
+        sediment_density : float
+            The bulk density of the added sediment.
+        water_density : float
+            The density of water.
+
+        Returns
+        -------
+        ndarray
+            The loading along the profile.
+        """
+        z_new = z + deposit_thickness
+
+        dry = (z >= 0.0) & (z_new >= 0.0)
+        wet = (z <= 0.0) & (z_new <= 0.0)
+        mixed = ~dry & ~wet
+
+        density = np.full_like(z, sediment_density)
+        density[wet] -= water_density
+
+        dry_fraction = np.abs(
+            np.maximum(z_new[mixed], z[mixed]) / deposit_thickness[mixed]
+        )
+        wet_fraction = 1.0 - dry_fraction
+
+        density[mixed] -= wet_fraction * water_density
+
+        return density * deposit_thickness
+
+    @staticmethod
+    def _calc_density(
+        sand_fraction: Union[float, NDArray], sand_density: float, mud_density: float
+    ) -> Union[float, NDArray]:
+        """Calculate the density of a sand/mud mixture.
+
+        Parameters
+        ----------
+        sand_fraction : float or ndarray
+            Fraction of sediment that is sand. The rest is mud.
+        sand_density : float
+            The density of the sand.
+        mud_density : float
+            The density of the mud.
+
+        Returns
+        -------
+        float or ndarray
+            The density of the mixture.
+
+        Examples
+        --------
+        >>> from sequence.sediment_flexure import SedimentFlexure
+        >>> SedimentFlexure._calc_density(0.5, 1600, 1200)
+        1400.0
+        >>> SedimentFlexure._calc_density([1.0, 0.75, 0.5, 0.25, 0.0], 1600.0, 1200.0)
+        array([ 1600.,  1500.,  1400.,  1300.,  1200.])
+        """
+        sand_fraction = np.asarray(sand_fraction)
+        return sand_fraction * sand_density + (1.0 - sand_fraction) * mud_density
+
+    @staticmethod
+    def _calc_isostasy_fraction(isostasy_time: Union[float, None], dt: float) -> float:
+        """Calculate the fraction of isostatic subsidence.
+
+        Parameters
+        ----------
+        isostasy_time : float or None
+            The time parameter that represente the e-folding time
+            to isostasy. If ``None``, assume isostasy.
+        dt : float
+            Time step.
+
+        Returns
+        -------
+        float
+            Fraction of isostatic subsidence that occurs over the time step.
+        """
+        if isostasy_time is None:
+            return 1.0
+        else:
+            return 1.0 - np.exp(-dt / isostasy_time)
+
     def update(self) -> None:
         """Update the component by a single time step."""
-        if self._isostasytime > 0.0:
-            isostasyfrac = 1 - np.exp(-1.0 * self._dt / self._isostasytime)
-        else:
-            isostasyfrac = 1.0
+        self.grid.get_profile("lithosphere_surface__increment_of_elevation").fill(0.0)
 
-        self.grid.at_node["lithosphere_surface__increment_of_elevation"][:] = 0.0
+        sea_level = self.grid.at_grid["sea_level__elevation"]
+        elevation = self.grid.get_profile("topographic__elevation")
+        deposit_thickness = self.grid.get_profile("sediment_deposit__thickness")
+        sand_fraction = self.grid.get_profile("delta_sediment_sand__volume_fraction")
 
-        # calculate density based on sand_frac
-        percent_sand = self.grid.at_node[
-            "delta_sediment_sand__volume_fraction"
-        ].reshape(self.grid.shape)[1]
-        rho_sediment = (
-            percent_sand * self._rho_sand + (1 - percent_sand) * self._rho_mud
+        sediment_density = self._calc_density(
+            sand_fraction, self.sand_bulk_density, self.mud_bulk_density
         )
 
-        # load underwater displaces water
-        z = self.grid.at_node["topographic__elevation"].reshape(self.grid.shape)[1]
-        sea_level = self.grid.at_grid["sea_level__elevation"]
-        under_water = z < sea_level
-        rho_sediment[under_water] = rho_sediment[under_water] - self.water_density
-
-        dz = self.grid.at_node["sediment_deposit__thickness"].reshape(self.grid.shape)[
-            1
-        ]
-        pressure = self.grid.at_node[
-            "lithosphere__increment_of_overlying_pressure"
-        ].reshape(self.grid.shape)[1]
-        pressure[:] = dz * rho_sediment * self.gravity * self.grid.dx
+        pressure = self.grid.get_profile("lithosphere__increment_of_overlying_pressure")
+        pressure[:] = (
+            self._calc_loading(
+                deposit_thickness,
+                elevation - sea_level,
+                sediment_density,
+                self.water_density,
+            )
+            * self.gravity
+            * self.grid.dx
+        )
 
         Flexure1D.update(self)
 
-        dz = self.grid.at_node["lithosphere_surface__increment_of_elevation"]
-        self.subs_pool[:] += dz
-        dz = self.subs_pool[:] * isostasyfrac
-        self.subs_pool[:] = self.subs_pool[:] - dz
+        isostatic_deflection = self.grid.get_profile(
+            "lithosphere_surface__increment_of_elevation"
+        )
+        isostasy_fraction = self._calc_isostasy_fraction(self.isostasy_time, self._dt)
+        self.subs_pool[:] += isostatic_deflection
+        deflection = self.subs_pool[:] * isostasy_fraction
+        self.subs_pool[:] = self.subs_pool[:] - deflection
 
-        self.grid.at_node["bedrock_surface__increment_of_elevation"][:] = dz
+        total_deflection = self.grid.get_profile(
+            "bedrock_surface__increment_of_elevation"
+        )
+        total_deflection += deflection
 
-        self.grid.at_node["bedrock_surface__elevation"] -= dz
-        self.grid.at_node["topographic__elevation"] -= dz
-
-    def run_one_step(self, dt: float = 100.0) -> None:
+    def run_one_step(self, dt: float = 1.0) -> None:
         """Update the component by a time step.
 
         Parameters
