@@ -231,6 +231,10 @@ def run(ctx: Any, with_citations: bool, dry_run: bool) -> None:
     run_dir = pathlib.Path.cwd()
 
     times, names = _find_config_files(".")
+    if len(times) == 0:
+        err("[ERROR] unable to find a configuration file.")
+        raise click.Abort()
+
     if not silent:
         out(f"[INFO] config_files: {', '.join(repr(name) for name in names)}")
     params = TimeVaryingConfig.from_files(names, times=times)
