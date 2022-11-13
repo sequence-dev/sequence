@@ -63,6 +63,7 @@ dev = [
 ]
 doc = [
   "sphinx",
+  "sphinxcontrib.towncrier",
   "pygments>=2.4",
   "sphinx-inline-tabs",
   "furo",

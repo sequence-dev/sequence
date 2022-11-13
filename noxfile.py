@@ -59,7 +59,7 @@ def test_cli(session: nox.Session) -> None:
 def lint(session: nox.Session) -> None:
     """Look for lint."""
     session.install("pre-commit")
-    session.run("pre-commit", "run", "--all-files")
+    session.run("pre-commit", "run", "--all-files", "--verbose")
 
 
 @nox.session
@@ -67,6 +67,19 @@ def towncrier(session: nox.Session) -> None:
     """Check that there is a news fragment."""
     session.install("towncrier")
     session.run("towncrier", "check", "--compare-with", "origin/develop")
+
+
+@nox.session(name="build-requirements", reuse_venv=True)
+def build_requirements(session: nox.Session) -> None:
+    """Create requirements files from pyproject.toml."""
+    session.install("tomli")
+
+    with open("requirements.txt", "w") as fp:
+        session.run("python", "requirements.py", stdout=fp)
+
+    for extra in ["dev", "doc", "notebook"]:
+        with open(f"requirements-{extra}.txt", "w") as fp:
+            session.run("python", "requirements.py", extra, stdout=fp)
 
 
 @nox.session(name="build-docs", reuse_venv=True)
@@ -84,8 +97,8 @@ def build_docs(session: nox.Session) -> None:
             "-force",
             "--no-toc",
             "--module-first",
-            "--templatedir",
-            "docs/_templates",
+            # "--templatedir",
+            # "docs/_templates",
             "-o",
             "docs/api",
             "sequence",
