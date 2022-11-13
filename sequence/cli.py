@@ -1,4 +1,6 @@
 """The command line interface for *Sequence*."""
+import inspect
+import logging
 import os
 import pathlib
 import re
@@ -16,7 +18,8 @@ from tqdm import tqdm
 
 from .errors import MissingRequiredVariable
 from .input_reader import TimeVaryingConfig
-from .plot import plot_file
+from .logging import LoggingHandler
+from .plot import plot_file, plot_layers
 from .sequence_model import SequenceModel
 
 click.rich_click.ERRORS_SUGGESTION = (
@@ -31,8 +34,21 @@ click.rich_click.GROUP_ARGUMENTS_OPTIONS = False
 click.rich_click.SHOW_METAVARS_COLUMN = True
 click.rich_click.USE_MARKDOWN = True
 
-# out = partial(click.secho, bold=True, file=sys.stderr)
-# err = partial(click.secho, fg="red", file=sys.stderr)
+logger = logging.getLogger("sequence")
+logger.addHandler(LoggingHandler())
+
+
+PLOT_KEYWORDS: dict[str, Any] = {
+    k: v.default
+    for k, v in inspect.signature(plot_layers).parameters.items()
+    if k
+    not in [
+        "elevation_at_layer",
+        "x_of_stack",
+        "x_of_shore_at_layer",
+        "x_of_shelf_edge_at_layer",
+    ]
+}
 
 
 def _out(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
@@ -189,9 +205,9 @@ def _find_config_files(
     help="Suppress status status messages, including the progress bar.",
 )
 @click.option(
-    "-v", "--verbose", is_flag=True, help="Also emit status messages to stderr."
+    "-v", "--verbose", count=True, help="Also emit status messages to stderr."
 )
-def sequence(cd: str, silent: bool, verbose: bool) -> None:
+def sequence(cd: str, silent: bool, verbose: int) -> None:
     """# Sequence.
 
     Sequence is a modular 2D (i.e., profile) sequence stratigraphic model
@@ -201,6 +217,10 @@ def sequence(cd: str, silent: bool, verbose: bool) -> None:
     with sea level changes, sediment compaction, local or flexural isostasy,
     and tectonic subsidence and uplift.
     """
+    if verbose:
+        logger.setLevel(logging.INFO if verbose == 1 else logging.DEBUG)
+    if silent:
+        logger.setLevel(logging.ERROR)
     os.chdir(cd)
 
 
@@ -232,11 +252,11 @@ def run(ctx: Any, with_citations: bool, dry_run: bool) -> None:
 
     times, names = _find_config_files(".")
     if len(times) == 0:
-        err("[ERROR] unable to find a configuration file.")
+        logger.critical("unable to find a configuration file.")
         raise click.Abort()
 
     if not silent:
-        out(f"[INFO] config_files: {', '.join(repr(name) for name in names)}")
+        logger.info(f"config files: {', '.join(repr(name) for name in names)}")
     params = TimeVaryingConfig.from_files(names, times=times)
 
     model_params = params.as_dict()
@@ -255,15 +275,15 @@ def run(ctx: Any, with_citations: bool, dry_run: bool) -> None:
 
     if verbose or not silent:
         for name in model.components:
-            out(f"[INFO] ✅ enabled: {name}")
+            logger.info(f"✅ Enabled: {name}")
         for name in set(SequenceModel.ALL_PROCESSES) - set(model.components):
-            out(f"[INFO] ❌ disabled {name}")
+            logger.warning(f"❌ Disabled: {name}")
 
-    if not silent and verbose:
-        out(params.dump())
+    # if not silent and verbose:
+    #     logger.info(os.linesep.join(["sequence.toml:", params.dump()]))
 
     if not silent and len(processes) == 0:
-        out("[WARN] ⚠️  ALL PROCESSES HAVE BEEN DISABLED! ⚠️")
+        logger.warning("⚠️  ALL PROCESSES HAVE BEEN DISABLED! ⚠️")
 
     if not silent and with_citations:
         from landlab.core.model_component import registry
@@ -288,9 +308,17 @@ def run(ctx: Any, with_citations: bool, dry_run: bool) -> None:
         except StopIteration:
             pass
 
+        if verbose and not silent:
+            total = sum(model.timer.values())
+            for name, duration in sorted(model.timer.items(), key=lambda v: v[1]):
+                logger.info(
+                    f"{name}\n"
+                    f"duration: {round(duration / total * 100.0, 2)}%, {round(duration, 2)}s\n"
+                )
+
         if verbose or not silent:
+            logger.info(f"Output written to {run_dir}")
             out("💥 Finished! 💥")
-            out(f"Output written to {run_dir}")
     else:
         if verbose or not silent:
             out("Nothing to do. 😴")
@@ -324,7 +352,6 @@ def generate(infile: str, set: str) -> None:
 @click.option("--set", multiple=True, help="Set model parameters")
 def setup(set: str) -> None:
     """Create a folder of input files for a simulation."""
-    # folder = pathlib.Path(destination)
     folder = pathlib.Path.cwd()
 
     files = [
@@ -340,7 +367,7 @@ def setup(set: str) -> None:
     existing_files = [name for name in files if name.exists()]
     if existing_files:
         for name in existing_files:
-            err(
+            logger.error(
                 f"{name}: File exists. Either remove and then rerun or choose a different destination folder"
             )
     else:
@@ -355,30 +382,38 @@ def setup(set: str) -> None:
 
 @sequence.command()
 @click.option("--set", multiple=True, help="Set model parameters")
-@click.option(
-    "-v", "--verbose", is_flag=True, help="Also emit status messages to stderr."
-)
-def plot(set: str, verbose: bool) -> None:
+@click.pass_context
+def plot(ctx: Any, set: str) -> None:
     """Plot a Sequence output file."""
+    verbose = ctx.parent.params["verbose"]
     folder = pathlib.Path.cwd()
 
+    config = PLOT_KEYWORDS.copy()
+
     if (folder / "sequence.toml").exists():
-        config = (
+        config.update(
             TimeVaryingConfig.from_file(folder / "sequence.toml")
             .as_dict()
             .get("plot", dict())
         )
-    else:
-        config = {}
+
     config.update(**_load_params_from_strings(set))
 
-    if verbose:
-        out(toml.dumps(dict(sequence=dict(plot=config))))
+    if verbose and len(config) > 0:
+        logger.info(
+            os.linesep.join(
+                [
+                    "Reading configuration\n",
+                    toml.dumps(dict(sequence=dict(plot=config))),
+                ]
+            )
+        )
 
+    logger.info(f"Plotting {folder / 'sequence.nc'}")
     try:
         plot_file(folder / "sequence.nc", **config)
     except MissingRequiredVariable as error:
-        err(
+        logger.error(
             f"{folder / 'sequence.nc'}: output file is missing a required variable ({error})"
         )
         raise click.Abort()

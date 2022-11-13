@@ -28,7 +28,7 @@ def plot_layers(
     layer_start: int = 0,
     layer_stop: int = -1,
     n_layers: int = 5,
-    title: Optional[str] = None,
+    title: str = "",
     x_label: str = "Distance (m)",
     y_label: str = "Elevation (m)",
     legend_location: str = "lower left",
