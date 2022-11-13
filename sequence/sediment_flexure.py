@@ -9,7 +9,7 @@ from ._grid import SequenceModelGrid
 
 
 class SedimentFlexure(Flexure1D):
-    """*Landlab* component that deflects a `SequenceModelGrid` due sediment loading."""
+    """*Landlab* component that deflects a `SequenceModelGrid` due to sediment loading."""
 
     _name = "Sediment-loading flexure"
 
@@ -57,6 +57,22 @@ class SedimentFlexure(Flexure1D):
             "units": "m",
             "mapping": "node",
             "doc": "Total amount of subsidence",
+        },
+        "sediment__increment_of_thickness": {
+            "dtype": "float",
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Thickness of new sediment",
+        },
+        "sediment__bulk_density": {
+            "dtype": "float",
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Density of new sediment",
         },
     }
 
