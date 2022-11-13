@@ -1,0 +1,15 @@
+# Requirements extracted from pyproject.toml
+# [project.optional-dependencies.dev]
+black
+coverage
+flake8
+isort
+nbmake
+nox
+pre-commit
+pytest
+pytest-cov
+pytest-datadir
+pytest-runner
+pytest-xdist
+towncrier

@@ -1,0 +1,4 @@
+# Requirements extracted from pyproject.toml
+# [project.optional-dependencies.notebook]
+notebook
+tqdm
