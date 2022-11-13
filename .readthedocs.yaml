@@ -9,13 +9,17 @@ formats:
   - htmlzip
 
 python:
-  version: 3.8
   install:
-    # - requirements: requirements-docs.txt
-    # - requirements: requirements.txt
+    - requirements: requirements-doc.txt
+    - requirements: requirements.txt
     - method: pip
-      path: .[doc]
+      path: .
   system_packages: false
 
 build:
-  image: latest
+  os: ubuntu-22.04
+  tools:
+    python: "3.9"
+  jobs:
+    pre_build:
+      - sphinx-apidoc -e -force --no-toc --module-first -o docs/api sequence
