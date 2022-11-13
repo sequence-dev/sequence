@@ -1,10 +1,14 @@
 """Build a `SequenceModelGrid` model from collection of components."""
+import logging
+import os
+import time
 import warnings
 from collections import OrderedDict, defaultdict
 from collections.abc import Hashable, Iterable
 from typing import Any, Dict, Optional
 
 import numpy as np
+import tomlkit
 from compaction.landlab import Compact
 from landlab.bmi.bmi_bridge import TimeStepper
 from numpy.typing import ArrayLike
@@ -18,6 +22,8 @@ from .sediment_flexure import SedimentFlexure
 from .shoreline import ShorelineFinder
 from .submarine import SubmarineDiffuser
 from .subsidence import SubsidenceTimeSeries
+
+logger = logging.getLogger("sequence")
 
 
 class SequenceModel:
@@ -130,6 +136,8 @@ class SequenceModel:
         except KeyError:
             pass
 
+        self.timer: dict[str, float] = defaultdict(float)
+
     @staticmethod
     def load_grid(params: dict, bathymetry: Optional[dict] = None) -> SequenceModelGrid:
         """Load a `SequenceModelGrid`.
@@ -183,6 +191,16 @@ class SequenceModel:
         )
         _match_values(params["fluvial"], context["sediments"].copy(), ["hemipelagic"])
         _match_values(params["shoreline"], params["submarine_diffusion"], ["alpha"])
+
+        for name, values in params.items():
+            logger.debug(
+                os.linesep.join(
+                    [
+                        f"reading configuration: {name}",
+                        tomlkit.dumps({"sequence": {name: values}}),
+                    ]
+                )
+            )
 
         process_class = {
             "subsidence": SubsidenceTimeSeries,
@@ -258,8 +276,10 @@ class SequenceModel:
         """
         self.grid.at_node["sediment_deposit__thickness"].fill(0.0)
 
-        for component in self._components.values():
+        for name, component in self._components.items():
+            time_before = time.time()
             component.run_one_step(dt)
+            self.timer[name] += time.time() - time_before
 
         self._update_fields()
 
