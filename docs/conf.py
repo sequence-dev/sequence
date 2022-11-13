@@ -18,8 +18,11 @@
 # absolute, like shown here.
 #
 import os
+import pathlib
 
 import sequence
+
+docs_dir = os.path.dirname(__file__)
 
 if os.environ.get("READTHEDOCS", ""):
     # RTD doesn't use the repo's Makefile to build docs.
@@ -47,6 +50,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx_inline_tabs",
+    "sphinxcontrib.towncrier",
     # "IPython.sphinxext.ipython_console_highlighting",
     # "sphinxcontrib_github_alt",
 ]
@@ -190,3 +194,9 @@ intersphinx_mapping = {
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "landlab": ("https://landlab.readthedocs.io/en/master/", None),
 }
+
+# -- Options for towncrier_draft extension --------------------------------------------
+
+towncrier_draft_autoversion_mode = "draft"  # or: 'sphinx-release', 'sphinx-version'
+towncrier_draft_include_empty = True
+towncrier_draft_working_directory = pathlib.Path(docs_dir).parent
