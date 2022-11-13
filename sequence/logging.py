@@ -16,7 +16,7 @@ LOG_LEVEL_STYLES: dict[str, dict[str, Any]] = {
     "CRITICAL": {"bold": True, "fg": "bright_red"},
 }
 
-MULTILINE_FORMAT: dict[str, Any] = {"dim": True, "italic": True}
+MULTILINE_STYLES: dict[str, Any] = {"dim": True, "italic": True}
 
 
 class LoggingHandler(logging.Handler):
@@ -40,7 +40,7 @@ class LoggingHandler(logging.Handler):
 
         if len(lines) > 1:
             for line in lines[1:]:
-                print(click.style(f"+ {line}", **MULTILINE_FORMAT), file=sys.stderr)
+                print(click.style(f"+ {line}", **MULTILINE_STYLES), file=sys.stderr)
 
 
 @contextlib.contextmanager
