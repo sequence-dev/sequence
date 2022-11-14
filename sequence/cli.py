@@ -403,7 +403,7 @@ def plot(ctx: Any, set: str) -> None:
         logger.info(
             os.linesep.join(
                 [
-                    "Reading configuration\n",
+                    "Reading configuration",
                     toml.dumps(dict(sequence=dict(plot=config))),
                 ]
             )
