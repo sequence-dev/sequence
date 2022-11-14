@@ -47,9 +47,6 @@ class SubsidenceTimeSeries(Component):
         if "bedrock_surface__increment_of_elevation" not in grid.at_node:
             grid.add_zeros("bedrock_surface__increment_of_elevation", at="node")
 
-        if "lithosphere_surface__increment_of_elevation" not in grid.at_node:
-            grid.add_zeros("lithosphere_surface__increment_of_elevation", at="node")
-
         super().__init__(grid)
 
         self._filepath = filepath
