@@ -355,6 +355,21 @@ class SequenceModel:
 
     def _update_fields(self) -> None:
         """Update fields that depend on other fields."""
+        if "sediment__total_of_loading" in self.grid.at_node:
+            new_load = SedimentFlexure._calc_loading(
+                self.grid.get_profile("sediment_deposit__thickness"),
+                self.grid.get_profile("topographic__elevation")
+                - self.grid.at_grid["sea_level__elevation"],
+                0.5,
+                SedimentFlexure._calc_density(
+                    self.grid.get_profile("delta_sediment_sand__volume_fraction"),
+                    2650.0,
+                    2720.0,
+                ),
+                1030.0,
+            )
+            self.grid.get_profile("sediment__total_of_loading")[:] += new_load
+
         if "bedrock_surface__increment_of_elevation" in self.grid.at_node:
             self.grid.at_node["bedrock_surface__elevation"] += self.grid.at_node[
                 "bedrock_surface__increment_of_elevation"
