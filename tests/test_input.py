@@ -28,9 +28,8 @@ def test_load_config_from_stream(datadir):
 
 
 def test_from_stream_without_format_keyword(datadir):
-    with open(datadir / "sequence.toml") as fp:
-        with pytest.raises(ValueError):
-            load_config(fp)
+    with open(datadir / "sequence.toml") as fp, pytest.raises(ValueError):
+        load_config(fp)
 
 
 @pytest.mark.parametrize("fmt", ("yaml", "toml"))
@@ -53,9 +52,8 @@ def test_bad_format(tmpdir, datadir):
 
 
 def test_missing_file(tmpdir):
-    with tmpdir.as_cwd():
-        with pytest.raises(OSError):
-            load_config("not-a-file.toml")
+    with tmpdir.as_cwd(), pytest.raises(OSError):
+        load_config("not-a-file.toml")
 
 
 @pytest.mark.parametrize("fmt", ("yaml", "toml"))

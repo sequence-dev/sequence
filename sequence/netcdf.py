@@ -204,7 +204,7 @@ def to_netcdf(
     at: Optional[Union[str, Sequence[str]]] = None,
     ids: Optional[Union[dict[str, Iterable[int]], int, Iterable[int], slice]] = None,
     names: Optional[
-        Union[dict[str, Union[Iterable[str], None]], str, Iterable[str]]
+        Union[dict[str, Optional[Iterable[str]]], str, Iterable[str]]
     ] = None,
     with_layers: bool = True,
 ) -> None:

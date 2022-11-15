@@ -11,9 +11,8 @@ def test_bad_filepath(tmpdir):
     with pytest.raises(TypeError):
         SubsidenceTimeSeries(grid)
 
-    with tmpdir.as_cwd():
-        with pytest.raises(OSError):
-            SubsidenceTimeSeries(grid, filepath="missing-file.csv")
+    with tmpdir.as_cwd(), pytest.raises(OSError):
+        SubsidenceTimeSeries(grid, filepath="missing-file.csv")
 
 
 def test_time_step(tmpdir):

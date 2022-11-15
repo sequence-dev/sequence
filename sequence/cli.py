@@ -4,6 +4,7 @@ import logging
 import os
 import pathlib
 import re
+from contextlib import suppress
 from io import StringIO
 from os import PathLike
 from typing import Any, Iterable, Iterator, Optional, Union
@@ -91,11 +92,13 @@ def _contents_of_input_file(infile: Union[str, PathLike[str]], set: str) -> str:
     contents = {
         "sequence.yaml": yaml.dump(params, default_flow_style=False),
         "sequence.toml": toml.dumps(
-            dict(
-                sequence=dict(
-                    _time=0.0, processes=SequenceModel.ALL_PROCESSES, **params
-                )
-            )
+            {
+                "sequence": {
+                    "_time": 0.0,
+                    "processes": SequenceModel.ALL_PROCESSES,
+                    **params,
+                }
+            }
         ),
         "bathymetry.csv": as_csv(
             [[0.0, 20.0], [100000.0, -80.0]], header="X [m], Elevation [m]"
@@ -122,7 +125,7 @@ def _contents_of_input_file(infile: Union[str, PathLike[str]], set: str) -> str:
     return contents[str(infile)]
 
 
-def _time_from_filename(name: Union[str, PathLike[str]]) -> Union[int, None]:
+def _time_from_filename(name: Union[str, PathLike[str]]) -> Optional[int]:
     """Parse a time stamp from a file name.
 
     Parameters
@@ -299,14 +302,11 @@ def run(ctx: Any, with_citations: bool, dry_run: bool) -> None:
             disable=True if silent else None,
         )
 
-        try:
-            with progressbar as bar:
-                while 1:
-                    model.run_one_step()
-                    model.set_params(params.update(1))
-                    bar.update(1)
-        except StopIteration:
-            pass
+        with suppress(StopIteration), progressbar as bar:
+            while 1:
+                model.run_one_step()
+                model.set_params(params.update(1))
+                bar.update(1)
 
         if verbose and not silent:
             total = sum(model.timer.values())
@@ -394,7 +394,7 @@ def plot(ctx: Any, set: str) -> None:
         config.update(
             TimeVaryingConfig.from_file(folder / "sequence.toml")
             .as_dict()
-            .get("plot", dict())
+            .get("plot", {})
         )
 
     config.update(**_load_params_from_strings(set))
@@ -403,8 +403,8 @@ def plot(ctx: Any, set: str) -> None:
         logger.info(
             os.linesep.join(
                 [
-                    "Reading configuration\n",
-                    toml.dumps(dict(sequence=dict(plot=config))),
+                    "Reading configuration",
+                    toml.dumps({"sequence": {"plot": config}}),
                 ]
             )
         )
@@ -471,7 +471,7 @@ def _walk_dict(indict: Union[dict, Any], prev: Optional[list] = None) -> Iterato
         for key, value in indict.items():
             if isinstance(value, dict):
                 yield from _walk_dict(value, [key] + prev)
-            elif isinstance(value, list) or isinstance(value, tuple):
+            elif isinstance(value, (list, tuple)):
                 yield prev + [key, value]
             else:
                 yield prev + [key, value]

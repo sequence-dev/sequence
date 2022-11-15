@@ -8,3 +8,4 @@ pyyaml
 rich-click
 scipy
 tomlkit
+tqdm
