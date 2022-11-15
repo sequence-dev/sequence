@@ -5,7 +5,7 @@ from typing import Optional, Union
 import numpy as np
 import tomlkit as toml
 from landlab.components.flexure import Flexure1D
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import NDArray
 
 from ._grid import SequenceModelGrid
 
@@ -123,8 +123,10 @@ class SedimentFlexure(Flexure1D):
 
     @staticmethod
     def calc_bulk_density(
-        grain_density: ArrayLike, void_density: ArrayLike, porosity: ArrayLike
-    ) -> ArrayLike:
+        grain_density: NDArray[np.floating],
+        void_density: NDArray[np.floating],
+        porosity: NDArray[np.floating],
+    ) -> NDArray[np.floating]:
         """Calculate the bulk density of a material with a given porosity.
 
         Parameters
