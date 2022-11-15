@@ -183,7 +183,7 @@ class TimeVaryingConfig:
             doc["_time"] = time
 
         if fmt == "toml":
-            return toml.dumps(dict(sequence=docs))
+            return toml.dumps({"sequence": docs})
         elif fmt == "yaml":
             return yaml.dump(docs, default_flow_style=False)
         else:
@@ -276,9 +276,9 @@ class TimeVaryingConfig:
             The configurations and their associated times.
         """
 
-        def _tomlkit_to_popo(d: dict) -> Any:
+        def _tomlkit_to_popo(d: Any) -> Any:
             try:
-                result = getattr(d, "value")
+                result = d.value
             except AttributeError:
                 result = d
 
@@ -446,7 +446,7 @@ def _walk_dict(
         for key, value in indict.items():
             if isinstance(value, dict):
                 yield from _walk_dict(value, prev_dicts + [key])
-            elif isinstance(value, list) or isinstance(value, tuple):
+            elif isinstance(value, (list, tuple)):
                 yield tuple(prev_dicts + [key]), value
             else:
                 yield tuple(prev_dicts + [key]), value

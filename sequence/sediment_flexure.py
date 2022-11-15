@@ -1,6 +1,6 @@
 """Subside a `SequenceModelGrid` using flexure."""
 import logging
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 import tomlkit as toml
@@ -45,7 +45,7 @@ class SedimentFlexure(Flexure1D):
         grid: SequenceModelGrid,
         sand_density: float = 2650,
         mud_density: float = 2720.0,
-        isostasytime: Union[float, None] = 7000.0,
+        isostasytime: Optional[float] = 7000.0,
         water_density: float = 1030.0,
         **kwds: dict,
     ):
@@ -190,7 +190,7 @@ class SedimentFlexure(Flexure1D):
         return time
 
     @property
-    def isostasy_time(self) -> Union[float, None]:
+    def isostasy_time(self) -> Optional[float]:
         """Return the isostasy time."""
         return self._isostasy_time
 
@@ -244,6 +244,14 @@ class SedimentFlexure(Flexure1D):
         self._rho_mud = SedimentFlexure.calc_bulk_density(
             self.mud_density, self.water_density, 0.65
         )
+
+    @staticmethod
+    def calc_water_load(
+        z: NDArray[np.floating], water_density: float
+    ) -> NDArray[np.floating]:
+        """Calculate the water load."""
+        water_depth = np.clip(-z, a_min=0.0, a_max=None)
+        return water_density * water_depth
 
     @staticmethod
     def _calc_loading(
@@ -327,7 +335,7 @@ class SedimentFlexure(Flexure1D):
         return sand_fraction * sand_density + (1.0 - sand_fraction) * mud_density
 
     @staticmethod
-    def _calc_isostasy_fraction(isostasy_time: Union[float, None], dt: float) -> float:
+    def _calc_isostasy_fraction(isostasy_time: Optional[float], dt: float) -> float:
         """Calculate the fraction of isostatic subsidence.
 
         Parameters

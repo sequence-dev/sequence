@@ -5,6 +5,7 @@ import time
 import warnings
 from collections import OrderedDict, defaultdict
 from collections.abc import Hashable, Iterable
+from contextlib import suppress
 from typing import Any, Dict, Optional
 
 import numpy as np
@@ -131,10 +132,8 @@ class SequenceModel:
             porosity=0.5,
         )
 
-        try:
+        with suppress(KeyError):
             self._components["sea_level"].time = self.clock.time
-        except KeyError:
-            pass
 
         self.timer: dict[str, float] = defaultdict(float)
 
@@ -260,11 +259,9 @@ class SequenceModel:
 
     def run(self) -> None:
         """Run the model until complete."""
-        try:
+        with suppress(StopIteration):
             while 1:
                 self.run_one_step()
-        except StopIteration:
-            pass
 
     def advance_components(self, dt: float) -> None:
         """Update each of the components by a time step.
@@ -356,7 +353,7 @@ class SequenceModel:
     def _update_fields(self) -> None:
         """Update fields that depend on other fields."""
         if "sediment__total_of_loading" in self.grid.at_node:
-            new_load = SedimentFlexure._calc_loading(
+            sediment_load = SedimentFlexure._calc_loading(
                 self.grid.get_profile("sediment_deposit__thickness"),
                 self.grid.get_profile("topographic__elevation")
                 - self.grid.at_grid["sea_level__elevation"],
@@ -368,7 +365,7 @@ class SequenceModel:
                 ),
                 1030.0,
             )
-            self.grid.get_profile("sediment__total_of_loading")[:] += new_load
+            self.grid.get_profile("sediment__total_of_loading")[:] += sediment_load
 
         if "bedrock_surface__increment_of_elevation" in self.grid.at_node:
             self.grid.at_node["bedrock_surface__elevation"] += self.grid.at_node[
@@ -424,22 +421,16 @@ def _match_values(d1: dict, d2: dict, keys: Iterable[Hashable]) -> None:
 
     """
     for key in keys:
-        try:
+        with suppress(KeyError):
             d1.setdefault(key, d2[key])
-        except KeyError:
-            pass
-        try:
+        with suppress(KeyError):
             d2.setdefault(key, d1[key])
-        except KeyError:
-            pass
 
     mismatch = []
     for key in keys:
-        try:
+        with suppress(KeyError):
             if d1[key] != d2[key]:
                 mismatch.append(repr(key))
-        except KeyError:
-            pass
     if mismatch:
         warnings.warn(
             f"both dictionaries contain the key {', '.join(mismatch)} but their values do not match"

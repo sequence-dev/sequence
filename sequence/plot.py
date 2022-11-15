@@ -253,7 +253,7 @@ def plot_file(filename: Union[str, PathLike], **kwds: Any) -> None:
     )
 
 
-def _get_layers_to_plot(start: int, stop: int, num: int = -1) -> Union[slice, None]:
+def _get_layers_to_plot(start: int, stop: int, num: int = -1) -> Optional[slice]:
     if num == 0:
         return None
     elif num < 0 or num > stop - start + 1:
@@ -292,8 +292,8 @@ def _outline_layer(
     x: NDArray,
     y_of_bottom_layer: NDArray,
     y_of_top_layer: NDArray,
-    bottom_limits: Optional[tuple[Union[float, None], Union[float, None]]] = None,
-    top_limits: Optional[tuple[Union[float, None], Union[float, None]]] = None,
+    bottom_limits: Optional[tuple[Optional[float], Optional[float]]] = None,
+    top_limits: Optional[tuple[Optional[float], Optional[float]]] = None,
 ) -> tuple[NDArray, NDArray]:
     if bottom_limits is None:
         bottom_limits = (None, None)
