@@ -10,9 +10,9 @@ logger = logging.getLogger("sequence")
 
 LOG_LEVEL_STYLES: dict[str, dict[str, Any]] = {
     "DEBUG": {"bold": True, "dim": True},
-    "INFO": {"bold": True, "dim": True},
+    "INFO": {"bold": True, "dim": True, "fg": "green"},
     "WARNING": {"bold": True, "fg": "bright_yellow"},
-    "ERROR": {"bold": True, "fg": "red"},
+    "ERROR": {"bold": True, "fg": "bright_red"},
     "CRITICAL": {"bold": True, "fg": "bright_red"},
 }
 
