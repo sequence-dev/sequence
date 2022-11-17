@@ -31,7 +31,15 @@ class SeaLevelTimeSeries(Component):
             "units": "m",
             "mapping": "grid",
             "doc": "Sea level elevation",
-        }
+        },
+        "sea_level__increment_of_elevation": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "grid",
+            "doc": "Change in sea level elevation",
+        },
     }
 
     def __init__(
@@ -109,7 +117,12 @@ class SeaLevelTimeSeries(Component):
             The time step.
         """
         self._time += dt
-        self.grid.at_grid["sea_level__elevation"] = self._sea_level(self.time)
+        old_sea_level = self.grid.at_grid["sea_level__elevation"]
+        new_sea_level = self._sea_level(self.time)
+        self.grid.at_grid["sea_level__elevation"] = new_sea_level
+        self.grid.at_grid["sea_level__increment_of_elevation"] = (
+            new_sea_level - old_sea_level
+        )
 
 
 class SinusoidalSeaLevel(SeaLevelTimeSeries):
