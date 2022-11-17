@@ -12,7 +12,245 @@ from ._grid import SequenceModelGrid
 logger = logging.getLogger("sequence")
 
 
-class SedimentFlexure(Flexure1D):
+class DynamicFlexure(Flexure1D):
+    """Calculate non-isostatic flexure."""
+
+    def __init__(self, grid, isostasytime: Optional[float] = 7000.0, **kwds: dict):
+        """Inherit from this base class for non-isostatic flexure.
+
+        Parameters
+        ----------
+        grid : SequenceModelGrid
+            A *Landlab* grid.
+        isostasytime : float
+            The e-folding time for a deflection to reach equilibrium.
+        """
+        isostasy_time = isostasytime
+        if np.isclose(isostasy_time, 0.0):
+            isostasy_time = None
+        self._isostasy_time = (
+            self.validate_isostasy_time(isostasy_time)
+            if isostasy_time is not None
+            else None
+        )
+
+        super().__init__(grid, rows=1, method="flexure", **kwds)
+
+        self._subsidence_pool = np.zeros(grid.shape[1], dtype=float)
+
+    @staticmethod
+    def validate_isostasy_time(time: float) -> float:
+        """Validate an isostasy time value.
+
+        Parameters
+        ----------
+        time : float
+            The isostasy time value to validate.
+
+        Returns
+        -------
+        float
+            The isostasy time value.
+
+        Raises
+        ------
+        ValueError
+            Raised if the value is invalid.
+        """
+        if time < 0.0:
+            raise ValueError(f"negative isostasy time ({time})")
+        return time
+
+    @property
+    def isostasy_time(self) -> Optional[float]:
+        """Return the isostasy time."""
+        return self._isostasy_time
+
+    @staticmethod
+    def calc_isostasy_fraction(isostasy_time: Optional[float], dt: float) -> float:
+        """Calculate the fraction of isostatic subsidence.
+
+        Parameters
+        ----------
+        isostasy_time : float or None
+            The time parameter that represente the e-folding time
+            to isostasy. If ``None``, assume isostasy.
+        dt : float
+            Time step.
+
+        Returns
+        -------
+        float
+            Fraction of isostatic subsidence that occurs over the time step.
+        """
+        if isostasy_time is None:
+            return 1.0
+        else:
+            return 1.0 - np.exp(-dt / isostasy_time)
+
+    def calc_dynamic_deflection(
+        self, isostatic_deflection: NDArray[np.floating], dt: float
+    ) -> NDArray[np.floating]:
+        """Calculate the non-isostatic deflection.
+
+        Parameters
+        ----------
+        isostatic_deflection : ndarray of float
+            The isostatic deflection.
+        dt : float
+            Time step over which to subside.
+
+        Returns
+        -------
+        deflection : ndarray of float
+            The deflections over the given time step.
+        """
+        isostasy_fraction = self.calc_isostasy_fraction(self.isostasy_time, dt)
+
+        self._subsidence_pool[:] += isostatic_deflection
+        deflection = self._subsidence_pool[:] * isostasy_fraction
+        self._subsidence_pool[:] -= deflection
+
+        return deflection
+
+
+class WaterFlexure(DynamicFlexure):
+    """*Landlab* component that deflects a `SequenceModelGrid` due to water loading."""
+
+    def __init__(
+        self,
+        grid: SequenceModelGrid,
+        isostasytime: Optional[float] = 7000.0,
+        **kwds: dict,
+    ):
+        """Calculate flexural subsidence due to changes in water loading.
+
+        Parameters
+        ----------
+        grid : SequenceModelGrid
+            A *Landlab* grid.
+        isostasytime : float
+            The e-folding time for a deflection to reach equilibrium.
+        water_density : float, optional
+            Density of water.
+        """
+        if "lithosphere__increment_of_overlying_pressure" not in grid.at_node:
+            grid.add_zeros("lithosphere__increment_of_overlying_pressure", at="node")
+        if "water__increment_of_depth" not in grid.at_node:
+            grid.add_zeros("water__increment_of_depth", at="node")
+        if "sea_level__increment_of_elevation" not in grid.at_grid:
+            grid.at_grid["sea_level__increment_of_elevation"] = 0.0
+
+        super().__init__(grid, isostasytime=isostasytime, **kwds)
+
+        if "bedrock_surface__increment_of_elevation" not in grid.at_node:
+            grid.add_zeros("bedrock_surface__increment_of_elevation", at="node")
+
+        self._dt = 1.0
+        logger.debug(
+            "Flexure parameters\n"
+            + toml.dumps(
+                {
+                    "isostasy_time": 0.0
+                    if self._isostasy_time is None
+                    else self._isostasy_time,
+                    "alpha": self.alpha,
+                    "rigidity": self.rigidity,
+                    "gamma_mantle": self.gamma_mantle,
+                    "method": self.method,
+                    "eet": self.eet,
+                    "youngs": self.youngs,
+                }
+            )
+        )
+
+    @staticmethod
+    def calc_water_loading(
+        z: NDArray[np.floating], water_density: float
+    ) -> NDArray[np.floating]:
+        """Calculate the water load."""
+        water_depth = np.clip(-z, a_min=0.0, a_max=None)
+        return water_density * water_depth
+
+    def calc_half_plane_deflection(self, load: float) -> NDArray[np.floating]:
+        """Calculate the deflection due to a half-plane load.
+
+        Parameters
+        ----------
+        load : float
+            The added (or removed) load.
+
+        Returns
+        -------
+        ndarray
+            The deflections along the grid.
+        """
+        x = self.grid.x_of_node[: self.grid.shape[1]]
+        r = (x[-1] - x) / self.alpha
+        c = load / (2.0 * self.gamma_mantle)
+        return c * np.exp(-r) * np.cos(r)
+
+    def calc_flexure_due_to_water(
+        self, change_in_water_depth: NDArray[np.floating], change_in_sea_level: float
+    ):
+        """Calculate flexure due to water loading.
+
+        Parameters
+        ----------
+        change_in_water_depth : ndarray or float
+            The change in water depth along the profile causing the deflection.
+        change_in_sea_level : float
+            The change in sea level that adds to the deflection.
+
+        Returns
+        -------
+        ndarray of float
+            Deflections along the profile caused by the water loading.
+        """
+        load = change_in_water_depth * self.rho_water * self.gravity * self.grid.dx
+        return Flexure1D.calc_flexure(
+            self.grid.x_of_node[: self.grid.shape[1]], load, self.alpha, self.rigidity
+        ) + self.calc_half_plane_deflection(
+            change_in_sea_level * self.rho_water * self.gravity
+        )
+
+    def update(self):
+        """Update the component by a single time step."""
+        self.grid.get_profile("lithosphere_surface__increment_of_elevation").fill(0.0)
+
+        change_in_sea_level = self.grid.at_grid["sea_level__increment_of_elevation"]
+        change_in_water_depth = self.grid.get_profile("water__increment_of_depth")
+
+        isostatic_deflection = self.calc_flexure_due_to_water(
+            change_in_water_depth, change_in_sea_level
+        )
+
+        deflection = self.calc_dynamic_deflection(isostatic_deflection, self._dt)
+
+        total_deflection = self.grid.get_profile(
+            "bedrock_surface__increment_of_elevation"
+        )
+        total_deflection[:] -= deflection
+
+        logger.debug(
+            "deflection due to water loading\n"
+            f"min = {deflection.min()}\n"
+            f"max = {deflection.max()}"
+        )
+
+    def run_one_step(self, dt):
+        """Update the component by a time step.
+
+        Parameters
+        ----------
+        dt : float, optional
+            The time step over which to update the component.
+        """
+        self._dt = dt
+        self.update()
+
+
+class SedimentFlexure(DynamicFlexure):
     """*Landlab* component that deflects a `SequenceModelGrid` due to sediment loading."""
 
     _name = "Sediment-loading flexure"
@@ -74,20 +312,14 @@ class SedimentFlexure(Flexure1D):
         self._rho_mud = self.calc_bulk_density(
             self.mud_density, self.water_density, 0.65
         )
+        kwds.pop("method", None)
 
-        if np.isclose(isostasytime, 0.0):
-            isostasytime = None
-        self._isostasy_time = (
-            SedimentFlexure.validate_isostasy_time(isostasytime)
-            if isostasytime is not None
-            else None
-        )
         self._dt = 1.0
 
         if "sediment__total_of_loading" not in grid.at_node:
             grid.add_zeros("sediment__total_of_loading", at="node")
 
-        super().__init__(grid, rows=1, **kwds)
+        super().__init__(grid, isostasytime=isostasytime, **kwds)
 
         if "lithosphere__increment_of_overlying_pressure" not in grid.at_node:
             grid.add_zeros("lithosphere__increment_of_overlying_pressure", at="node")
@@ -96,9 +328,6 @@ class SedimentFlexure(Flexure1D):
         if "bedrock_surface__increment_of_elevation" not in grid.at_node:
             grid.add_zeros("bedrock_surface__increment_of_elevation", at="node")
 
-        self._subs_pool = np.zeros_like(
-            self.grid.get_profile("lithosphere_surface__increment_of_elevation")
-        )
         self._last_load = self.grid.get_profile("sediment__total_of_loading").copy()
 
         logger.debug(
@@ -168,34 +397,6 @@ class SedimentFlexure(Flexure1D):
             raise ValueError(f"negative or zero density ({density})")
         return density
 
-    @staticmethod
-    def validate_isostasy_time(time: float) -> float:
-        """Validate an isostasy time value.
-
-        Parameters
-        ----------
-        time : float
-            The isostasy time value to validate.
-
-        Returns
-        -------
-        float
-            The isostasy time value.
-
-        Raises
-        ------
-        ValueError
-            Raised if the value is invalid.
-        """
-        if time < 0.0:
-            raise ValueError(f"negative isostasy time ({time})")
-        return time
-
-    @property
-    def isostasy_time(self) -> Optional[float]:
-        """Return the isostasy time."""
-        return self._isostasy_time
-
     @property
     def sand_density(self) -> float:
         """Return the density of sand."""
@@ -246,14 +447,6 @@ class SedimentFlexure(Flexure1D):
         self._rho_mud = SedimentFlexure.calc_bulk_density(
             self.mud_density, self.water_density, 0.65
         )
-
-    @staticmethod
-    def calc_water_load(
-        z: NDArray[np.floating], water_density: float
-    ) -> NDArray[np.floating]:
-        """Calculate the water load."""
-        water_depth = np.clip(-z, a_min=0.0, a_max=None)
-        return water_density * water_depth
 
     @staticmethod
     def _calc_loading(
@@ -336,28 +529,6 @@ class SedimentFlexure(Flexure1D):
         sand_fraction = np.asarray(sand_fraction)
         return sand_fraction * sand_density + (1.0 - sand_fraction) * mud_density
 
-    @staticmethod
-    def _calc_isostasy_fraction(isostasy_time: Optional[float], dt: float) -> float:
-        """Calculate the fraction of isostatic subsidence.
-
-        Parameters
-        ----------
-        isostasy_time : float or None
-            The time parameter that represente the e-folding time
-            to isostasy. If ``None``, assume isostasy.
-        dt : float
-            Time step.
-
-        Returns
-        -------
-        float
-            Fraction of isostatic subsidence that occurs over the time step.
-        """
-        if isostasy_time is None:
-            return 1.0
-        else:
-            return 1.0 - np.exp(-dt / isostasy_time)
-
     def update(self) -> None:
         """Update the component by a single time step."""
         self.grid.get_profile("lithosphere_surface__increment_of_elevation").fill(0.0)
@@ -374,15 +545,19 @@ class SedimentFlexure(Flexure1D):
         isostatic_deflection = self.grid.get_profile(
             "lithosphere_surface__increment_of_elevation"
         )
-        isostasy_fraction = self._calc_isostasy_fraction(self.isostasy_time, self._dt)
-        self._subs_pool[:] += isostatic_deflection
-        deflection_due_to_flexure = self._subs_pool[:] * isostasy_fraction
-        self._subs_pool[:] = self._subs_pool[:] - deflection_due_to_flexure
+
+        deflection = self.calc_dynamic_deflection(isostatic_deflection, self._dt)
 
         total_deflection = self.grid.get_profile(
             "bedrock_surface__increment_of_elevation"
         )
-        total_deflection -= deflection_due_to_flexure
+        total_deflection -= deflection
+
+        logger.debug(
+            "deflection due to sediment loading\n"
+            f"min = {deflection.min()}\n"
+            f"max = {deflection.max()}"
+        )
 
     def run_one_step(self, dt: float = 1.0) -> None:
         """Update the component by a time step.
