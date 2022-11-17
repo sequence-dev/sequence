@@ -38,3 +38,15 @@ class MissingRequiredVariable(SequenceError):
     def __str_(self) -> str:
         """Return an error message in human-readable form, including the name of the missing variable."""
         return f"{self._name!r}"
+
+
+class ParameterMismatchError(SequenceError):
+    """Raise this error if two configurations have different values for the same parameter."""
+
+    def __init__(self, keys):
+        self.keys = tuple(keys)
+
+    def __str__(self):
+        """Return an error message with the offending keys."""
+        params = ", ".join([repr(key) for key in self.keys])
+        return f"mismatch in parameter{'s' if len(self.keys) > 1 else ''}: {params}"
