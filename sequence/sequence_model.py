@@ -2,7 +2,6 @@
 import logging
 import os
 import time
-import warnings
 from collections import OrderedDict, defaultdict
 from collections.abc import Hashable, Iterable
 from contextlib import suppress
@@ -16,10 +15,11 @@ from numpy.typing import ArrayLike
 
 from ._grid import SequenceModelGrid
 from .bathymetry import BathymetryReader
+from .errors import ParameterMismatchError
 from .fluvial import Fluvial
 from .output_writer import OutputWriter
 from .sea_level import SeaLevelTimeSeries, SinusoidalSeaLevel
-from .sediment_flexure import SedimentFlexure
+from .sediment_flexure import SedimentFlexure, WaterFlexure
 from .shoreline import ShorelineFinder
 from .submarine import SubmarineDiffuser
 from .subsidence import SubsidenceTimeSeries
@@ -135,6 +135,14 @@ class SequenceModel:
         with suppress(KeyError):
             self._components["sea_level"].time = self.clock.time
 
+        if "water__total_of_loading" in self.grid.at_node:
+            water_load = WaterFlexure.calc_water_loading(
+                self.grid.get_profile("topographic__elevation")
+                - self.grid.at_grid["sea_level__elevation"],
+                1030.0,
+            )
+            self.grid.get_profile("water__total_of_loading")[:] = water_load
+
         self.timer: dict[str, float] = defaultdict(float)
 
     @staticmethod
@@ -183,13 +191,45 @@ class SequenceModel:
             {process: context.get(process, {}).copy() for process in processes}
         )
 
-        _match_values(
-            params["fluvial"],
-            params["submarine_diffusion"],
-            ["sediment_load", "plain_slope"],
-        )
-        _match_values(params["fluvial"], context["sediments"].copy(), ["hemipelagic"])
-        _match_values(params["shoreline"], params["submarine_diffusion"], ["alpha"])
+        params_to_match = [
+            ("fluvial", "submarine_diffusion", ["sediment_load", "plain_slope"]),
+            ("fluvial", "sediments", ["hemipelagic"]),
+            ("shoreline", "submarine_diffusion", ["alpha"]),
+            ("water_flexure", "flexure", ["isostasytime", "eet"]),
+        ]
+        for d1, d2, keys in params_to_match:
+            try:
+                matched_values = _match_values(params[d1], params[d2], keys)
+            except ParameterMismatchError as error:
+                msg = os.linesep.join(
+                    [
+                        tomlkit.dumps(
+                            {"sequence": {d1: {k: params[d1][k] for k in error.keys}}}
+                        ),
+                        tomlkit.dumps(
+                            {"sequence": {d2: {k: params[d2][k] for k in error.keys}}}
+                        ),
+                    ]
+                )
+                logger.warning(os.linesep.join([str(error), msg]))
+            else:
+                msg = os.linesep.join(
+                    [
+                        tomlkit.dumps({"sequence": {d1: matched_values}}),
+                        tomlkit.dumps({"sequence": {d2: matched_values}}),
+                    ]
+                )
+                if len(matched_values) > 0:
+                    logger.debug(
+                        os.linesep.join(
+                            [
+                                f"matched value{'s' if len(matched_values) > 1 else ''} between {d1!r} and {d2!r}",
+                                msg,
+                            ]
+                        )
+                    )
+                params[d1].update(matched_values)
+                params[d2].update(matched_values)
 
         for name, values in params.items():
             logger.debug(
@@ -208,6 +248,7 @@ class SequenceModel:
             "fluvial": Fluvial,
             "flexure": SedimentFlexure,
             "shoreline": ShorelineFinder,
+            "water_flexure": WaterFlexure,
         }
         try:
             params["sea_level"]["filepath"]
@@ -352,6 +393,13 @@ class SequenceModel:
 
     def _update_fields(self) -> None:
         """Update fields that depend on other fields."""
+        old_water_depth = np.clip(
+            self.grid.at_grid["sea_level__elevation"]
+            - self.grid.get_profile("topographic__elevation"),
+            a_min=0.0,
+            a_max=None,
+        )
+
         if "sediment__total_of_loading" in self.grid.at_node:
             sediment_load = SedimentFlexure._calc_loading(
                 self.grid.get_profile("sediment_deposit__thickness"),
@@ -378,8 +426,19 @@ class SequenceModel:
             + self.grid.event_layers.thickness
         )
 
+        new_water_depth = np.clip(
+            self.grid.at_grid["sea_level__elevation"]
+            - self.grid.get_profile("topographic__elevation")
+            - self.grid.get_profile("sediment_deposit__thickness"),
+            a_min=0.0,
+            a_max=None,
+        )
+        if "water__increment_of_depth" in self.grid.at_node:
+            change_in_water_depth = self.grid.get_profile("water__increment_of_depth")
+            change_in_water_depth[:] = new_water_depth - old_water_depth
 
-def _match_values(d1: dict, d2: dict, keys: Iterable[Hashable]) -> None:
+
+def _match_values(d1: dict, d2: dict, keys: Iterable[Hashable]) -> dict:
     """Match values between two dictionaries.
 
     Parameters
@@ -391,47 +450,41 @@ def _match_values(d1: dict, d2: dict, keys: Iterable[Hashable]) -> None:
     keys : iterable
         The keys to match between dictionaries.
 
+    Returns
+    -------
+    dict
+        A key/value pairs that were matched.
+
     Examples
     --------
     >>> a, b = {"foo": 0, "bar": 1}, {"baz": 2}
     >>> _match_values(a, b, ["bar"])
-    >>> sorted(b.items())
-    [('bar', 1), ('baz', 2)]
+    {'bar': 1}
 
     >>> a, b = {"foo": 0, "bar": 1}, {"baz": 2}
-    >>> _match_values(a, b, ["foo", "baz"])
-    >>> sorted(a.items())
-    [('bar', 1), ('baz', 2), ('foo', 0)]
-    >>> sorted(b.items())
+    >>> sorted(_match_values(a, b, ["foo", "baz"]).items())
     [('baz', 2), ('foo', 0)]
 
     >>> a, b = {"bar": 1}, {"bar": 2}
     >>> _match_values(a, b, ["bar"])
-    >>> sorted(a.items())
-    [('bar', 1)]
-    >>> sorted(b.items())
-    [('bar', 2)]
+    Traceback (most recent call last):
+    ...
+    sequence.errors.ParameterMismatchError: mismatch in parameter: 'bar'
 
     >>> a, b = {"bar": 1}, {"bar": 2}
     >>> _match_values(a, b, ["foo"])
-    >>> sorted(a.items())
-    [('bar', 1)]
-    >>> sorted(b.items())
-    [('bar', 2)]
-
+    {}
     """
+    mismatched_keys = []
+    matched = {}
     for key in keys:
         with suppress(KeyError):
-            d1.setdefault(key, d2[key])
+            matched[key] = d2[key]
         with suppress(KeyError):
-            d2.setdefault(key, d1[key])
+            matched.setdefault(key, d1[key])
+            if matched[key] != d1[key]:
+                mismatched_keys.append(key)
 
-    mismatch = []
-    for key in keys:
-        with suppress(KeyError):
-            if d1[key] != d2[key]:
-                mismatch.append(repr(key))
-    if mismatch:
-        warnings.warn(
-            f"both dictionaries contain the key {', '.join(mismatch)} but their values do not match"
-        )
+    if mismatched_keys:
+        raise ParameterMismatchError(mismatched_keys)
+    return matched
