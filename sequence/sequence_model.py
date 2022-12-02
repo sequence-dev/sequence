@@ -319,12 +319,12 @@ class SequenceModel:
             component.run_one_step(dt)
             self.timer[name] += time.time() - time_before
 
-        self._update_fields()
-
         self.grid.event_layers.add(
             self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell],
             **self.layer_properties(),
         )
+
+        self._update_fields()
 
         if (
             self.grid.event_layers.number_of_layers - self._n_archived_layers
@@ -428,8 +428,7 @@ class SequenceModel:
 
         new_water_depth = np.clip(
             self.grid.at_grid["sea_level__elevation"]
-            - self.grid.get_profile("topographic__elevation")
-            - self.grid.get_profile("sediment_deposit__thickness"),
+            - self.grid.get_profile("topographic__elevation"),
             a_min=0.0,
             a_max=None,
         )
