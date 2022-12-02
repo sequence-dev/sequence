@@ -428,8 +428,7 @@ class SequenceModel:
 
         new_water_depth = np.clip(
             self.grid.at_grid["sea_level__elevation"]
-            - self.grid.get_profile("topographic__elevation")
-            - self.grid.get_profile("sediment_deposit__thickness"),
+            - self.grid.get_profile("topographic__elevation"),
             a_min=0.0,
             a_max=None,
         )
