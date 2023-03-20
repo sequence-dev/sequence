@@ -1,5 +1,5 @@
-sphinx
-sphinxcontrib.towncrier
-pygments>=2.4
-sphinx-inline-tabs
 furo
+pygments>=2.4
+sphinx
+sphinx-inline-tabs
+sphinxcontrib.towncrier
