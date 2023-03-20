@@ -13,6 +13,7 @@ ROOT = pathlib.Path(__file__).parent
 def test(session: nox.Session) -> None:
     """Run the tests."""
     session.install("-r", "requirements-testing.in")
+    session.install(".")
 
     args = session.posargs or ["-n", "auto", "--cov", PROJECT, "-vvv"]
     if "CI" in os.environ:
