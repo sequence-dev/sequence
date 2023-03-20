@@ -12,7 +12,6 @@ def _find_tomllib():
 
 
 def requirements(extras):
-
     tomllib = _find_tomllib()
 
     with open("pyproject.toml", "rb") as fp:

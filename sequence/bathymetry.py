@@ -100,7 +100,6 @@ def _create_initial_profile(
     sl_sh: float = 0.001,
     wavebase: float = 60.0,
 ) -> NDArray[np.floating]:
-
     # check shoreline is in array, else put in center of array
     if x[-1] < init_shore:
         init_shore = (x[0] + x[-1]) / 2
