@@ -384,7 +384,8 @@ def _flatten_dict(d: dict, sep: Optional[str] = None) -> dict:
     [('bar', 1), ('foo.baz', 0), ('foo.foobar', 'baz')]
     """
     if sep is None:
-        return {keys: value for keys, value in _walk_dict(d)}
+        return dict(_walk_dict(d))
+        # return {keys: value for keys, value in _walk_dict(d)}
     else:
         return {sep.join(keys): value for keys, value in _walk_dict(d)}
 
