@@ -4,7 +4,7 @@ This module contains *Landlab* components to read bathymetry into a
 `SequenceModelGrid`.
 """
 from os import PathLike
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 from landlab import Component
@@ -78,7 +78,7 @@ class BathymetryReader(Component):
             self.grid.nodes_at_bottom_edge
         ]
 
-    def run_one_step(self, dt: float = None) -> None:
+    def run_one_step(self, dt: Optional[float] = None) -> None:
         """Update the grid's bathymetry.
 
         Parameters
