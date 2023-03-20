@@ -223,7 +223,9 @@ class SequenceModel:
                     logger.debug(
                         os.linesep.join(
                             [
-                                f"matched value{'s' if len(matched_values) > 1 else ''} between {d1!r} and {d2!r}",
+                                "matched value"
+                                f"{'s' if len(matched_values) > 1 else ''} between "
+                                f"{d1!r} and {d2!r}",
                                 msg,
                             ]
                         )

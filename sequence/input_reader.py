@@ -231,8 +231,8 @@ class TimeVaryingConfig:
             fmt = filepath.suffix[1:]
         try:
             loader = getattr(cls, f"load_{fmt}")
-        except AttributeError:
-            raise ValueError(f"unrecognized format: {fmt}")
+        except AttributeError as error:
+            raise ValueError(f"unrecognized format: {fmt}") from error
 
         with open(name) as fp:
             times_and_params = loader(fp)
@@ -336,9 +336,11 @@ class TimeVaryingConfig:
         """
         try:
             return getattr(TimeVaryingConfig, f"load_{fmt}")
-        except AttributeError:
+        except AttributeError as error:
             fmts = set(TimeVaryingConfig.get_supported_formats())
-            raise ValueError(f"unrecognized format: {fmt!r} (not on of {fmts!r})")
+            raise ValueError(
+                f"unrecognized format: {fmt!r} (not on of {fmts!r})"
+            ) from error
 
     @staticmethod
     def get_supported_formats() -> list[str]:
