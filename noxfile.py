@@ -75,11 +75,15 @@ def towncrier(session: nox.Session) -> None:
 @nox.session(name="build-docs", reuse_venv=True)
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
-    with session.chdir(ROOT):
-        session.install("-r", "docs/requirements.in")
+    build_dir = ROOT / "build"
+    docs_dir = ROOT / "docs"
+
+    session.install("-r", docs_dir / "requirements.in")
+    session.install("-e", ".")
 
     clean_docs(session)
 
+    build_dir.mkdir(exist_ok=True)
     with session.chdir(ROOT):
         session.run(
             "sphinx-apidoc",
