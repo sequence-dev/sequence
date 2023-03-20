@@ -72,19 +72,6 @@ def towncrier(session: nox.Session) -> None:
     session.run("towncrier", "check", "--compare-with", "origin/develop")
 
 
-@nox.session(name="build-requirements", reuse_venv=True)
-def build_requirements(session: nox.Session) -> None:
-    """Create requirements files from pyproject.toml."""
-    session.install("tomli")
-
-    with open("requirements.txt", "w") as fp:
-        session.run("python", "requirements.py", stdout=fp)
-
-    for extra in ["dev", "doc", "notebook"]:
-        with open(f"requirements-{extra}.txt", "w") as fp:
-            session.run("python", "requirements.py", extra, stdout=fp)
-
-
 @nox.session(name="build-docs", reuse_venv=True)
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
