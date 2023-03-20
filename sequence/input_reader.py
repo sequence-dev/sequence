@@ -301,7 +301,8 @@ class TimeVaryingConfig:
                 warnings.warn(
                     "unexpected type ({!r}) encountered when converting toml to a dict".format(
                         result.__class__.__name__
-                    )
+                    ),
+                    stacklevel=2,
                 )
 
             return result
