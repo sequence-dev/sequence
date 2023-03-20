@@ -12,7 +12,7 @@ ROOT = pathlib.Path(__file__).parent
 @nox.session
 def test(session: nox.Session) -> None:
     """Run the tests."""
-    session.install(".[dev]")
+    session.install("-r", "requirements-testing.in")
 
     args = session.posargs or ["-n", "auto", "--cov", PROJECT, "-vvv"]
     if "CI" in os.environ:
@@ -23,7 +23,10 @@ def test(session: nox.Session) -> None:
 @nox.session(name="test-notebooks")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
-    session.install(".[dev,notebook]")
+    session.install("nbmake")
+    session.install("-r", "requirements-testing.in")
+    session.install("-r", "notebooks/requirements.in")
+
     session.run("pytest", "--nbmake", "notebooks/")
 
 
@@ -86,7 +89,7 @@ def build_requirements(session: nox.Session) -> None:
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
     with session.chdir(ROOT):
-        session.install(".[doc]")
+        session.install("-r", "docs/requirements.in")
 
     clean_docs(session)
 
