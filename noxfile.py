@@ -26,6 +26,7 @@ def test_notebooks(session: nox.Session) -> None:
     session.install("nbmake")
     session.install("-r", "requirements-testing.in")
     session.install("-r", "notebooks/requirements.in")
+    session.install(".")
 
     session.run("pytest", "--nbmake", "notebooks/")
 
