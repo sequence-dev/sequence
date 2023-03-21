@@ -232,7 +232,7 @@ def plot_file(filename: Union[str, PathLike], **kwds: Any) -> None:
             time = ds["time"]
             time_at_layer = ds["at_layer:age"]
         except KeyError as err:
-            raise MissingRequiredVariable(str(err))
+            raise MissingRequiredVariable(str(err)) from err
 
         try:
             x_of_stack = ds["x_of_cell"].data.squeeze()

@@ -215,7 +215,6 @@ class Fluvial(Component):
 
             # Find avulsion rate and sand density   */
             if r_b[i] > 0.0:
-
                 bigN = self.alpha * (r_cb[i] - r_fp[i]) / r_b[i]
                 if bigN > 1.0:
                     r_cb[i] *= bigN

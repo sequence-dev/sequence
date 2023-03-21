@@ -23,26 +23,36 @@
     :alt: Sequence
     :target: https://sequence.readthedocs.org/
 
-
 .. toctree::
    :caption: Getting Started
    :maxdepth: 2
    :hidden:
 
-   requirements
    installation
-   usage
-   input-files
-   plotting
-   notebooks
+   user_guide/index
 
 .. toctree::
-   :caption: Development
+   :caption: Contributing
    :maxdepth: 2
    :hidden:
 
+   install/index
    api/index
-   authors
+
+.. toctree::
+   :caption: About
+   :maxdepth: 2
+   :hidden:
+
    changelog
+   authors
    contributing
    license
+
+.. toctree::
+   :caption: Project Links
+   :maxdepth: 2
+   :hidden:
+
+   GitHub <https://github.com/sequence-dev/sequence>
+   PyPI <https://pypi.org/project/sequence-model>

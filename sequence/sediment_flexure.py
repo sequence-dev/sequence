@@ -22,17 +22,13 @@ class DynamicFlexure(Flexure1D):
         ----------
         grid : SequenceModelGrid
             A *Landlab* grid.
-        isostasytime : float
+        isostasytime : float, optional
             The e-folding time for a deflection to reach equilibrium.
         """
-        isostasy_time = isostasytime
-        if np.isclose(isostasy_time, 0.0):
-            isostasy_time = None
-        self._isostasy_time = (
-            self.validate_isostasy_time(isostasy_time)
-            if isostasy_time is not None
-            else None
-        )
+        if isostasytime is None or np.isclose(isostasytime, 0.0):
+            self._isostasy_time = None
+        else:
+            self._isostasy_time = self.validate_isostasy_time(isostasytime)
 
         super().__init__(grid, rows=1, method="flexure", **kwds)
 
@@ -352,10 +348,10 @@ class SedimentFlexure(DynamicFlexure):
 
     @staticmethod
     def calc_bulk_density(
-        grain_density: NDArray[np.floating],
-        void_density: NDArray[np.floating],
-        porosity: NDArray[np.floating],
-    ) -> NDArray[np.floating]:
+        grain_density: Union[float, NDArray[np.floating]],
+        void_density: Union[float, NDArray[np.floating]],
+        porosity: Union[float, NDArray[np.floating]],
+    ) -> Union[float, NDArray[np.floating]]:
         """Calculate the bulk density of a material with a given porosity.
 
         Parameters
@@ -372,7 +368,7 @@ class SedimentFlexure(DynamicFlexure):
         float
             The bulk density of the material.
         """
-        return grain_density * (1.0 - porosity) + void_density * porosity
+        return porosity * (void_density - grain_density) + grain_density
 
     @staticmethod
     def validate_density(density: float) -> float:
@@ -411,7 +407,7 @@ class SedimentFlexure(DynamicFlexure):
         )
 
     @property
-    def sand_bulk_density(self) -> float:
+    def sand_bulk_density(self) -> Union[float, NDArray[np.floating]]:
         """Return the bulk density of sand."""
         return self._rho_sand
 
@@ -429,7 +425,7 @@ class SedimentFlexure(DynamicFlexure):
         )
 
     @property
-    def mud_bulk_density(self) -> float:
+    def mud_bulk_density(self) -> Union[float, NDArray[np.floating]]:
         """Return the bulk density of mud."""
         return self._rho_mud
 

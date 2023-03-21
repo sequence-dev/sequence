@@ -313,7 +313,8 @@ def run(ctx: Any, with_citations: bool, dry_run: bool) -> None:
             for name, duration in sorted(model.timer.items(), key=lambda v: v[1]):
                 logger.info(
                     f"{name}\n"
-                    f"duration: {round(duration / total * 100.0, 2)}%, {round(duration, 2)}s\n"
+                    f"duration: {round(duration / total * 100.0, 2)}%, "
+                    f"{round(duration, 2)}s\n"
                 )
 
         if verbose or not silent:
@@ -337,8 +338,6 @@ def run(ctx: Any, with_citations: bool, dry_run: bool) -> None:
                 "sealevel.csv",
                 "subsidence.csv",
             ]
-            # ["bathymetry.csv", "sequence.yaml", "sequence.output", "sealevel.csv", "subsidence.csv"]
-            # + [f"sequence.{name}" for name in SequenceModel.DEFAULT_PARAMS]
         )
     ),
 )
@@ -368,7 +367,8 @@ def setup(set: str) -> None:
     if existing_files:
         for name in existing_files:
             logger.error(
-                f"{name}: File exists. Either remove and then rerun or choose a different destination folder"
+                f"{name}: File exists. Either remove and then rerun or choose a "
+                "different destination folder"
             )
     else:
         for fname in files:
@@ -414,9 +414,10 @@ def plot(ctx: Any, set: str) -> None:
         plot_file(folder / "sequence.nc", **config)
     except MissingRequiredVariable as error:
         logger.error(
-            f"{folder / 'sequence.nc'}: output file is missing a required variable ({error})"
+            f"{folder / 'sequence.nc'}: output file is missing a required variable "
+            f"({error})"
         )
-        raise click.Abort()
+        raise click.Abort() from error
 
 
 def _load_params_from_strings(values: Iterable[str]) -> dict[str, Any]:

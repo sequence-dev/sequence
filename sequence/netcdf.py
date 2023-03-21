@@ -134,7 +134,8 @@ def _set_field(
 
     if missing := names - set(grid[at]):
         warnings.warn(
-            f"missing field{'(s)' if len(missing) > 1 else ''} ({', '.join(missing)})"
+            f"missing field{'(s)' if len(missing) > 1 else ''} ({', '.join(missing)})",
+            stacklevel=2,
         )
         names = names & set(grid[at])
 

@@ -46,32 +46,7 @@ repository = "https://github.com/sequence-dev/sequence"
 changelog = "https://github.com/sequence-dev/sequence/blob/develop/CHANGES.rst"
 
 [project.optional-dependencies]
-dev = [
-  "black",
-  "coverage",
-  "flake8",
-  "isort",
-  "nbmake",
-  "nox",
-  "pre-commit",
-  "pytest",
-  "pytest-cov",
-  "pytest-datadir",
-  "pytest-runner",
-  "pytest-xdist",
-  "towncrier",
-]
-doc = [
-  "sphinx",
-  "sphinxcontrib.towncrier",
-  "pygments>=2.4",
-  "sphinx-inline-tabs",
-  "furo",
-]
-notebook = [
-  "notebook",
-  "tqdm",
-]
+dev = ["nox"]
 
 [project.scripts]
 sequence = "sequence.cli:sequence"
@@ -80,7 +55,7 @@ sequence = "sequence.cli:sequence"
 packages = ["sequence"]
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.rst", "AUTHORS.rst", "CHANGES.rst"]}
+readme = {file = ["README.rst", "AUTHORS.rst"]}
 version = {attr = "sequence._version.__version__"}
 
 [tool.pytest.ini_options]
