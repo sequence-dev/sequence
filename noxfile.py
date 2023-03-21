@@ -80,7 +80,7 @@ def build_docs(session: nox.Session) -> None:
     build_dir = ROOT / "build"
     docs_dir = ROOT / "docs"
 
-    session.install("-r", docs_dir / "requirements.in")
+    session.install("-r", str(docs_dir / "requirements.in"))
     session.install("-e", ".")
 
     clean_docs(session)

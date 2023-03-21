@@ -1,6 +1,6 @@
 furo
 pygments>=2.4
 sphinx
-sphinx_copybutton
 sphinx-inline-tabs
+sphinx_copybutton
 sphinxcontrib.towncrier

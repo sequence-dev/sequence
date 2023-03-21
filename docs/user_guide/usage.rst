@@ -72,4 +72,3 @@ changing parameters.
   >>> sequence.plot()
 
 .. end-usage
-

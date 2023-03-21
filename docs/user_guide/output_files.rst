@@ -22,4 +22,3 @@ You can now run the simulation (from within the *example* folder):
 .. code:: bash
 
   sequence run
-
