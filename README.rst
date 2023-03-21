@@ -5,10 +5,7 @@
   :alt: Sequence
 
 
-.. class:: center
-
-  Sequence-stratigraphic modeling with Python
-
+**Sequence-stratigraphic modeling with Python**
 
 -----------
 
