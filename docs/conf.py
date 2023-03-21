@@ -49,6 +49,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "sphinx_copybutton",
     "sphinx_inline_tabs",
     "sphinxcontrib.towncrier",
     # "IPython.sphinxext.ipython_console_highlighting",
