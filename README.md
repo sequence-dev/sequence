@@ -38,4 +38,3 @@ ______________________________________________________________________
 [rtd-badge]: https://github.com/sequence-dev/sequence/workflows/Documentation/badge.svg
 [rtd-link]: https://sequence.readthedocs.io/en/develop
 [testing-badge]: https://github.com/sequence-dev/sequence/workflows/Build/Test%20CI/badge.svg
-
