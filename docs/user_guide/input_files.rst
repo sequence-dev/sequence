@@ -20,19 +20,22 @@ Following is the generated input file,
 
     [sequence]
     _time = 0.0
+    processes = [
+        "sea_level",
+        "subsidence",
+        "compaction",
+        "submarine_diffusion",
+        "fluvial",
+        "flexure",
+    ]
 
     [sequence.grid]
-    shape = [3, 100]
-    xy_spacing = 100.0
-    xy_of_lower_left = [0.0, 0.0]
-
-    [sequence.grid.bc]
-    top = "closed"
-    bottom = "closed"
+    n_cols = 100
+    spacing = 1000.0
 
     [sequence.clock]
     start = 0.0
-    stop = 20000.0
+    stop = 600000.0
     step = 100.0
 
     [sequence.output]
@@ -40,7 +43,10 @@ Following is the generated input file,
     filepath = "sequence.nc"
     clobber = true
     rows = [1]
-    fields = ["sediment_deposit__thickness"]
+    fields = [
+        "sediment_deposit__thickness",
+        "bedrock_surface__elevation",
+    ]
 
     [sequence.submarine_diffusion]
     plain_slope = 0.0008
@@ -54,7 +60,7 @@ Following is the generated input file,
 
     [sequence.sea_level]
     amplitude = 10.0
-    wave_length = 1000.0
+    wave_length = 200000.0
     phase = 0.0
     linear = 0.0
 
@@ -87,6 +93,29 @@ Following is the generated input file,
     rho_void = 1000.0
 
 
+The sequence section
+~~~~~~~~~~~~~~~~~~~~
+
+This is the base section for the *Sequence* model. For a description of the
+*_time* parameter, see the `Time-varying parameters`_ section.
+
+The *processes* parameter specifies what processes are to be run in the
+simulation. Each of the processes in this list should also have a corresponding
+section in the file. This list also defines the order in which *Sequence* will
+run the processes within each time step.
+
+.. code:: toml
+
+    _time = 0.0
+    processes = [
+        "sea_level",
+        "subsidence",
+        "compaction",
+        "submarine_diffusion",
+        "fluvial",
+        "flexure",
+    ]
+
 .. _The grid section:
 
 
@@ -99,22 +128,16 @@ An example gid section looks like,
 .. code:: toml
 
     [sequence.grid]
-    shape = [3, 500]
-    xy_spacing = 100.0
-    xy_of_lower_left = [0.0, 0.0]
+    n_cols = 100
+    spacing = 1000.0
 
-In this case we have a grid that, if we are looking down on it from above, consists
-of three rows and 500 columns (the *shape* parameter). *Sequence* is a 1D model and
-uses only the middle row of nodes so you will never want to change the number of
-rows from a value of 3. You can play with the number of columns though—this is the
-number of stacks of sediment you have along your profile.
+In this case we have a grid that represents a 1D profile that consists of
+500 columns (i.e. vertical stacks) of sediment (the *n_cols* parameter).
 
-The *xy_spacing* parameter is the width of each of your sediment stacks in meters.
+The *spacing* parameter is the width of each of your sediment stacks in meters.
 Thus, the length of you domain is the product of the number of columns with
 the spacing (that is, for this example, 500 * 100 m or 50 km).
 
-The *xy_of_lower_left* parameter gives the position of the lower-left node of
-you grid. In *Sequence*, this parameter is not used.
 
 The output section
 ~~~~~~~~~~~~~~~~~~
