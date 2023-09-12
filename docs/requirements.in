@@ -1,4 +1,5 @@
 furo
+myst-parser
 pygments>=2.4
 sphinx
 sphinx-inline-tabs

@@ -1,6 +1,6 @@
 exclude .readthedocs.yaml environment.yml .pre-commit-config.yaml
-exclude CONTRIBUTING.rst
-include AUTHORS.rst CHANGES.rst LICENSE.rst README.rst
+exclude CONTRIBUTING.md
+include AUTHORS.md CHANGES.md LICENSE.md README.md
 include CITATION.cff
 include noxfile.py
 include requirements-testing.in
