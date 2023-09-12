@@ -1,17 +1,14 @@
-"""
-Sequence-specific :class:`~landlab.grid.base.ModelGrid`
-=======================================================
-
-Define the grid used for creating *Sequence* models.
-"""
+"""Define the grid used for creating *Sequence* models."""
 import os
+import sys
 
 import numpy as np
 from landlab import RasterModelGrid
+from numpy.typing import NDArray
 
-try:
+if sys.version_info >= (3, 11):
     import tomllib
-except ModuleNotFoundError:
+else:
     import tomli as tomllib
 
 
@@ -30,14 +27,13 @@ class SequenceModelGrid(RasterModelGrid):
 
         Examples
         --------
-        >>> from sequence.grid import SequenceModelGrid
+        >>> from sequence import SequenceModelGrid
         >>> grid = SequenceModelGrid(500, spacing=10.0)
         >>> grid.shape
         (3, 500)
         >>> grid.spacing
         (1.0, 10.0)
         """
-
         super().__init__((3, n_cols), xy_spacing=(spacing, 1.0))
 
         self.status_at_node[self.nodes_at_top_edge] = self.BC_NODE_IS_CLOSED
@@ -46,8 +42,23 @@ class SequenceModelGrid(RasterModelGrid):
         self.at_node["sediment_deposit__thickness"] = self.zeros(at="node")
         self.at_grid["sea_level__elevation"] = 0.0
 
+    def get_profile(self, name: str) -> NDArray:
+        """Return the values of a field along the grid's profile.
+
+        Parameters
+        ----------
+        name : str
+            The name of an at-node field.
+
+        Returns
+        -------
+        values : ndarray
+            The values of the field located at the middle row of nodes.
+        """
+        return self.at_node[name].reshape(self.shape)[1]
+
     @classmethod
-    def from_toml(cls, filepath: os.PathLike[str]):
+    def from_toml(cls, filepath: os.PathLike[str]) -> "SequenceModelGrid":
         """Load a :class:`~SequenceModelGrid` from a *toml*-formatted file.
 
         Parameters
@@ -59,7 +70,7 @@ class SequenceModelGrid(RasterModelGrid):
             return SequenceModelGrid.from_dict(tomllib.load(fp)["sequence"]["grid"])
 
     @classmethod
-    def from_dict(cls, params: dict):
+    def from_dict(cls, params: dict) -> "SequenceModelGrid":
         """Create a :class:`~SequenceModelGrid` from a `dict`.
 
         If possible, this alternate constructor simply passes

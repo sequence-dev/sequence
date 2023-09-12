@@ -1,12 +1,19 @@
+"""*Sequence*'s main API for constructing sequence-stratigraphic models."""
+from typing import Any, Iterable, Optional
+
 import numpy as np
 from landlab import Component
 from landlab.layers import EventLayers
+from numpy.typing import ArrayLike, NDArray
 from tqdm import trange
 
+from ._grid import SequenceModelGrid
 from .plot import plot_grid
 
 
 class Sequence(Component):
+    """*Landlab* component interface to the *Sequence* model."""
+
     _name = "Sequence"
     _unit_agnostic = True
     _info = {
@@ -44,14 +51,31 @@ class Sequence(Component):
         },
     }
 
-    def __init__(self, grid, time_step=100.0, components=None, track=None):
+    def __init__(
+        self,
+        grid: SequenceModelGrid,
+        time_step: float = 100.0,
+        components: Optional[Iterable] = None,
+    ):
+        """Create a Sequence model.
+
+        Parameters
+        ----------
+        grid : SequenceModelGrid
+            A model grid.
+        time_step : float, optional
+            The time step at which the model will run each of its components.
+        components : iterable, optional
+            A list of components to run every time step.
+        """
         self._components = () if components is None else tuple(components)
-        track = [] if track else track
+        # track = [] if track else track
 
         super().__init__(grid)
 
         self._time = 0.0
         self._time_step = time_step
+        self._n_archived_layers = 0
 
         self.grid.at_layer_grid = EventLayers(1)
 
@@ -66,14 +90,21 @@ class Sequence(Component):
             - self.grid.at_node["bedrock_surface__elevation"]
         )
 
-        self.add_layer(initial_sediment_thickness[self.grid.node_at_cell])
+        if (initial_sediment_thickness[self.grid.node_at_cell] > 0.0).any():
+            self.add_layer(initial_sediment_thickness[self.grid.node_at_cell])
+
+        self.grid.at_node["topographic__elevation"][self.grid.node_at_cell] = (
+            self.grid.at_node["bedrock_surface__elevation"][self.grid.node_at_cell]
+            + self.grid.event_layers.thickness
+        )
+        self.grid.at_node["sediment_deposit__thickness"].fill(0.0)
 
     @property
-    def time(self):
-        """The current model time (in years)."""
+    def time(self) -> float:
+        """Return the current model time (in years)."""
         return self._time
 
-    def update(self, dt=None):
+    def update(self, dt: Optional[float] = None) -> None:
         """Update the model of a given time step.
 
         Parameters
@@ -92,8 +123,18 @@ class Sequence(Component):
         self.add_layer(
             self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell]
         )
+        self.grid.at_node["topographic__elevation"][self.grid.node_at_cell] = (
+            self.grid.at_node["bedrock_surface__elevation"][self.grid.node_at_cell]
+            + self.grid.event_layers.thickness
+        )
+        self.grid.at_node["sediment_deposit__thickness"].fill(0.0)
 
-    def run(self, until=None, dt=None, progress_bar=True):
+    def run(
+        self,
+        until: Optional[float] = None,
+        dt: Optional[float] = None,
+        progress_bar: bool = True,
+    ) -> None:
         """Run the model to a given time.
 
         Parameters
@@ -116,7 +157,16 @@ class Sequence(Component):
         for _ in trange(n_steps, desc="🚀", disable=not progress_bar):
             self.update(dt=min(dt, until - self._time))
 
-    def layer_properties(self):
+    def layer_properties(self) -> dict[str, ArrayLike]:
+        """Return the properties being tracked at each layer.
+
+        Returns
+        -------
+        properties : dict
+            A dictionary of the tracked properties where the keys
+            are the names of properties and the values are the
+            property values at each column.
+        """
         dz = self.grid.at_node["sediment_deposit__thickness"]
         water_depth = (
             self.grid.at_grid["sea_level__elevation"]
@@ -139,7 +189,15 @@ class Sequence(Component):
 
         return properties
 
-    def layer_reducers(self):
+    def layer_reducers(self) -> dict[str, Any]:
+        """Return layer-reducers for each property.
+
+        Returns
+        -------
+        reducers : dict
+            A dictionary of reducers where keys are property names and values
+            are functions that act as layer reducers for those quantities.
+        """
         reducers = {
             "age": np.max,
             "water_depth": np.mean,
@@ -151,7 +209,14 @@ class Sequence(Component):
 
         return reducers
 
-    def add_layer(self, dz_at_cell):
+    def add_layer(self, dz_at_cell: NDArray[np.floating]) -> None:
+        """Add a new layer to each cell.
+
+        Properties
+        ----------
+        dz_at_cell : array-like
+            Thickness of the new layers for each cell along the profile.
+        """
         try:
             x_of_shore = self.grid.at_grid["x_of_shore"]
         except KeyError:
@@ -161,6 +226,10 @@ class Sequence(Component):
         except KeyError:
             x_of_shelf_edge = np.nan
 
+        self.grid.at_node["topographic__elevation"][
+            self.grid.node_at_cell
+        ] += dz_at_cell
+
         self.grid.event_layers.add(dz_at_cell, **self.layer_properties())
         self.grid.at_layer_grid.add(
             1.0,
@@ -169,11 +238,6 @@ class Sequence(Component):
             x_of_shore=x_of_shore,
             x_of_shelf_edge=x_of_shelf_edge,
         )
-
-        try:
-            self._n_archived_layers
-        except AttributeError:
-            self._n_archived_layers = 0
 
         if (
             self.grid.event_layers.number_of_layers - self._n_archived_layers
@@ -185,5 +249,6 @@ class Sequence(Component):
             )
             self._n_archived_layers += 1
 
-    def plot(self):
+    def plot(self) -> None:
+        """Plot the grid."""
         plot_grid(self.grid)

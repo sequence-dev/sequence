@@ -1,9 +1,9 @@
-include AUTHORS.rst CHANGES.rst LICENSE.rst README.rst
-include CITATION.cff
-exclude Makefile CONTRIBUTING.rst
-exclude requirements.txt requirements.py
 exclude .readthedocs.yaml environment.yml .pre-commit-config.yaml
-
+exclude CONTRIBUTING.md
+include AUTHORS.md CHANGES.md LICENSE.md README.md
+include CITATION.cff
+include noxfile.py
+include requirements-testing.in
 recursive-exclude data *
 recursive-exclude docs *
 recursive-exclude news *

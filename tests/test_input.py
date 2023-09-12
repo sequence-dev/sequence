@@ -5,11 +5,31 @@ import pytest
 from sequence.input_reader import load_config
 
 
-def test_load_config(datadir):
+def test_load_config_from_pathlike(datadir):
     config = {}
     for fmt in ("yaml", "toml"):
         config[fmt] = load_config(datadir / f"sequence.{fmt}", fmt=fmt)
     assert config["yaml"] == config["toml"]
+
+
+def test_load_config_from_str(datadir):
+    config = {}
+    for fmt in ("yaml", "toml"):
+        config[fmt] = load_config(str(datadir / f"sequence.{fmt}"), fmt=fmt)
+    assert config["yaml"] == config["toml"]
+
+
+def test_load_config_from_stream(datadir):
+    config = {}
+    for fmt in ("yaml", "toml"):
+        with open(datadir / f"sequence.{fmt}") as fp:
+            config[fmt] = load_config(fp, fmt=fmt)
+    assert config["yaml"] == config["toml"]
+
+
+def test_from_stream_without_format_keyword(datadir):
+    with open(datadir / "sequence.toml") as fp, pytest.raises(ValueError):
+        load_config(fp)
 
 
 @pytest.mark.parametrize("fmt", ("yaml", "toml"))
@@ -32,9 +52,8 @@ def test_bad_format(tmpdir, datadir):
 
 
 def test_missing_file(tmpdir):
-    with tmpdir.as_cwd():
-        with pytest.raises(OSError):
-            load_config("not-a-file.toml")
+    with tmpdir.as_cwd(), pytest.raises(OSError):
+        load_config("not-a-file.toml")
 
 
 @pytest.mark.parametrize("fmt", ("yaml", "toml"))

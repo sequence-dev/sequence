@@ -1,22 +1,26 @@
-"""
-Command Line Interface
-----------------------
-"""
+"""The command line interface for *Sequence*."""
+import inspect
+import logging
 import os
 import pathlib
 import re
+from contextlib import suppress
 from io import StringIO
-from typing import Any, Optional
+from os import PathLike
+from typing import Any, Iterable, Iterator, Optional, Union
 
 import numpy as np
 import rich_click as click
 import tomlkit as toml
 import yaml
+from landlab.core import load_params
+from numpy.typing import ArrayLike
+from tqdm import tqdm
 
 from .errors import MissingRequiredVariable
 from .input_reader import TimeVaryingConfig
-from .plot import plot_file
-from .raster_model import load_model_params, load_params_from_strings
+from .logging import LoggingHandler
+from .plot import plot_file, plot_layers
 from .sequence_model import SequenceModel
 
 click.rich_click.ERRORS_SUGGESTION = (
@@ -31,8 +35,21 @@ click.rich_click.GROUP_ARGUMENTS_OPTIONS = False
 click.rich_click.SHOW_METAVARS_COLUMN = True
 click.rich_click.USE_MARKDOWN = True
 
-# out = partial(click.secho, bold=True, file=sys.stderr)
-# err = partial(click.secho, fg="red", file=sys.stderr)
+logger = logging.getLogger("sequence")
+logger.addHandler(LoggingHandler())
+
+
+PLOT_KEYWORDS: dict[str, Any] = {
+    k: v.default
+    for k, v in inspect.signature(plot_layers).parameters.items()
+    if k
+    not in [
+        "elevation_at_layer",
+        "x_of_stack",
+        "x_of_shore_at_layer",
+        "x_of_shelf_edge_at_layer",
+    ]
+}
 
 
 def _out(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
@@ -52,17 +69,21 @@ def _err(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
 
 
 def out(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+    """Print a user info message."""
     _out(message, nl=nl, **styles)
 
 
 def err(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+    """Print a user error message."""
     _err(message, nl=nl, **styles)
 
 
-def _contents_of_input_file(infile, set):
-    params = load_model_params(defaults=SequenceModel.DEFAULT_PARAMS, dotted_params=set)
+def _contents_of_input_file(infile: Union[str, PathLike[str]], set: str) -> str:
+    params = _load_model_params(
+        defaults=SequenceModel.DEFAULT_PARAMS, dotted_params=set
+    )
 
-    def as_csv(data, header=None):
+    def as_csv(data: ArrayLike, header: str = "") -> str:
         with StringIO() as fp:
             np.savetxt(fp, data, header=header, delimiter=",", fmt="%.1f")
             contents = fp.getvalue()
@@ -71,20 +92,28 @@ def _contents_of_input_file(infile, set):
     contents = {
         "sequence.yaml": yaml.dump(params, default_flow_style=False),
         "sequence.toml": toml.dumps(
-            dict(
-                sequence=dict(
-                    _time=0.0, processes=SequenceModel.ALL_PROCESSES, **params
-                )
-            )
+            {
+                "sequence": {
+                    "_time": 0.0,
+                    "processes": SequenceModel.ALL_PROCESSES,
+                    **params,
+                }
+            }
         ),
         "bathymetry.csv": as_csv(
             [[0.0, 20.0], [100000.0, -80.0]], header="X [m], Elevation [m]"
         ),
         "sealevel.csv": as_csv(
-            [[0.0, 0.0], [200000, -10]], header="Time [y], Sea-Level Elevation [m]"
+            [[0.0, 0.0], [200000.0, -10.0]], header="Time [y], Sea-Level Elevation [m]"
         ),
         "subsidence.csv": as_csv(
-            [[0.0, 0], [30000.0, 0], [35000.0, 0], [50000.0, 0], [100000.0, 0]],
+            [
+                [0.0, 0.0],
+                [30000.0, 0.0],
+                [35000.0, 0.0],
+                [50000.0, 0.0],
+                [100000.0, 0.0],
+            ],
             header="X [x], Subsidence Rate [m / y]",
         ),
     }
@@ -93,10 +122,10 @@ def _contents_of_input_file(infile, set):
             section_params, default_flow_style=False
         )
 
-    return contents[infile]
+    return contents[str(infile)]
 
 
-def _time_from_filename(name):
+def _time_from_filename(name: Union[str, PathLike[str]]) -> Optional[int]:
     """Parse a time stamp from a file name.
 
     Parameters
@@ -127,7 +156,9 @@ def _time_from_filename(name):
         return None
 
 
-def _find_config_files(pathname):
+def _find_config_files(
+    pathname: Union[str, PathLike[str]]
+) -> tuple[list[int], list[str]]:
     """Find all of the time-varying config files for a simulation.
 
     Parameters
@@ -145,30 +176,21 @@ def _find_config_files(pathname):
     toml_files = list(pathname.glob("sequence*.toml"))
     yaml_files = list(pathname.glob("sequence*.yaml"))
 
-    config_files = toml_files if toml_files else yaml_files
+    config_files = sorted(toml_files if toml_files else yaml_files)
 
-    items = []
+    times: list[int] = []
+    names: list[str] = []
     for index, config_file in enumerate(config_files):
         time = _time_from_filename(config_file)
         if time is None:
             time = index
-        items.append((time, str(config_file)))
+        times.append(time)
+        names.append(str(config_file))
 
-    return zip(*sorted(items))
+    names = [name for _, name in sorted(zip(times, names))]
+    times.sort()
 
-
-class silent_progressbar:
-    def __init__(self, **kwds):
-        pass
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        pass
-
-    def update(self, inc):
-        pass
+    return times, names
 
 
 @click.group(chain=True)
@@ -186,10 +208,10 @@ class silent_progressbar:
     help="Suppress status status messages, including the progress bar.",
 )
 @click.option(
-    "-v", "--verbose", is_flag=True, help="Also emit status messages to stderr."
+    "-v", "--verbose", count=True, help="Also emit status messages to stderr."
 )
-def sequence(cd, silent, verbose) -> None:
-    """# Sequence
+def sequence(cd: str, silent: bool, verbose: int) -> None:
+    """# Sequence.
 
     Sequence is a modular 2D (i.e., profile) sequence stratigraphic model
     that is written in Python and implemented within the Landlab framework.
@@ -198,6 +220,10 @@ def sequence(cd, silent, verbose) -> None:
     with sea level changes, sediment compaction, local or flexural isostasy,
     and tectonic subsidence and uplift.
     """
+    if verbose:
+        logger.setLevel(logging.INFO if verbose == 1 else logging.DEBUG)
+    if silent:
+        logger.setLevel(logging.ERROR)
     os.chdir(cd)
 
 
@@ -207,7 +233,7 @@ def sequence(cd, silent, verbose) -> None:
     "--with-citations", is_flag=True, help="print citations for components used"
 )
 @click.pass_context
-def run(ctx, with_citations, dry_run):
+def run(ctx: Any, with_citations: bool, dry_run: bool) -> None:
     """Run a simulation.
 
     ## Examples
@@ -228,8 +254,12 @@ def run(ctx, with_citations, dry_run):
     run_dir = pathlib.Path.cwd()
 
     times, names = _find_config_files(".")
+    if len(times) == 0:
+        logger.critical("unable to find a configuration file.")
+        raise click.Abort()
+
     if not silent:
-        out(f"config_files = [{', '.join(repr(name) for name in names)}]")
+        logger.info(f"config files: {', '.join(repr(name) for name in names)}")
     params = TimeVaryingConfig.from_files(names, times=times)
 
     model_params = params.as_dict()
@@ -247,20 +277,16 @@ def run(ctx, with_citations, dry_run):
     )
 
     if verbose or not silent:
-        out("enabled = [")
         for name in model.components:
-            out(f"  {name!r},")
-        out("]")
-        out("disabled = [")
+            logger.info(f"✅ Enabled: {name}")
         for name in set(SequenceModel.ALL_PROCESSES) - set(model.components):
-            out(f"  {name!r},")
-        out("]")
+            logger.warning(f"❌ Disabled: {name}")
 
-    if not silent and verbose:
-        out(params.dump())
+    # if not silent and verbose:
+    #     logger.info(os.linesep.join(["sequence.toml:", params.dump()]))
 
     if not silent and len(processes) == 0:
-        out("⚠️  ALL PROCESSES HAVE BEEN DISABLED! ⚠️")
+        logger.warning("⚠️  ALL PROCESSES HAVE BEEN DISABLED! ⚠️")
 
     if not silent and with_citations:
         from landlab.core.model_component import registry
@@ -270,22 +296,30 @@ def run(ctx, with_citations, dry_run):
         out("👆👆👆These are the citations to use👆👆👆")
 
     if not dry_run:
-        progressbar = silent_progressbar if silent else click.progressbar
-        try:
-            with progressbar(
-                length=int(model.clock.stop // model.clock.step),
-                label=" ".join(["🚀", str(run_dir)]),
-            ) as bar:
-                while 1:
-                    model.run_one_step()
-                    model.set_params(params.update(1))
-                    bar.update(1)
-        except StopIteration:
-            pass
+        progressbar = tqdm(
+            total=int(model.clock.stop // model.clock.step),
+            desc=" ".join(["🚀", str(run_dir)]),
+            disable=True if silent else None,
+        )
+
+        with suppress(StopIteration), progressbar as bar:
+            while 1:
+                model.run_one_step()
+                model.set_params(params.update(1))
+                bar.update(1)
+
+        if verbose and not silent:
+            total = sum(model.timer.values())
+            for name, duration in sorted(model.timer.items(), key=lambda v: v[1]):
+                logger.info(
+                    f"{name}\n"
+                    f"duration: {round(duration / total * 100.0, 2)}%, "
+                    f"{round(duration, 2)}s\n"
+                )
 
         if verbose or not silent:
+            logger.info(f"Output written to {run_dir}")
             out("💥 Finished! 💥")
-            out(f"Output written to {run_dir}")
     else:
         if verbose or not silent:
             out("Nothing to do. 😴")
@@ -304,22 +338,19 @@ def run(ctx, with_citations, dry_run):
                 "sealevel.csv",
                 "subsidence.csv",
             ]
-            # ["bathymetry.csv", "sequence.yaml", "sequence.output", "sealevel.csv", "subsidence.csv"]
-            # + [f"sequence.{name}" for name in SequenceModel.DEFAULT_PARAMS]
         )
     ),
 )
 @click.option("--set", metavar="KEY=VALUE", multiple=True, help="Set model parameters")
-def generate(infile, set):
+def generate(infile: str, set: str) -> None:
     """Generate example input files."""
     print(_contents_of_input_file(infile, set))
 
 
 @sequence.command()
 @click.option("--set", multiple=True, help="Set model parameters")
-def setup(set):
-    """Setup a folder of input files for a simulation."""
-    # folder = pathlib.Path(destination)
+def setup(set: str) -> None:
+    """Create a folder of input files for a simulation."""
     folder = pathlib.Path.cwd()
 
     files = [
@@ -335,8 +366,9 @@ def setup(set):
     existing_files = [name for name in files if name.exists()]
     if existing_files:
         for name in existing_files:
-            err(
-                f"{name}: File exists. Either remove and then rerun or choose a different destination folder"
+            logger.error(
+                f"{name}: File exists. Either remove and then rerun or choose a "
+                "different destination folder"
             )
     else:
         for fname in files:
@@ -350,30 +382,99 @@ def setup(set):
 
 @sequence.command()
 @click.option("--set", multiple=True, help="Set model parameters")
-@click.option(
-    "-v", "--verbose", is_flag=True, help="Also emit status messages to stderr."
-)
-def plot(set, verbose):
+@click.pass_context
+def plot(ctx: Any, set: str) -> None:
     """Plot a Sequence output file."""
+    verbose = ctx.parent.params["verbose"]
     folder = pathlib.Path.cwd()
 
+    config = PLOT_KEYWORDS.copy()
+
     if (folder / "sequence.toml").exists():
-        config = (
+        config.update(
             TimeVaryingConfig.from_file(folder / "sequence.toml")
             .as_dict()
-            .get("plot", dict())
+            .get("plot", {})
         )
-    else:
-        config = {}
-    config.update(**load_params_from_strings(set))
 
-    if verbose:
-        out(toml.dumps(dict(sequence=dict(plot=config))))
+    config.update(**_load_params_from_strings(set))
 
+    if verbose and len(config) > 0:
+        logger.info(
+            os.linesep.join(
+                [
+                    "Reading configuration",
+                    toml.dumps({"sequence": {"plot": config}}),
+                ]
+            )
+        )
+
+    logger.info(f"Plotting {folder / 'sequence.nc'}")
     try:
         plot_file(folder / "sequence.nc", **config)
     except MissingRequiredVariable as error:
-        err(
-            f"{folder / 'sequence.nc'}: output file is missing a required variable ({error})"
+        logger.error(
+            f"{folder / 'sequence.nc'}: output file is missing a required variable "
+            f"({error})"
         )
-        raise click.Abort()
+        raise click.Abort() from error
+
+
+def _load_params_from_strings(values: Iterable[str]) -> dict[str, Any]:
+    params = {}
+    for param in values:
+        dotted_name, value = param.split("=")
+        params.update(_dots_to_dict(dotted_name, yaml.safe_load(value)))
+
+    return params
+
+
+def _dots_to_dict(name: str, value: Any) -> dict[str, Any]:
+    base: dict[str, Any] = {}
+    level = base
+    names = name.split(".")
+    for k in names[:-1]:
+        level[k] = {}
+        level = level[k]
+    level[names[-1]] = value
+    return base
+
+
+def _dict_to_dots(d: dict) -> list[str]:
+    dots: list[str] = []
+    for names in _walk_dict(d):
+        dots.append(".".join(names[:-1]) + "=" + str(names[-1]))
+    return dots
+
+
+def _load_model_params(
+    param_file: Optional[str] = None,
+    defaults: Optional[dict] = None,
+    dotted_params: Iterable[str] = (),
+) -> dict[str, Any]:
+    params = defaults or {}
+
+    if param_file:
+        params_from_file = load_params(param_file)
+        dotted_params = _dict_to_dots(params_from_file) + list(dotted_params)
+
+    params_from_cl = _load_params_from_strings(dotted_params)
+    for group in params.keys():
+        params[group].update(params_from_cl.get(group, {}))
+
+    return params
+
+
+def _walk_dict(indict: Union[dict, Any], prev: Optional[list] = None) -> Iterator[Any]:
+    prev = prev[:] if prev else []
+
+    if isinstance(indict, dict):
+        for key, value in indict.items():
+            if isinstance(value, dict):
+                yield from _walk_dict(value, [key] + prev)
+            elif isinstance(value, (list, tuple)):
+                yield prev + [key, value]
+            else:
+                yield prev + [key, value]
+    else:
+        yield indict

@@ -46,31 +46,7 @@ repository = "https://github.com/sequence-dev/sequence"
 changelog = "https://github.com/sequence-dev/sequence/blob/develop/CHANGES.rst"
 
 [project.optional-dependencies]
-dev = [
-  "black",
-  "coverage",
-  "flake8",
-  "isort",
-  "nbmake",
-  "nox",
-  "pre-commit",
-  "pytest",
-  "pytest-cov",
-  "pytest-datadir",
-  "pytest-runner",
-  "pytest-xdist",
-  "towncrier",
-]
-doc = [
-  "sphinx",
-  "pygments>=2.4",
-  "sphinx-inline-tabs",
-  "furo",
-]
-notebook = [
-  "notebook",
-  "tqdm",
-]
+dev = ["nox"]
 
 [project.scripts]
 sequence = "sequence.cli:sequence"
@@ -79,7 +55,7 @@ sequence = "sequence.cli:sequence"
 packages = ["sequence"]
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.rst", "AUTHORS.rst", "CHANGES.rst"]}
+readme = {file = ["README.rst", "AUTHORS.rst"]}
 version = {attr = "sequence._version.__version__"}
 
 [tool.pytest.ini_options]
@@ -111,14 +87,19 @@ force_grid_wrap = 0
 combine_as_imports = true
 line_length = 88
 
+[tool.mypy]
+ignore_missing_imports = true
+
 [tool.towncrier]
 directory = "news"
 package = "sequence"
-filename = "CHANGES.rst"
+filename = "CHANGES.md"
 single_file = true
-underlines = "-`^"
-issue_format = "`#{issue} <https://github.com/sequence-dev/sequence/issues/{issue}>`_"
-title_format = "{version} ({project_date})"
+underlines = ["", "", ""]
+start_string = "<!-- towncrier release notes start -->\n"
+template = "news/changelog_template.jinja"
+issue_format = "[#{issue}](https://github.com/sequence-dev/sequence/issues/{issue})"
+title_format = "## {version} ({project_date})"
 
 [[tool.towncrier.type]]
 directory = "notebook"

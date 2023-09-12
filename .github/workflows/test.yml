@@ -38,9 +38,12 @@ jobs:
       - name: Install dependencies
         run: pip install nox
 
-      - name: Build documentation
+      - name: Test
         run: nox -s test
 
+      - name: Test the cli
+        run: nox -s test-cli
+
       - name: Coveralls
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         uses: AndreMiras/coveralls-python-action@v20201129

@@ -1,11 +1,16 @@
-#! /usr/bin/env python
+"""Diffuse sediment along a profile."""
+from typing import Any
+
 import numpy as np
 from landlab.components import LinearDiffuser
+from numpy.typing import NDArray
 
+from ._grid import SequenceModelGrid
 from .shoreline import find_shoreline
 
 
 class SubmarineDiffuser(LinearDiffuser):
+    """Model sea-floor evolution on a `SequenceModelGrid` as diffusion."""
 
     _name = "Submarine Diffusion"
 
@@ -30,7 +35,7 @@ class SubmarineDiffuser(LinearDiffuser):
         },
         "sediment_deposit__thickness": {
             "dtype": "float",
-            "intent": "out",
+            "intent": "inout",
             "optional": False,
             "units": "m",
             "mapping": "node",
@@ -40,17 +45,17 @@ class SubmarineDiffuser(LinearDiffuser):
 
     def __init__(
         self,
-        grid,
-        sea_level=0.0,
-        plain_slope=0.0008,
-        wave_base=60.0,
-        shoreface_height=15.0,
-        alpha=0.0005,
-        shelf_slope=0.001,
-        sediment_load=3.0,
-        load_sealevel=0.0,
-        basin_width=500000.0,
-        **kwds
+        grid: SequenceModelGrid,
+        sea_level: float = 0.0,
+        plain_slope: float = 0.0008,
+        wave_base: float = 60.0,
+        shoreface_height: float = 15.0,
+        alpha: float = 0.0005,
+        shelf_slope: float = 0.001,
+        sediment_load: float = 3.0,
+        load_sealevel: float = 0.0,
+        basin_width: float = 500000.0,
+        **kwds: Any,
     ):
         """Diffuse the ocean bottom.
 
@@ -67,7 +72,7 @@ class SubmarineDiffuser(LinearDiffuser):
         shoreface_height: float, optional
             Water depth of the shelf/slope break (m).
         alpha: float, optional
-            Some coefficient (1 / m).
+            Coefficient used to calculate the diffusion coefficient (1 / m).
         shelf_slope: float, optional
             Slope of the shelf (m / m).
         sediment_load: float, optional
@@ -106,87 +111,101 @@ class SubmarineDiffuser(LinearDiffuser):
         super().__init__(grid, **kwds)
 
     @property
-    def plain_slope(self):
+    def plain_slope(self) -> float:
+        """Return the gradient of the delta plain."""
         return self._plain_slope
 
     @plain_slope.setter
-    def plain_slope(self, value):
+    def plain_slope(self, value: float) -> None:
         self._plain_slope = float(value)
         self._ksh = self._load / self._plain_slope
 
     @property
-    def wave_base(self):
+    def wave_base(self) -> float:
+        """Return the depth of the wave base."""
         return self._wave_base
 
     @wave_base.setter
-    def wave_base(self, value):
+    def wave_base(self, value: float) -> None:
         self._wave_base = float(value)
 
     @property
-    def shoreface_height(self):
+    def shoreface_height(self) -> float:
+        """Return the height of the shoreface."""
         return self._shoreface_height
 
     @shoreface_height.setter
-    def shoreface_height(self, value):
+    def shoreface_height(self, value: float) -> None:
         self._shoreface_height = float(value)
 
     @property
-    def alpha(self):
+    def alpha(self) -> float:
+        """Return the alpha parameter."""
         return self._alpha
 
     @alpha.setter
-    def alpha(self, value):
+    def alpha(self, value: float) -> None:
         self._alpha = float(value)
 
     @property
-    def shelf_slope(self):
+    def shelf_slope(self) -> float:
+        """Return the slope of the shelf."""
         return self._shelf_slope
 
     @shelf_slope.setter
-    def shelf_slope(self, value):
+    def shelf_slope(self, value: float) -> None:
         self._shelf_slope = float(value)
 
     @property
-    def sediment_load(self):
+    def sediment_load(self) -> float:
+        """Return the sediment load entering the profile."""
         return self._load0
 
     @sediment_load.setter
-    def sediment_load(self, value):
+    def sediment_load(self, value: float) -> None:
         self._load0 = float(value)
         self._load = self._load0 * (1 + self._sea_level * self._load_sl)
         self._ksh = self._load / self._plain_slope
         self.grid.at_grid["sediment_load"] = self._load
 
-    @property
-    def k0(self):
-        return self._k0
+    # @property
+    # def k0(self):
+    #     return self._k0
 
     @property
-    def load0(self):
+    def load0(self) -> float:
+        """Return the sediment load entering the profile."""
         return self._load0
 
     @property
-    def k_land(self):
+    def k_land(self) -> float:
+        """Return the diffusion coefficient use for land."""
         return self._ksh
 
     @property
-    def time(self):
+    def time(self) -> float:
+        """Return the component's current time."""
         return self._time
 
     @property
-    def sea_level(self):
+    def sea_level(self) -> float:
+        """Return sea level elevation."""
         return self.grid.at_grid["sea_level__elevation"]
 
     @sea_level.setter
-    def sea_level(self, sea_level):
+    def sea_level(self, sea_level: float) -> None:
         self.grid.at_grid["sea_level__elevation"] = sea_level
 
-    def calc_diffusion_coef(self, x_of_shore):
+    def calc_diffusion_coef(self, x_of_shore: float) -> NDArray[np.floating]:
         """Calculate and store diffusion coefficient values.
+
+        Parameters
+        ----------
+        x_of_shore : float
+            The x-position of the shoreline.
 
         Examples
         --------
-
         The example below tests the result with 3 of the middle-row nodes above
         sea level and three below, two of which are in deep water (below the
         default 60 m wave base).
@@ -244,12 +263,17 @@ class SubmarineDiffuser(LinearDiffuser):
 
         return k
 
-    def run_one_step(self, dt):
-        z_before = self.grid.at_node["topographic__elevation"].copy()
+    def run_one_step(self, dt: float) -> None:
+        """Advance component one time step.
 
+        Parameters
+        ----------
+        dt : float
+            Time step to advance component by.
+        """
         shore = find_shoreline(
             self.grid.x_of_node[self.grid.node_at_cell],
-            z_before[self.grid.node_at_cell],
+            self.grid.at_node["topographic__elevation"][self.grid.node_at_cell],
             sea_level=self.grid.at_grid["sea_level__elevation"],
         )
 
@@ -263,10 +287,13 @@ class SubmarineDiffuser(LinearDiffuser):
         z[1, 0] = z[1, 1] + self._plain_slope * (x[1, 1] - x[1, 0])
         # self._load/self._load0)
 
+        z_before = self.grid.at_node["topographic__elevation"].copy()
+
         super().run_one_step(dt)
 
-        self.grid.at_node["sediment_deposit__thickness"][:] = (
-            self.grid.at_node["topographic__elevation"] - z_before
-        )
+        dz = self.grid.at_node["topographic__elevation"] - z_before
+        self.grid.at_node["topographic__elevation"][:] = z_before
+
+        self.grid.at_node["sediment_deposit__thickness"][:] += dz
 
         self._time += dt
