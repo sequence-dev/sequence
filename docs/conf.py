@@ -41,6 +41,7 @@ if os.environ.get("READTHEDOCS", ""):
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     "myst_parser",
+    "nbsphinx",
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.todo",
@@ -204,3 +205,5 @@ towncrier_draft_include_empty = True
 towncrier_draft_working_directory = pathlib.Path(docs_dir).parent
 
 myst_enable_extensions = ["colon_fence"]
+
+nbsphinx_execute = "never"
