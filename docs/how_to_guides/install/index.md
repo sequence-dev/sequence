@@ -23,12 +23,13 @@ scientific computing.
 ## Basic Install
 
 If you would like to use *Sequence*, but not modify the code, you can follow
-the basic installation instructions and install a pre-built version.
+the [basic installation](basic-install) instructions to install a pre-built version.
 
 ## Developer Install
 
 If you will be modifying code or contributing new code to *sequence*, you will first
 need to get *Sequence*'s source code and then install *sequence* from that code.
+This is described in the [install from source section](source-install).
 
 ```{toctree}
 :caption: Installing

@@ -1,4 +1,4 @@
-(install)=
+(source-install)=
 
 # Developer Install
 
