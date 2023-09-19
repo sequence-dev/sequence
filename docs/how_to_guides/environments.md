@@ -15,7 +15,7 @@ stick with *pip*.
 
 ````{tab} mamba
 ```bash
-conda install mamba -c conda-forge
+conda install mamba -c nodefaults -c conda-forge
 mamba create -n sequence
 mamba activate sequence
 ```

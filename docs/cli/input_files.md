@@ -2,6 +2,9 @@
 
 <!-- start-input-files -->
 
+
+(the-parameter-file)=
+
 ## Sequence Parameter File
 
 The main *Sequence* input file is a *toml*-formatted (or, optionally, *yaml*)
@@ -14,86 +17,14 @@ sequence generate sequence.toml
 
 Following is the generated input file,
 
-```toml
-[sequence]
-_time = 0.0
-processes = [
-    "sea_level",
-    "subsidence",
-    "compaction",
-    "submarine_diffusion",
-    "fluvial",
-    "flexure",
-]
-
-[sequence.grid]
-n_cols = 100
-spacing = 1000.0
-
-[sequence.clock]
-start = 0.0
-stop = 600000.0
-step = 100.0
-
-[sequence.output]
-interval = 10
-filepath = "sequence.nc"
-clobber = true
-rows = [1]
-fields = [
-    "sediment_deposit__thickness",
-    "bedrock_surface__elevation",
-]
-
-[sequence.submarine_diffusion]
-plain_slope = 0.0008
-wave_base = 60.0
-shoreface_height = 15.0
-alpha = 0.0005
-shelf_slope = 0.001
-sediment_load = 3.0
-load_sealevel = 0.0
-basin_width = 500000.0
-
-[sequence.sea_level]
-amplitude = 10.0
-wave_length = 200000.0
-phase = 0.0
-linear = 0.0
-
-[sequence.subsidence]
-filepath = "subsidence.csv"
-
-[sequence.flexure]
-method = "flexure"
-rho_mantle = 3300.0
-isostasytime = 0
-
-[sequence.sediments]
-layers = 2
-sand = 1.0
-mud = 0.006
-sand_density = 2650.0
-mud_density = 2720.0
-sand_frac = 0.5
-hemipelagic = 0.0
-
-[sequence.bathymetry]
-filepath = "bathymetry.csv"
-kind = "linear"
-
-[sequence.compaction]
-c = 5e-08
-porosity_max = 0.5
-porosity_min = 0.01
-rho_grain = 2650.0
-rho_void = 1000.0
+```{literalinclude} _sequence.toml
+:language: toml
 ```
 
 ### The sequence section
 
 This is the base section for the *Sequence* model. For a description of the
-*\_time* parameter, see the [Time-varying parameters] section.
+*\_time* parameter, see the [Time-varying parameters](time-varying-parameters) section.
 
 The *processes* parameter specifies what processes are to be run in the
 simulation. Each of the processes in this list should also have a corresponding
@@ -132,6 +63,8 @@ The *spacing* parameter is the width of each of your sediment stacks in meters.
 Thus, the length of you domain is the product of the number of columns with
 the spacing (that is, for this example, 500 * 100 m or 50 km).
 
+(the-output-section)=
+
 ### The output section
 
 You can define when and what *Sequence* will save to a NetCDF file while it is running.
@@ -154,7 +87,7 @@ probably not want to change, are:
 - *clobber*: what *Sequence* should do if the output file exists. If `true`,
   an existing file will be overwritten, otherwise *Sequence* will raise an
   error.
-- *rows*: as described in [The grid section] a *Sequence* grid consists
+- *rows*: as described in [The grid section](the-grid-section) a *Sequence* grid consists
   of three rows. The *rows* parameter specifies which of these rows to
   write to the output file.
 - *fields*: a list of names of quantities you would like *Sequence* to include
@@ -192,10 +125,8 @@ a two-column CSV file. A sample bathymetry file can be obtained with:
 sequence generate bathymetry.csv
 ```
 
-```
-# X [m], Elevation [m]
-0.0,20.0
-100000.0,-80.0
+```{literalinclude} _bathymetry.csv
+:language: python
 ```
 
 Elevations are linearly interpolated between the points given in the file
@@ -211,10 +142,8 @@ elevation, respectively. For a sample sea-level file:
 sequence generate sealevel.csv
 ```
 
-```
-# Time [y], Sea-Level Elevation [m]
-0.0,0.0
-200000.0,-10.0
+```{literalinclude} _sealevel.csv
+:language: python
 ```
 
 ## Subsidence File
@@ -228,13 +157,8 @@ file:
 sequence generate subsidence.csv
 ```
 
-```
-# X [y], Subsidence Rate [m / y]
-0.0,0.0
-30000.0,0.0
-35000.0,0.0
-50000.0,0.0
-100000.0,0.0
+```{literalinclude} _subsidence.csv
+:language: python
 ```
 
 :::{note}
@@ -242,6 +166,6 @@ Positive rates represent **uplift**.
 :::
 
 If you would like your subsidence profile to change with time, see the
-section above, [Time-varying parameters].
+section above, [Time-varying parameters](time-varying-parameters).
 
 <!-- end-input-files -->

@@ -27,12 +27,40 @@
 ```
 
 ```{toctree}
+:caption: Tutorials
+:hidden: true
+:maxdepth: 2
+
+notebooks/index
+```
+
+```{toctree}
+:caption: How-to guides
+:hidden: true
+:maxdepth: 2
+
+Install <how_to_guides/install/index>
+Create a Virtual Environment <how_to_guides/environments>
+```
+
+```{toctree}
+:caption: Reference
+:hidden: true
+:maxdepth: 2
+
+cli/index
+api/index
+```
+
+<!--
+```{toctree}
 :caption: Getting Started
 :hidden: true
 :maxdepth: 2
 
 installation
 user_guide/index
+notebooks/index
 ```
 
 ```{toctree}
@@ -43,6 +71,7 @@ user_guide/index
 install/index
 api/index
 ```
+-->
 
 ```{toctree}
 :caption: About
@@ -52,7 +81,7 @@ api/index
 changelog
 authors
 contributing
-license
+License <license>
 ```
 
 ```{toctree}
