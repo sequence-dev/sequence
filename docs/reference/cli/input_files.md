@@ -1,3 +1,4 @@
+(sequence-input-files-ref)=
 # Input Files
 
 <!-- start-input-files -->
@@ -17,7 +18,7 @@ sequence generate sequence.toml
 
 Following is the generated input file,
 
-```{literalinclude} _sequence.toml
+```{literalinclude} /generated/_sequence.toml
 :language: toml
 ```
 
@@ -125,7 +126,7 @@ a two-column CSV file. A sample bathymetry file can be obtained with:
 sequence generate bathymetry.csv
 ```
 
-```{literalinclude} _bathymetry.csv
+```{literalinclude} /generated/_bathymetry.csv
 :language: python
 ```
 
@@ -142,7 +143,7 @@ elevation, respectively. For a sample sea-level file:
 sequence generate sealevel.csv
 ```
 
-```{literalinclude} _sealevel.csv
+```{literalinclude} /generated/_sealevel.csv
 :language: python
 ```
 
@@ -157,7 +158,7 @@ file:
 sequence generate subsidence.csv
 ```
 
-```{literalinclude} _subsidence.csv
+```{literalinclude} /generated/_subsidence.csv
 :language: python
 ```
 
