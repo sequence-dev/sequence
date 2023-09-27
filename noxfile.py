@@ -112,6 +112,8 @@ def build_generated_docs(session: nox.Session) -> None:
     session.install("sphinx")
     session.install("-e", ".")
 
+    session.run("sequence", "--version")
+
     session.log("generating example sequence input files")
     with session.chdir(FOLDER["docs_generated"]):
         for fname in [
