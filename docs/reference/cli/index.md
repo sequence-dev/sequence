@@ -1,7 +1,7 @@
 # ``sequence``
 
 The *Sequence* model can be run from the command line using the
-*sequence* program. 
+*sequence* program.
 
 ```{toctree}
 :caption: Usage

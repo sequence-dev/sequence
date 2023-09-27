@@ -105,10 +105,10 @@ api/index
 :hidden: true
 :maxdepth: 2
 
-changelog
-authors
-contributing
-License <license>
+about/changelog
+about/authors
+about/contributing
+License <about/license>
 ```
 
 ```{toctree}
