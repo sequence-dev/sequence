@@ -55,7 +55,7 @@ sequence = "sequence.cli:sequence"
 packages = ["sequence"]
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.rst", "AUTHORS.rst"]}
+readme = {file = ["README.md", "AUTHORS.md"]}
 version = {attr = "sequence._version.__version__"}
 
 [tool.pytest.ini_options]

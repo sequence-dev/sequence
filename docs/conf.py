@@ -51,6 +51,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "sphinx_click",
     "sphinx_copybutton",
     "sphinx_inline_tabs",
     "sphinxcontrib.towncrier",
