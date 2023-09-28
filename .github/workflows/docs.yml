@@ -47,6 +47,7 @@ jobs:
 
           - name: Install dependencies
             run: |
+              conda install pandoc -c nodefaults -c conda-forge
               pip install nox
 
           - name: Build documentation
