@@ -1,5 +1,5 @@
 (tutorials-section)=
-# Run Sequence from the command line
+# Quickstart
 
 Running a *Sequence* simulation involves three steps: setup,
 execution, visualization. Each of the  steps correspond to

@@ -57,7 +57,7 @@ simple examples.
 :hidden: true
 :maxdepth: 2
 
-Command line <tutorials/cli/quickstart>
+Command line <tutorials/cli/index>
 Python <tutorials/notebooks/index>
 ```
 

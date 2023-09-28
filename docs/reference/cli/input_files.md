@@ -49,7 +49,7 @@ processes = [
 ### The grid section
 
 You define the grid on which *Sequence* will run in the `sequence.grid` section.
-An example gid section looks like,
+An example grid section looks like,
 
 ```toml
 [sequence.grid]
