@@ -13,6 +13,7 @@ FOLDER = {
     "docs": ROOT / "docs",
     "docs_generated": ROOT / "docs" / "generated",
     "docs_ref": ROOT / "docs" / "reference",
+    "notebooks": ROOT / "docs" / "tutorials" / "notebooks",
     "root": ROOT,
 }
 
@@ -34,10 +35,10 @@ def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     session.install("nbmake")
     session.install("-r", "requirements-testing.in")
-    session.install("-r", "notebooks/requirements.in")
+    session.install("-r", str(FOLDER["notebooks"] / "requirements.in"))
     session.install(".")
 
-    session.run("pytest", "--nbmake", "notebooks/")
+    session.run("pytest", "--nbmake", str(FOLDER["notebooks"]))
 
 
 @nox.session(name="test-cli")
