@@ -55,7 +55,7 @@ sequence = "sequence.cli:sequence"
 packages = ["sequence"]
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.rst", "AUTHORS.rst"]}
+readme = {file = ["README.md", "AUTHORS.md"]}
 version = {attr = "sequence._version.__version__"}
 
 [tool.pytest.ini_options]
@@ -103,25 +103,25 @@ title_format = "## {version} ({project_date})"
 
 [[tool.towncrier.type]]
 directory = "notebook"
-name = "New Tutorial Notebooks"
+name = "📚 New Tutorial Notebooks"
 showcontent = true
 
 [[tool.towncrier.type]]
 directory = "feature"
-name = "New Features"
+name = "🍰 New Features"
 showcontent = true
 
 [[tool.towncrier.type]]
 directory = "bugfix"
-name = "Bug Fixes"
+name = "🛠️ Bug Fixes"
 showcontent = true
 
 [[tool.towncrier.type]]
 directory = "docs"
-name = "Documentation Enhancements"
+name = "📖 Documentation Enhancements"
 showcontent = true
 
 [[tool.towncrier.type]]
 directory = "misc"
-name = "Other Changes and Additions"
+name = "🔩 Other Changes and Additions"
 showcontent = true

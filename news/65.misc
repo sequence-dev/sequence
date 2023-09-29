@@ -1,3 +1,2 @@
-
 Enforce the existence of docstrings for all public function, classes, etc. and
 ensure those docstrings adhere to the *numpy* docstring conventions.

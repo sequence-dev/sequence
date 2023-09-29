@@ -8,6 +8,15 @@ import nox
 PROJECT = "sequence"
 ROOT = pathlib.Path(__file__).parent
 
+FOLDER = {
+    "build": ROOT / "build",
+    "docs": ROOT / "docs",
+    "docs_generated": ROOT / "docs" / "generated",
+    "docs_ref": ROOT / "docs" / "reference",
+    "notebooks": ROOT / "docs" / "tutorials" / "notebooks",
+    "root": ROOT,
+}
+
 
 @nox.session
 def test(session: nox.Session) -> None:
@@ -26,10 +35,10 @@ def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     session.install("nbmake")
     session.install("-r", "requirements-testing.in")
-    session.install("-r", "notebooks/requirements.in")
+    session.install("-r", str(FOLDER["notebooks"] / "requirements.in"))
     session.install(".")
 
-    session.run("pytest", "--nbmake", "notebooks/")
+    session.run("pytest", "--nbmake", str(FOLDER["notebooks"]))
 
 
 @nox.session(name="test-cli")
@@ -77,60 +86,74 @@ def towncrier(session: nox.Session) -> None:
 @nox.session(name="build-docs", reuse_venv=True)
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
-    build_dir = ROOT / "build"
-    docs_dir = ROOT / "docs"
-
-    session.install("-r", str(docs_dir / "requirements.in"))
+    session.install("-r", str(FOLDER["docs"] / "requirements.in"))
     session.install("-e", ".")
 
     clean_docs(session)
+    build_generated_docs(session)
 
-    build_dir.mkdir(exist_ok=True)
-    with session.chdir(ROOT):
+    FOLDER["build"].mkdir(exist_ok=True)
+    with session.chdir(FOLDER["root"]):
+        session.run(
+            "sphinx-build",
+            "-b",
+            "html",
+            "-W",
+            "--keep-going",
+            "docs",
+            "build/html",
+        )
+
+
+@nox.session(name="build-generated-docs", reuse_venv=True)
+def build_generated_docs(session: nox.Session) -> None:
+    """Build auto-generated files used by the docs."""
+    FOLDER["docs_generated"].mkdir(exist_ok=True)
+
+    session.install("sphinx")
+    session.install("-e", ".")
+
+    session.run("sequence", "--version")
+
+    session.log("generating example sequence input files")
+    with session.chdir(FOLDER["docs_generated"]):
+        for fname in [
+            "bathymetry.csv",
+            "sealevel.csv",
+            "sequence.toml",
+            "subsidence.csv",
+        ]:
+            generated = f"_{fname}"
+            with open(generated, "wb") as fp:
+                session.log(f"Creating file: {generated}")
+                session.run("sequence", "generate", fname, stdout=fp)
+
+    with session.chdir(FOLDER["root"]):
+        session.log(f"generating api docs in {FOLDER['docs_generated']}")
         session.run(
             "sphinx-apidoc",
             "-e",
             "-force",
             "--no-toc",
             "--module-first",
-            # "--templatedir",
-            # "docs/_templates",
             "-o",
-            "docs/api",
+            str(FOLDER["docs_generated"]),
             "sequence",
-        )
-        session.run(
-            "sphinx-build",
-            "-b",
-            "html",
-            "-W",
-            "docs",
-            "build/html",
         )
 
 
 @nox.session(name="live-docs", reuse_venv=True)
 def live_docs(session: nox.Session) -> None:
+    build_generated_docs(session)
+
     session.install("sphinx-autobuild")
     session.install(".[doc]")
-    session.run(
-        "sphinx-apidoc",
-        "-e",
-        "-force",
-        "--no-toc",
-        "--module-first",
-        "--templatedir",
-        "docs/_templates",
-        "-o",
-        "docs/api",
-        "sequence",
-    )
     session.run(
         "sphinx-autobuild",
         "-b",
         "dirhtml",
-        "docs",
-        "build/html",
+        str(FOLDER["docs"]),
+        str(FOLDER["build"] / "html"),
         "--open-browser",
     )
 
@@ -144,7 +167,12 @@ def build(session: nox.Session) -> None:
     session.run("python", "--version")
     session.run("pip", "--version")
     session.run(
-        "python", "setup.py", "bdist_wheel", "sdist", "--dist-dir", "./wheelhouse"
+        "python",
+        "setup.py",
+        "bdist_wheel",
+        "sdist",
+        "--dist-dir",
+        str(FOLDER["build"] / "wheelhouse"),
     )
 
 
@@ -159,34 +187,34 @@ def release(session):
 @nox.session
 def publish_testpypi(session):
     """Publish wheelhouse/* to TestPyPI."""
-    session.run("twine", "check", "wheelhouse/*")
+    session.run("twine", "check", str(FOLDER["build"] / "wheelhouse" / "*"))
     session.run(
         "twine",
         "upload",
         "--skip-existing",
         "--repository-url",
         "https://test.pypi.org/legacy/",
-        "wheelhouse/*.tar.gz",
+        str(FOLDER["build"] / "wheelhouse" / "*.tar.gz"),
     )
 
 
 @nox.session
 def publish_pypi(session):
     """Publish wheelhouse/* to PyPI."""
-    session.run("twine", "check", "wheelhouse/*")
+    session.run("twine", "check", str(FOLDER["build"] / "wheelhouse" / "*"))
     session.run(
         "twine",
         "upload",
         "--skip-existing",
-        "wheelhouse/*.tar.gz",
+        str(FOLDER["build"] / "wheelhouse" / "*.tar.gz"),
     )
 
 
 @nox.session(python=False)
 def clean(session):
     """Remove all .venv's, build files and caches in the directory."""
-    shutil.rmtree("build", ignore_errors=True)
-    shutil.rmtree("wheelhouse", ignore_errors=True)
+    shutil.rmtree(FOLDER["build"], ignore_errors=True)
+    shutil.rmtree(FOLDER["build"] / "wheelhouse", ignore_errors=True)
     shutil.rmtree(f"{PROJECT}.egg-info", ignore_errors=True)
     shutil.rmtree(".pytest_cache", ignore_errors=True)
     shutil.rmtree(".venv", ignore_errors=True)
@@ -200,11 +228,11 @@ def clean(session):
 @nox.session(python=False, name="clean-docs")
 def clean_docs(session: nox.Session) -> None:
     """Clean up the docs folder."""
-    if (ROOT / "build").is_dir():
-        with session.chdir(ROOT / "build"):
-            if os.path.exists("html"):
-                shutil.rmtree("html")
+    if (FOLDER["build"] / "html").is_dir():
+        shutil.rmtree(FOLDER["build"] / "html")
 
-    with session.chdir(ROOT / "docs"):
-        for p in pathlib.Path("api").rglob("sequence*.rst"):
-            p.unlink()
+    for p in chain(
+        FOLDER["docs_generated"].rglob("sequence*.rst"),
+        FOLDER["docs_generated"].rglob("_*"),
+    ):
+        p.unlink()

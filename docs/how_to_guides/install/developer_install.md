@@ -1,4 +1,4 @@
-(install)=
+(source-install)=
 
 # Developer Install
 
@@ -49,7 +49,7 @@ pip install -e .
 ```
 ````
 
-```{tab} pip
+````{tab} pip
 ```bash
  cd sequence
  pip install -e .

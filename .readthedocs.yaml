@@ -6,7 +6,8 @@ build:
     python: "3.11"
   jobs:
     pre_build:
-      - sphinx-apidoc -e -force --no-toc --module-first -o docs/api sequence
+      - pip install nox
+      - nox -s build-generated-docs
 
 sphinx:
   builder: html

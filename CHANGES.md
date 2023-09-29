@@ -10,20 +10,20 @@
 
 ## 0.5.1 (2022-06-30)
 
-### Bug Fixes
+### 🛠️ Bug Fixes
 
 - Fixed a bug where x_of_shore and x_of_shelf_edge were being incorrectly
   recorded (but correctly calculated). ([#57](https://github.com/sequence-dev/sequence/issues/57))
 
 ## 0.5.0 (2022-06-29)
 
-### New Tutorial Notebooks
+### 📚 New Tutorial Notebooks
 
 - Added a tutorial notebook that demonstrates the use of the new `Sequence`
   class and how one can build, run and dynamically modify a new *sequence*
   model from a series of process components. ([#51](https://github.com/sequence-dev/sequence/issues/51))
 
-### New Features
+### 🍰 New Features
 
 - Added several new setters to `SedimentFlexure` that allows a user to
   dynamically change paramters while the model is running. These include:
@@ -41,13 +41,13 @@
 - Added a new method, *run*, to *Sequence* that allows a user to run the model
   until a given time and with a given time step. ([#54](https://github.com/sequence-dev/sequence/issues/54))
 
-### Bug Fixes
+### 🛠️ Bug Fixes
 
 - Fixed a bug where the sea floor was not plotted in some situations. ([#46](https://github.com/sequence-dev/sequence/issues/46))
 - Fixed a bug where the `Compact` component would fail to run because
   porosity was not being tracked within layers. ([#51](https://github.com/sequence-dev/sequence/issues/51))
 
-### Other Changes and Additions
+### 🔩 Other Changes and Additions
 
 - Updated the `SedimentFlexure` component to be compatible with the latest
   version of *landlab*. ([#45](https://github.com/sequence-dev/sequence/issues/45))
@@ -66,11 +66,11 @@
 
 ## 0.4.1 (2022-04-12)
 
-### New Features
+### 🍰 New Features
 
 - Added `--silent` option to supress status messages and the progress bar. ([#30](https://github.com/sequence-dev/sequence/issues/30))
 
-### Bug Fixes
+### 🛠️ Bug Fixes
 
 - Fixed a bug where, instead of writing the current model time, *Sequence* was
   writing the model time step number to the output file as the *time* variable. ([#34](https://github.com/sequence-dev/sequence/issues/34))
@@ -81,7 +81,7 @@
 - Fixed a bug that caused the `sequence plot` command to fail if the entire profile
   was above sea level. ([#40](https://github.com/sequence-dev/sequence/issues/40))
 
-### Other Changes and Additions
+### 🔩 Other Changes and Additions
 
 - Fixed continuous integration tests by removing lint, limit numpy version. ([#30](https://github.com/sequence-dev/sequence/issues/30))
 - Modified requirements file to exclude numpy versions that caused a core dump when running Sequence with the compaction component. ([#31](https://github.com/sequence-dev/sequence/issues/31))
@@ -93,45 +93,45 @@
 
 ## 0.4.0 (2021-07-26)
 
-### New Features
+### 🍰 New Features
 
 - Added "plot" subcommand to sequence for plotting stratigraphic output
   from a netcdf file. ([#25](https://github.com/sequence-dev/sequence/issues/25))
 
-### Bug Fixes
+### 🛠️ Bug Fixes
 
 - Fixed layer interpolation when plotting. ([#28](https://github.com/sequence-dev/sequence/issues/28))
 
-### Documentation Enhancements
+### 📖 Documentation Enhancements
 
 - Updated README documentation. Added descriptions of the
   sequence.grid and sequence.output sections for the
   sequence.toml file, and added documentation for the plot
   subcommand ([#27](https://github.com/sequence-dev/sequence/issues/27))
 
-### Other Changes and Additions
+### 🔩 Other Changes and Additions
 
 - Changed to use GitHub Actions for continuous integration. ([#26](https://github.com/sequence-dev/sequence/issues/26))
 
 ## 0.3.0 (2020-08-11)
 
-### New Features
+### 🍰 New Features
 
 - Added more time-varying parameters to SubmarineDiffuser. ([#24](https://github.com/sequence-dev/sequence/issues/24))
 
-### Documentation Enhancements
+### 📖 Documentation Enhancements
 
 - Improved documentation for time-varying parameters. ([#23](https://github.com/sequence-dev/sequence/issues/23))
 
 ## 0.2.0 (2020-07-30)
 
-### New Features
+### 🍰 New Features
 
 - Added support for toml-formatted input files and is now the default. ([#1](https://github.com/sequence-dev/sequence/issues/1))
 - Added time varying parameters. ([#18](https://github.com/sequence-dev/sequence/issues/18))
 - Allow subsidence to vary with time. ([#21](https://github.com/sequence-dev/sequence/issues/21))
 
-### Other Changes and Additions
+### 🔩 Other Changes and Additions
 
 - Fixed CI on Travis and AppVeyor. ([#18](https://github.com/sequence-dev/sequence/issues/18))
 - Use readthedocs file to configure documentation building. ([#19](https://github.com/sequence-dev/sequence/issues/19))

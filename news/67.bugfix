@@ -1,3 +1,2 @@
-
 Fixed a bug where the topographic elevations were not being updated correctly after the
 components were time stepped.
