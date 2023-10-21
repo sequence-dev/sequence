@@ -44,7 +44,7 @@ class ShorelineFinder(Component):
             "intent": "out",
             "optional": False,
             "units": "m",
-            "mapping": "grid",
+            "mapping": "row",
             "doc": "Position of the shore line",
         },
         "x_of_shelf_edge": {
@@ -52,7 +52,7 @@ class ShorelineFinder(Component):
             "intent": "out",
             "optional": False,
             "units": "m",
-            "mapping": "grid",
+            "mapping": "row",
             "doc": "Position of the shelf edge",
         },
     }
@@ -71,24 +71,31 @@ class ShorelineFinder(Component):
         super().__init__(grid)
 
         self._alpha = alpha
-        self.grid.at_grid["x_of_shore"] = 0.0
-        self.grid.at_grid["x_of_shelf_edge"] = 0.0
+        self.grid.at_row["x_of_shore"] = np.zeros(self.grid.shape[0] - 2)
+        self.grid.at_row["x_of_shelf_edge"] = np.zeros(self.grid.shape[0] - 2)
 
-        x = self.grid.x_of_node[self.grid.node_at_cell]
-        z = self.grid.at_node["topographic__elevation"][self.grid.node_at_cell]
-        dz = self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell]
+        x = self.grid.x_of_column
+        z = self.grid.get_profile("topographic__elevation")
+        dz = self.grid.get_profile("sediment_deposit__thickness")
         sea_level = self.grid.at_grid["sea_level__elevation"]
 
-        x_of_shore = find_shoreline(x, z, sea_level=sea_level)
-        try:
-            x_of_shelf_edge = find_shelf_edge(
-                x, dz, x_of_shore=x_of_shore, alpha=self._alpha
-            )
-        except ShelfEdgeError:
-            x_of_shelf_edge = np.nan
+        x_of_shores = np.empty(z.shape[0], dtype=float)
+        x_of_shelf_edges = np.empty(z.shape[0], dtype=float)
 
-        self.grid.at_grid["x_of_shore"] = x_of_shore
-        self.grid.at_grid["x_of_shelf_edge"] = x_of_shelf_edge
+        for row in range(z.shape[0]):
+            x_of_shore = find_shoreline(x, z[row], sea_level=sea_level)
+            try:
+                x_of_shelf_edge = find_shelf_edge(
+                    x, dz[row], x_of_shore=x_of_shore, alpha=self._alpha
+                )
+            except ShelfEdgeError:
+                x_of_shelf_edge = np.nan
+
+            x_of_shores[row] = x_of_shore
+            x_of_shelf_edges[row] = x_of_shelf_edge
+
+        self.grid.at_row["x_of_shore"][:] = x_of_shores
+        self.grid.at_row["x_of_shelf_edge"][:] = x_of_shelf_edges
 
     @property
     def alpha(self) -> float:
@@ -97,23 +104,30 @@ class ShorelineFinder(Component):
 
     def update(self) -> None:
         """Update the component one time step to find the new shoreline."""
-        x = self.grid.x_of_node[self.grid.node_at_cell]
-        z = self.grid.at_node["topographic__elevation"][self.grid.node_at_cell]
-        dz = self.grid.at_node["sediment_deposit__thickness"][self.grid.node_at_cell]
+        x = self.grid.x_of_column
+        z = self.grid.get_profile("topographic__elevation")
+        dz = self.grid.get_profile("sediment_deposit__thickness")
         sea_level = self.grid.at_grid["sea_level__elevation"]
 
-        x_of_shore = find_shoreline(x, z, sea_level=sea_level)
-        try:
-            x_of_shelf_edge = find_shelf_edge(
-                x, dz, x_of_shore=x_of_shore, alpha=self._alpha
-            )
-        except ShelfEdgeError:
-            x_of_shelf_edge = np.nan
-        else:
-            assert x_of_shelf_edge > x_of_shore
+        x_of_shores = np.empty(z.shape[0], dtype=float)
+        x_of_shelf_edges = np.empty(z.shape[0], dtype=float)
 
-        self.grid.at_grid["x_of_shore"] = x_of_shore
-        self.grid.at_grid["x_of_shelf_edge"] = x_of_shelf_edge
+        for row in range(z.shape[0]):
+            x_of_shore = find_shoreline(x, z[row], sea_level=sea_level)
+            try:
+                x_of_shelf_edge = find_shelf_edge(
+                    x, dz[row], x_of_shore=x_of_shore, alpha=self._alpha
+                )
+            except ShelfEdgeError:
+                x_of_shelf_edge = np.nan
+            else:
+                assert x_of_shelf_edge > x_of_shore
+
+            x_of_shores[row] = x_of_shore
+            x_of_shelf_edges[row] = x_of_shelf_edge
+
+        self.grid.at_row["x_of_shore"][:] = x_of_shores
+        self.grid.at_row["x_of_shelf_edge"][:] = x_of_shelf_edges
 
     def run_one_step(self, dt: Optional[float] = None) -> None:
         """Update the component on time step.
@@ -163,11 +177,10 @@ def find_shelf_edge_by_curvature(
     return x[np.argmin(curvature)]
 
 
-# def find_shelf_edge(grid, x, wd, x_of_shore, sea_level=0.0, alpha = 0.0005):
 def find_shelf_edge(
-    x: list[float],
-    dz: list[float],
-    x_of_shore: float = 0.0,
+    x: NDArray[np.floating],
+    dz: NDArray[np.floating],
+    x_of_shore: NDArray[np.floating] | float = 0.0,
     alpha: float = 0.0005,
 ) -> float:
     """Find the shelf edge based on deposit thickness.
@@ -218,7 +231,7 @@ def find_shoreline(
     z: NDArray[np.floating],
     sea_level: float = 0.0,
     kind: str = "cubic",
-) -> float:
+) -> NDArray[np.floating] | float:
     """Find the shoreline of a profile.
 
     Parameters
@@ -269,18 +282,27 @@ def find_shoreline(
 
     x, z = np.asarray(x), np.asarray(z)
 
-    try:
-        index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
-    except ShorelineError:
-        if z[0] < sea_level:
-            x_of_shoreline = x[0]
-        else:
-            x_of_shoreline = x[-1]
-    else:
-        func = interpolate.interp1d(x, z - sea_level, kind=kind)
-        x_of_shoreline = bisect(func, x[index_at_shore - 1], x[index_at_shore])
+    z = np.atleast_2d(z)
+    n_rows = z.shape[0]
 
-    return x_of_shoreline
+    x_of_shorelines = np.empty(n_rows, dtype=float)
+    for row in range(n_rows):
+        try:
+            index_at_shore = find_shoreline_index(x, z[row], sea_level=sea_level)
+        except ShorelineError:
+            if z[0] < sea_level:
+                x_of_shoreline = x[0]
+            else:
+                x_of_shoreline = x[-1]
+        else:
+            func = interpolate.interp1d(x, z[row] - sea_level, kind=kind)
+            x_of_shoreline = bisect(func, x[index_at_shore - 1], x[index_at_shore])
+        x_of_shorelines[row] = x_of_shoreline
+
+    if n_rows == 1:
+        return x_of_shorelines.item()
+    else:
+        return x_of_shorelines
 
 
 def _find_shoreline_polyfit(
@@ -330,7 +352,7 @@ def _find_shoreline_polyfit(
 
 def find_shoreline_index(
     x: NDArray[np.floating], z: NDArray[np.floating], sea_level: float = 0.0
-) -> int:
+) -> NDArray[np.integer] | int:
     """Find the landward-index of the shoreline.
 
     Parameters
@@ -381,14 +403,25 @@ def find_shoreline_index(
     Traceback (most recent call last):
     sequence.errors.ShorelineError: No shoreline found. The profile is all above sea level
     """
-    (below_water,) = np.where(z < sea_level)
+    z = np.atleast_2d(z)
+    n_rows = z.shape[0]
 
-    if len(below_water) == 0 or len(below_water) == len(x):
-        raise ShorelineError(
-            "No shoreline found. The profile is all {} sea level".format(
-                "above" if len(below_water) == 0 else "below"
+    index_of_shoreline = np.full(n_rows, -1)
+    for row in range(n_rows):
+        (below_water,) = np.where(z[row] < sea_level)
+
+        if len(below_water) == 0 or len(below_water) == len(x):
+            raise ShorelineError(
+                "No shoreline found. The profile is all {} sea level".format(
+                    "above" if len(below_water) == 0 else "below"
+                )
             )
-        )
-        return None
+            # return None
+        else:
+            index_of_shoreline[row] = below_water[0]
+            # return below_water[0]
+
+    if n_rows == 1:
+        return index_of_shoreline.item()
     else:
-        return below_water[0]
+        return index_of_shoreline
