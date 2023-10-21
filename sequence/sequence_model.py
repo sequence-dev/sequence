@@ -116,8 +116,8 @@ class SequenceModel:
         if output is not None:
             self._components["output"] = OutputWriter(self._grid, **output)
 
-        self.grid.at_grid["x_of_shore"] = np.nan
-        self.grid.at_grid["x_of_shelf_edge"] = np.nan
+        self.grid.at_row["x_of_shore"][:] = np.nan
+        self.grid.at_row["x_of_shelf_edge"][:] = np.nan
         self.grid.at_grid["sea_level__elevation"] = 0.0
         self._n_archived_layers = 0
 
