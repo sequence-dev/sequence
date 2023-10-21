@@ -11,7 +11,7 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 from ._grid import SequenceModelGrid
-from .errors import MissingRequiredVariable
+from .errors import InvalidRowError, MissingRequiredVariable
 
 
 def plot_layers(
@@ -185,9 +185,10 @@ def plot_grid(grid: SequenceModelGrid, **kwds: Any) -> None:
     :func:`plot_file` : Plot a `SequenceModelGrid`'s layers from a file.
     """
     elevation_at_layer = (
-        grid.at_node["bedrock_surface__elevation"][grid.node_at_cell] + grid.at_layer.z
+        grid.get_profile("bedrock_surface__elevation") + grid.at_layer.z
     )
-    x_of_stack = grid.x_of_node[grid.node_at_cell]
+
+    x_of_stack = grid.x_of_column
 
     x_of_shore = grid.at_layer_grid["x_of_shore"].flatten()
     x_of_shelf_edge = grid.at_layer_grid["x_of_shelf_edge"].flatten()
@@ -209,7 +210,9 @@ def plot_grid(grid: SequenceModelGrid, **kwds: Any) -> None:
     )
 
 
-def plot_file(filename: Union[str, PathLike], **kwds: Any) -> None:
+def plot_file(
+    filename: Union[str, PathLike], row: Optional[int] = None, **kwds: Any
+) -> None:
     """Plot a `SequenceModelGrid` from a *Sequence* output file.
 
     Parameters
@@ -224,25 +227,45 @@ def plot_file(filename: Union[str, PathLike], **kwds: Any) -> None:
     """
     kwds.setdefault("title", f"{filename}")
     with xr.open_dataset(filename) as ds:
+        if "row" not in ds.dims:
+            raise MissingRequiredVariable("row")
+
+        if row is None:
+            row = ds.dims["row"] // 2
+        elif (row >= ds.dims["row"]) or (row < -ds.dims["row"]):
+            raise InvalidRowError(row, ds.dims["row"])
+
         try:
-            thickness_at_layer = ds["at_layer:thickness"]
-            x_of_shore = ds["at_grid:x_of_shore"].data.squeeze()
-            x_of_shelf_edge = ds["at_grid:x_of_shelf_edge"].data.squeeze()
-            bedrock = ds["at_node:bedrock_surface__elevation"].data.squeeze()
+            thickness_at_layer = ds["at_layer:thickness"][:, row, :]
+            x_of_shore = ds["at_row:x_of_shore"].data.squeeze()
+            x_of_shelf_edge = ds["at_row:x_of_shelf_edge"].data.squeeze()
+            bedrock = (
+                ds["at_node:bedrock_surface__elevation"]
+                .data.reshape((-1, ds.dims["row"] + 2, ds.dims["column"] + 2))
+                .squeeze()
+            )
             time = ds["time"]
-            time_at_layer = ds["at_layer:age"]
+            time_at_layer = ds["at_layer:age"].data.reshape(
+                (-1, ds.dims["row"], ds.dims["column"])
+            )
         except KeyError as err:
             raise MissingRequiredVariable(str(err)) from err
 
         try:
-            x_of_stack = ds["x_of_cell"].data.squeeze()
+            x_of_stack = (
+                ds["x_of_cell"]
+                .data.reshape((ds.dims["row"], ds.dims["column"]))[row, :]
+                .squeeze()
+            )
         except KeyError:
             x_of_stack = np.arange(ds.dims["cell"])
 
-        elevation_at_layer = bedrock[-1, 1:-1] + np.cumsum(thickness_at_layer, axis=0)
+        elevation_at_layer = bedrock[-1, row, 1:-1] + np.cumsum(
+            thickness_at_layer, axis=0
+        )
 
-    x_of_shore = interp1d(time, x_of_shore)(time_at_layer[:, 0])
-    x_of_shelf_edge = interp1d(time, x_of_shelf_edge)(time_at_layer[:, 0])
+    x_of_shore = interp1d(time, x_of_shore[:, row])(time_at_layer[:, row, 0])
+    x_of_shelf_edge = interp1d(time, x_of_shelf_edge[:, row])(time_at_layer[:, row, 0])
 
     plot_layers(
         elevation_at_layer,
