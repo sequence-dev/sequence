@@ -30,9 +30,11 @@ class DynamicFlexure(Flexure1D):
         else:
             self._isostasy_time = self.validate_isostasy_time(isostasytime)
 
-        super().__init__(grid, rows=1, method="flexure", **kwds)
+        active_rows = np.arange(1, grid.shape[0] - 1)
 
-        self._subsidence_pool = np.zeros(grid.shape[1], dtype=float)
+        super().__init__(grid, rows=active_rows, method="flexure", **kwds)
+
+        self._subsidence_pool = np.zeros((len(active_rows), grid.shape[1]), dtype=float)
 
     @staticmethod
     def validate_isostasy_time(time: float) -> float:
@@ -102,6 +104,8 @@ class DynamicFlexure(Flexure1D):
             The deflections over the given time step.
         """
         isostasy_fraction = self.calc_isostasy_fraction(self.isostasy_time, dt)
+
+        isostasy_fraction /= self.grid.shape[0] - 2
 
         self._subsidence_pool[:] += isostatic_deflection
         deflection = self._subsidence_pool[:] * isostasy_fraction
