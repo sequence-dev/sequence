@@ -45,28 +45,30 @@ class SequenceModelGrid(RasterModelGrid):
         >>> grid.x_of_column
         array([ 0.,  10.,  20.,  30.,  40.])
         """
-        shape = np.atleast_1d(np.asarray(shape, dtype=int))
-        spacing = np.atleast_1d(np.asarray(spacing, dtype=float))
+        row_col_shape: list[int] = np.atleast_1d(np.asarray(shape, dtype=int))
+        row_col_spacing: list[float] = np.atleast_1d(np.asarray(spacing, dtype=float))
 
-        if (
-            (len(shape) == 1 and len(spacing) != 1) or (len(shape) != 1 and len(spacing) != len(shape))
+        if (len(row_col_shape) == 1 and len(row_col_spacing) != 1) or (
+            len(row_col_shape) != 1 and len(row_col_spacing) != len(row_col_shape)
         ):
             raise ValueError(
-                f"spacing dimension ({len(spacing)}) does not match shape"
-                f" dimension ({len(shape)})"
+                f"spacing dimension ({len(row_col_spacing)}) does not match shape"
+                f" dimension ({len(row_col_shape)})"
             )
 
-        if len(shape) == 1:
-            n_rows, n_cols = 1, shape[0]
-        elif len(shape) == 2:
-            n_rows, n_cols = shape
+        if len(row_col_shape) == 1:
+            n_rows, n_cols = 1, row_col_shape[0]
+        elif len(row_col_shape) == 2:
+            n_rows, n_cols = row_col_shape
         else:
-            raise ValueError(f"invalid number of dimensions for grid ({len(shape)})")
+            raise ValueError(
+                f"invalid number of dimensions for grid ({len(row_col_shape)})"
+            )
 
-        if len(shape) == 1:
-            row_spacing, col_spacing = 1.0, spacing[0]
-        elif len(shape) == 2:
-            row_spacing, col_spacing = spacing
+        if len(row_col_shape) == 1:
+            row_spacing, col_spacing = 1.0, row_col_spacing[0]
+        elif len(row_col_shape) == 2:
+            row_spacing, col_spacing = row_col_spacing
 
         super().__init__((n_rows + 2, n_cols), xy_spacing=(col_spacing, row_spacing))
 
@@ -80,10 +82,12 @@ class SequenceModelGrid(RasterModelGrid):
 
     @property
     def x_of_column(self) -> NDArray:
+        """X-coordinate for each column of the grid."""
         return self.x_of_node[self.nodes_at_top_edge]
 
     @property
     def y_of_row(self) -> NDArray:
+        """Y-coordinate for each row of the grid."""
         return self.y_of_node[self.nodes_at_left_edge]
 
     def get_profile(self, name: str) -> NDArray:
