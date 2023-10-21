@@ -122,6 +122,9 @@ class Fluvial(Component):
         dt : float
             The time step to update the component by.
         """
+
+        # return
+
         # Upstream boundary conditions  */
         mud_vol = self.sediment_load * (1.0 - self.sand_frac) / self.sand_frac
         sand_vol = self.sediment_load
@@ -142,18 +145,22 @@ class Fluvial(Component):
         # channel_width = sand_vol * self.basin_width / qs / 31536000.
         channel_width = sand_vol / qs
 
-        x = self.grid.x_of_node.reshape(self.grid.shape)[1]
+        # x = self.grid.x_of_node.reshape(self.grid.shape)[1]
+        x = self.grid.x_of_column
         elevation = self.grid.get_profile("topographic__elevation")
+        middle_row = elevation.shape[0] // 2
 
         shore = find_shoreline(
-            x, elevation, sea_level=self.grid.at_grid["sea_level__elevation"]
+            x,
+            elevation[middle_row],
+            sea_level=self.grid.at_grid["sea_level__elevation"],
         )
 
         land = x < shore
         water = x >= shore
         # land = self.grid.x_of_node[self.grid.node_at_cell] < shore
         # slope = np.gradient(z[1, land]) / self.grid.dx
-        slope = np.gradient(elevation) / self.grid.dx
+        slope = np.gradient(elevation[middle_row]) / self.grid.dx
         # slp = np.zeros(1)
         # slp[0] = self.plain_slope
         # slope = np.concatenate((slp,slop))
@@ -163,7 +170,7 @@ class Fluvial(Component):
         # )
 
         # channel_depth = np.zeros(self.grid.number_of_cells)
-        channel_depth = np.zeros_like(elevation)  # use upsteam slope
+        channel_depth = np.zeros_like(elevation[middle_row])  # use upsteam slope
         # channel_depth[0] = (
         #    (self.sand_density - 1000.) / 1000. * self.sand_grain / self.plain_slope
         channel_depth[land] = (
@@ -178,13 +185,19 @@ class Fluvial(Component):
         # width_cb = channel_width/epsilon
 
         # Original: r_cb = (model.new_height[i]-model.height[i]+model.d_sl);
-        r_cb = self.grid.get_profile("sediment_deposit__thickness") * epsilon
-        dz = self.grid.get_profile("bedrock_surface__increment_of_elevation").copy()
+        r_cb = (
+            self.grid.get_profile("sediment_deposit__thickness")[middle_row] * epsilon
+        )
+        dz = self.grid.get_profile("bedrock_surface__increment_of_elevation")[
+            middle_row
+        ].copy()
         # original: r_b = model.thickness[i];
-        r_b = self.grid.get_profile("sediment_deposit__thickness").copy()
+        r_b = self.grid.get_profile("sediment_deposit__thickness")[middle_row].copy()
         # r_fp = np.zeros(self.grid.shape[1])
-        r_fp = np.zeros_like(elevation)
-        percent_sand = self.grid.get_profile("delta_sediment_sand__volume_fraction")
+        r_fp = np.zeros_like(elevation[middle_row])
+        percent_sand = self.grid.get_profile("delta_sediment_sand__volume_fraction")[
+            middle_row
+        ]
         percent_sand.fill(0.0)
 
         for i in np.where(land)[0]:
@@ -265,7 +278,8 @@ class Fluvial(Component):
 
         water_depth = (
             self.grid.at_grid["sea_level__elevation"]
-            - self.grid.at_node["topographic__elevation"]
+            # - self.grid.at_node["topographic__elevation"]
+            - self.grid.get_profile("topographic__elevation")[middle_row]
         )
         add_mud = np.zeros(self.grid.shape[1])
         taper = 1
@@ -287,7 +301,9 @@ class Fluvial(Component):
                 if add_mud[i] < 0.0:
                     add_mud[i] = 0.0
 
-        sediment_thickness = self.grid.get_profile("sediment_deposit__thickness")
+        sediment_thickness = self.grid.get_profile("sediment_deposit__thickness")[
+            middle_row
+        ]
         sediment_thickness[water] += add_mud[water]
 
         np.divide(
