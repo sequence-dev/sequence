@@ -122,10 +122,6 @@ class Fluvial(Component):
         dt : float
             The time step to update the component by.
         """
-
-        # return
-
-        # Upstream boundary conditions  */
         mud_vol = self.sediment_load * (1.0 - self.sand_frac) / self.sand_frac
         sand_vol = self.sediment_load
         qs = (

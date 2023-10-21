@@ -219,6 +219,8 @@ def plot_file(
     ----------
     filename : path-like
         Path to the file to plot.
+    row : int, optional
+        Row to plot. If not provided, plot the middle row.
 
     See Also
     --------
