@@ -4,6 +4,7 @@ import os
 from os import PathLike
 from typing import Iterable, Optional, Union
 
+import numpy as np
 from landlab import Component
 
 from ._grid import SequenceModelGrid
@@ -51,9 +52,9 @@ class OutputWriter(Component):
         self.filepath = filepath
 
         if rows is not None:
-            self._nodes = grid.nodes[(rows,)].flatten()
+            self._rows = np.asarray(rows) - 1
         else:
-            self._nodes = None
+            self._rows = np.arange(grid.shape[0] - 2) + 1
 
         self._time = 0.0
         self._step_count = 0
@@ -74,7 +75,10 @@ class OutputWriter(Component):
                 mode="a",
                 time=self._time,
                 names={"node": self.fields},
-                ids={"node": self._nodes},
+                ids={
+                    "row": self._rows,
+                    "column": np.arange(self.grid.shape[1] - 2),
+                },
             )
         self._time += dt
         self._step_count += 1
