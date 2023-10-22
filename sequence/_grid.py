@@ -86,6 +86,14 @@ class SequenceModelGrid(RasterModelGrid):
         return self.x_of_node[self.nodes_at_top_edge]
 
     @property
+    def number_of_rows(self) -> int:
+        return self.shape[0] - 2
+
+    @property
+    def number_of_columns(self) -> int:
+        return self.shape[1]
+
+    @property
     def y_of_row(self) -> NDArray:
         """Y-coordinate for each row of the grid."""
         return self.y_of_node[self.nodes_at_left_edge]
