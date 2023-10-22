@@ -277,7 +277,9 @@ class SubmarineDiffuser(LinearDiffuser):
 
             # if row == n_rows // 2:
             #     if self._basin_width > 0.0:
-            #         k[row, land] = self._ksh * (self._basin_width + x[land]) / self._basin_width
+            #         k[row, land] = (
+            #             self._ksh * (self._basin_width + x[land]) / self._basin_width
+            #         )
             #     else:
             #         k[row, land] = self._ksh
             # else:  # outside of the channel with low diffusivity
