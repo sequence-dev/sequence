@@ -171,7 +171,7 @@ def plot_layers(
     plt.show()
 
 
-def plot_grid(grid: SequenceModelGrid, **kwds: Any) -> None:
+def plot_grid(grid: SequenceModelGrid, row: Optional[int] = None, **kwds: Any) -> None:
     """Plot a :class:`~SequenceModelGrid`.
 
     Parameters
@@ -184,20 +184,23 @@ def plot_grid(grid: SequenceModelGrid, **kwds: Any) -> None:
     :func:`plot_layers` : Plot layers from a 2D array of elevations.
     :func:`plot_file` : Plot a `SequenceModelGrid`'s layers from a file.
     """
+    if row is None:
+        row = grid.number_of_rows // 2
+
     elevation_at_layer = (
-        grid.get_profile("bedrock_surface__elevation") + grid.at_layer.z
+        grid.get_profile("bedrock_surface__elevation")[row, 1:-1] + grid.at_layer.z
     )
 
-    x_of_stack = grid.x_of_column
+    x_of_stack = grid.x_of_column[1:-1]
 
-    x_of_shore = grid.at_layer_grid["x_of_shore"].flatten()
-    x_of_shelf_edge = grid.at_layer_grid["x_of_shelf_edge"].flatten()
+    x_of_shore = grid.at_layer_row["x_of_shore"]
+    x_of_shelf_edge = grid.at_layer_row["x_of_shelf_edge"]
 
     time_at_layer_grid = grid.at_layer_grid["age"].flatten()
     time_at_layer = grid.at_layer["age"]
 
-    x_of_shore = interp1d(time_at_layer_grid, x_of_shore)(time_at_layer[:, 0])
-    x_of_shelf_edge = interp1d(time_at_layer_grid, x_of_shelf_edge)(time_at_layer[:, 0])
+    x_of_shore = interp1d(time_at_layer_grid, x_of_shore[:, row])(time_at_layer[:, 0])
+    x_of_shelf_edge = interp1d(time_at_layer_grid, x_of_shelf_edge[:, row])(time_at_layer[:, 0])
 
     kwds.setdefault("title", f"time = {time_at_layer[-1, 0]} years")
 
