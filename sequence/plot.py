@@ -178,6 +178,8 @@ def plot_grid(grid: SequenceModelGrid, row: Optional[int] = None, **kwds: Any) -
     ----------
     grid : SequenceModelGrid
         The grid to plot.
+    row : int, optional
+        The row of the grid to plot. If not provided, plot the middle row.
 
     See Also
     --------
@@ -200,7 +202,9 @@ def plot_grid(grid: SequenceModelGrid, row: Optional[int] = None, **kwds: Any) -
     time_at_layer = grid.at_layer["age"]
 
     x_of_shore = interp1d(time_at_layer_grid, x_of_shore[:, row])(time_at_layer[:, 0])
-    x_of_shelf_edge = interp1d(time_at_layer_grid, x_of_shelf_edge[:, row])(time_at_layer[:, 0])
+    x_of_shelf_edge = interp1d(time_at_layer_grid, x_of_shelf_edge[:, row])(
+        time_at_layer[:, 0]
+    )
 
     kwds.setdefault("title", f"time = {time_at_layer[-1, 0]} years")
 

@@ -78,6 +78,7 @@ class SequenceModelGrid(RasterModelGrid):
         self.at_node["sediment_deposit__thickness"] = self.zeros(at="node")
         self.at_grid["sea_level__elevation"] = 0.0
 
+        # self.new_field_location("row", size=int(n_rows + 2))
         self.new_field_location("row", size=int(n_rows))
 
     @property
@@ -87,10 +88,13 @@ class SequenceModelGrid(RasterModelGrid):
 
     @property
     def number_of_rows(self) -> int:
-        return self.shape[0] - 2
+        """Number of rows of nodes."""
+        return self.shape[0]
+        # return self.shape[0] - 2
 
     @property
     def number_of_columns(self) -> int:
+        """Number of columns of nodes."""
         return self.shape[1]
 
     @property
