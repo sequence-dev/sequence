@@ -290,7 +290,7 @@ def find_shoreline(
         try:
             index_at_shore = find_shoreline_index(x, z[row], sea_level=sea_level)
         except ShorelineError:
-            if z[0] < sea_level:
+            if z[row, 0] < sea_level:
                 x_of_shoreline = x[0]
             else:
                 x_of_shoreline = x[-1]
