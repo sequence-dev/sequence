@@ -208,10 +208,10 @@ class SubmarineDiffuser(LinearDiffuser):
         sea level and three below, two of which are in deep water (below the
         default 60 m wave base).
 
-        >>> from landlab import RasterModelGrid
+        >>> from sequence import SequenceModelGrid
         >>> import numpy as np
 
-        >>> grid = RasterModelGrid((3, 6), xy_spacing=200.0)
+        >>> grid = SequenceModelGrid((1, 6), spacing=(1.0, 200.0))
         >>> z = grid.add_zeros("topographic__elevation", at="node")
         >>> z[6:12] = np.array([3., 3., 1., -1., -85., -85.])
         >>> z.reshape((3, 6))
@@ -297,7 +297,7 @@ class SubmarineDiffuser(LinearDiffuser):
         k[0, :] = k[1, :]
         k[-1, :] = k[-1, :]
 
-        return k
+        return self.grid.at_node["kd"]
 
     def run_one_step(self, dt: float) -> None:
         """Advance component one time step.

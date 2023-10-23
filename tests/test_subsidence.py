@@ -73,7 +73,7 @@ def test_linear_subsidence(tmpdir):
         subsidence.run_one_step(dt=1.0)
         assert_array_equal(
             grid.get_profile("bedrock_surface__increment_of_elevation"),
-            [0.0, 10.0, 20.0, 30.0, 40.0],
+            [[0.0, 10.0, 20.0, 30.0, 40.0]],
         )
 
 
@@ -91,7 +91,7 @@ def test_add_to_existing_subsidence(tmpdir):
         subsidence.run_one_step(dt=1.0)
         assert_array_equal(
             grid.get_profile("bedrock_surface__increment_of_elevation"),
-            [1.0, 11.0, 21.0, 31.0, 41.0],
+            [[1.0, 11.0, 21.0, 31.0, 41.0]],
         )
 
 

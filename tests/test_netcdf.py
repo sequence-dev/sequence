@@ -94,7 +94,7 @@ def test_with_layers(tmpdir):
     grid = SequenceModelGrid(4)
     grid.event_layers.add(10.0, age=0.0, water_depth=np.arange(2))
     with tmpdir.as_cwd():
-        to_netcdf(grid, "test.nc")
+        to_netcdf(grid, "test.nc", ids={"row": [1], "column": [1, 2]})
         ds = xr.open_dataset("test.nc")
     assert ds.dims["layer"] == 1
     assert np.all(ds["at_layer:thickness"] == np.array([[10.0, 10.0]]))

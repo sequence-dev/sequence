@@ -70,15 +70,15 @@ def test_sequence_x_of_shore_missing(grid):
 def test_sequence_x_of_shore(grid):
     seq = Sequence(grid, components=[ShorelineFinder(grid)])
 
-    assert "x_of_shore" in grid.at_grid
-    assert "x_of_shelf_edge" in grid.at_grid
+    assert "x_of_shore" in grid.at_row
+    assert "x_of_shelf_edge" in grid.at_row
 
     assert grid.at_layer_grid.number_of_layers == 1
-    assert grid.at_layer_grid["x_of_shore"][-1] == pytest.approx(20000.0)
-    assert grid.at_layer_grid["x_of_shelf_edge"][-1] > 20000.0
+    assert np.all(grid.at_layer_row["x_of_shore"][-1, :] == pytest.approx(20000.0))
+    assert np.all(grid.at_layer_row["x_of_shelf_edge"][-1, :] > 20000.0)
 
     seq.update()
 
     assert grid.at_layer_grid.number_of_layers == 2
-    assert grid.at_layer_grid["x_of_shore"][-1] == pytest.approx(20000.0)
-    assert grid.at_layer_grid["x_of_shelf_edge"][-1] > 20000.0
+    assert np.all(grid.at_layer_row["x_of_shore"][-1, :] == pytest.approx(20000.0))
+    assert np.all(grid.at_layer_row["x_of_shelf_edge"][-1, :] > 20000.0)
