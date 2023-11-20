@@ -39,13 +39,12 @@ class SequenceModel:
         "flexure",
     )
     DEFAULT_PARAMS = {
-        "grid": {"n_cols": 100, "spacing": 1000.0},
+        "grid": {"shape": (1, 100), "spacing": (1.0, 1000.0)},
         "clock": {"start": 0.0, "stop": 600000.0, "step": 100.0},
         "output": {
             "interval": 10,
             "filepath": "sequence.nc",
             "clobber": True,
-            "rows": [1],
             "fields": ["sediment_deposit__thickness", "bedrock_surface__elevation"],
         },
         "submarine_diffusion": {
