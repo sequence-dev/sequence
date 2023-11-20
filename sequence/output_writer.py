@@ -54,7 +54,7 @@ class OutputWriter(Component):
         if rows is not None:
             self._rows = np.asarray(rows) - 1
         else:
-            self._rows = np.arange(grid.shape[0] - 2) + 1
+            self._rows = np.arange(grid.shape[0] - 2)
 
         self._time = 0.0
         self._step_count = 0
