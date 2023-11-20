@@ -246,8 +246,8 @@ def plot_file(
 
         try:
             thickness_at_layer = ds["at_layer:thickness"][:, row, :]
-            x_of_shore = ds["at_row:x_of_shore"].data.squeeze()
-            x_of_shelf_edge = ds["at_row:x_of_shelf_edge"].data.squeeze()
+            x_of_shore = ds["at_row:x_of_shore"].data
+            x_of_shelf_edge = ds["at_row:x_of_shelf_edge"].data
             bedrock = (
                 ds["at_node:bedrock_surface__elevation"]
                 .data.reshape((-1, ds.dims["row"] + 2, ds.dims["column"] + 2))
