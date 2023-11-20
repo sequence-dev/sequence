@@ -1,4 +1,4 @@
-# ``sequence``
+# Command-line interface
 
 The *Sequence* model can be run from the command line using the
 *sequence* program.

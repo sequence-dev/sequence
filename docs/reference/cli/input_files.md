@@ -58,11 +58,34 @@ spacing = 1000.0
 ```
 
 In this case we have a grid that represents a 1D profile that consists of
-500 columns (i.e. vertical stacks) of sediment (the *n_cols* parameter).
+100 columns (i.e. vertical stacks) of sediment (the *n_cols* parameter).
 
 The *spacing* parameter is the width of each of your sediment stacks in meters.
 Thus, the length of you domain is the product of the number of columns with
-the spacing (that is, for this example, 500 * 100 m or 50 km).
+the spacing (that is, for this example, 100 * 1000 m or 100 km).
+
+You can also run *Sequence* in a quasi-2d mode in which *Sequence* models parallel
+cross-shore profiles. Each profile will have its own sediment supply that is
+transported into the ocean and then can be diffused between profiles. To set up
+such a case, the grid section can, for example, be modified in the following way,
+
+```toml
+[sequence.grid]
+shape = [3, 100]
+spacing = [10000.0, 1000.0]
+```
+In this case *Sequence* will create three parallel profiles (with an along-shore
+width of 10000.0 m).
+
+:::{note}
+The following is equivalent to the 1D example above,
+
+```toml
+[sequence.grid]
+shape = [1, 100]
+spacing = [1.0, 1000.0]
+```
+:::
 
 (the-output-section)=
 
