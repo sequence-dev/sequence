@@ -33,5 +33,5 @@ jobs:
           - name: Install dependencies
             run: pip install nox
 
-          - name: Build documentation
+          - name: Test notebooks
             run: nox -s test-notebooks
