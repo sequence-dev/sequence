@@ -78,6 +78,7 @@ class Sequence(Component):
         self._n_archived_layers = 0
 
         self.grid.at_layer_grid = EventLayers(1)
+        self.grid.at_layer_row = EventLayers(grid.number_of_rows)
 
         if "bedrock_surface__elevation" not in self.grid.at_node:
             self.grid.add_field(
@@ -225,6 +226,14 @@ class Sequence(Component):
             x_of_shelf_edge = self.grid.at_grid["x_of_shelf_edge"]
         except KeyError:
             x_of_shelf_edge = np.nan
+        try:
+            x_of_shores = self.grid.at_row["x_of_shore"]
+        except KeyError:
+            x_of_shores = np.full(self.grid.number_of_rows, np.nan)
+        try:
+            x_of_shelf_edges = self.grid.at_row["x_of_shelf_edge"]
+        except KeyError:
+            x_of_shelf_edges = np.full(self.grid.number_of_rows, np.nan)
 
         self.grid.at_node["topographic__elevation"][
             self.grid.node_at_cell
@@ -237,6 +246,13 @@ class Sequence(Component):
             sea_level=self.grid.at_grid["sea_level__elevation"],
             x_of_shore=x_of_shore,
             x_of_shelf_edge=x_of_shelf_edge,
+        )
+        self.grid.at_layer_row.add(
+            1.0,
+            age=self.time,
+            sea_level=self.grid.at_grid["sea_level__elevation"],
+            x_of_shore=x_of_shores,
+            x_of_shelf_edge=x_of_shelf_edges,
         )
 
         if (

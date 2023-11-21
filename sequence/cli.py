@@ -17,7 +17,7 @@ from landlab.core import load_params
 from numpy.typing import ArrayLike
 from tqdm import tqdm
 
-from .errors import MissingRequiredVariable
+from .errors import OutputValidationError
 from .input_reader import TimeVaryingConfig
 from .logging import LoggingHandler
 from .plot import plot_file, plot_layers
@@ -381,12 +381,20 @@ def setup(set: str) -> None:
 
 
 @sequence.command()
-@click.option("--set", multiple=True, help="Set model parameters")
+@click.option("--set", "-S", multiple=True, help="Set model parameters")
+@click.argument(
+    "netcdf_file",
+    type=click.Path(
+        exists=True, file_okay=True, dir_okay=False, path_type=pathlib.Path
+    ),
+    nargs=1,
+)
 @click.pass_context
-def plot(ctx: Any, set: str) -> None:
+def plot(ctx: Any, set: str, netcdf_file) -> None:
     """Plot a Sequence output file."""
     verbose = ctx.parent.params["verbose"]
     folder = pathlib.Path.cwd()
+    path_to_file = folder / netcdf_file
 
     config = PLOT_KEYWORDS.copy()
 
@@ -398,7 +406,6 @@ def plot(ctx: Any, set: str) -> None:
         )
 
     config.update(**_load_params_from_strings(set))
-
     if verbose and len(config) > 0:
         logger.info(
             os.linesep.join(
@@ -409,14 +416,11 @@ def plot(ctx: Any, set: str) -> None:
             )
         )
 
-    logger.info(f"Plotting {folder / 'sequence.nc'}")
+    logger.info(f"Plotting {path_to_file!s}")
     try:
-        plot_file(folder / "sequence.nc", **config)
-    except MissingRequiredVariable as error:
-        logger.error(
-            f"{folder / 'sequence.nc'}: output file is missing a required variable "
-            f"({error})"
-        )
+        plot_file(path_to_file, **config)
+    except OutputValidationError as error:
+        logger.error(f"{path_to_file!s}: output file is invalid ({error!s})")
         raise click.Abort() from error
 
 

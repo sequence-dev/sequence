@@ -22,13 +22,11 @@ def test_from_dict():
 def test_from_dict_old_style():
     expected = SequenceModelGrid(500, spacing=5.0)
 
-    actual = SequenceModelGrid.from_dict(
-        {"shape": (13, 500), "xy_spacing": (5.0, 25.0)}
-    )
+    actual = SequenceModelGrid.from_dict({"shape": (1, 500), "xy_spacing": (5.0, 1.0)})
     assert actual.shape == expected.shape
     assert actual.spacing == expected.spacing
 
-    actual = SequenceModelGrid.from_dict({"shape": (13, 500), "xy_spacing": 5.0})
+    actual = SequenceModelGrid.from_dict({"shape": 500, "xy_spacing": 5.0})
     assert actual.shape == expected.shape
     assert actual.spacing == expected.spacing
 

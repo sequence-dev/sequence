@@ -168,10 +168,6 @@ class SubmarineDiffuser(LinearDiffuser):
         self._ksh = self._load / self._plain_slope
         self.grid.at_grid["sediment_load"] = self._load
 
-    # @property
-    # def k0(self):
-    #     return self._k0
-
     @property
     def load0(self) -> float:
         """Return the sediment load entering the profile."""
@@ -196,7 +192,9 @@ class SubmarineDiffuser(LinearDiffuser):
     def sea_level(self, sea_level: float) -> None:
         self.grid.at_grid["sea_level__elevation"] = sea_level
 
-    def calc_diffusion_coef(self, x_of_shore: float) -> NDArray[np.floating]:
+    def calc_diffusion_coef(
+        self, x_of_shore: NDArray[np.floating] | float
+    ) -> NDArray[np.floating]:
         """Calculate and store diffusion coefficient values.
 
         Parameters
@@ -210,10 +208,10 @@ class SubmarineDiffuser(LinearDiffuser):
         sea level and three below, two of which are in deep water (below the
         default 60 m wave base).
 
-        >>> from landlab import RasterModelGrid
+        >>> from sequence import SequenceModelGrid
         >>> import numpy as np
 
-        >>> grid = RasterModelGrid((3, 6), xy_spacing=200.0)
+        >>> grid = SequenceModelGrid((1, 6), spacing=(1.0, 200.0))
         >>> z = grid.add_zeros("topographic__elevation", at="node")
         >>> z[6:12] = np.array([3., 3., 1., -1., -85., -85.])
         >>> z.reshape((3, 6))
@@ -232,36 +230,74 @@ class SubmarineDiffuser(LinearDiffuser):
         >>> diffusion_coef is grid.at_node["kd"]
         True
         """
+        x_of_shore = np.atleast_1d(x_of_shore)
+
         sea_level = self.grid.at_grid["sea_level__elevation"]
-        water_depth = sea_level - self._grid.at_node["topographic__elevation"]
 
-        under_water = water_depth > 0.0
-        deep_water = water_depth > self._wave_base
-        land = ~under_water
+        water_depth = sea_level - self._grid.get_profile("topographic__elevation")
+        k = self.grid.get_profile("kd")
+        x = self.grid.x_of_column
 
-        k = self.grid.at_node["kd"]
+        n_rows = k.shape[0]
 
-        x = self.grid.x_of_node
-        b = (self._shoreface_height * self._alpha + self._shelf_slope) * self.grid.dx
+        assert len(x_of_shore) == n_rows
 
-        k[under_water] = (
-            self._load
-            * ((x[under_water] - x_of_shore) + self.grid.dx)
-            / (water_depth[under_water] + b)
-        )
+        for row in range(n_rows):
+            under_water = water_depth[row] > 0.0
+            deep_water = water_depth[row] > self._wave_base
+            land = ~under_water
 
-        k[deep_water] *= np.exp(
-            -(water_depth[deep_water] - self._wave_base) / self._wave_base
-        )
+            b = (
+                self._shoreface_height * self._alpha + self._shelf_slope
+            ) * self.grid.dx
 
-        self._load = self._load0 * (1 + sea_level * self._load_sl)
-        self._ksh = self._load / self._plain_slope
-        if self._basin_width > 0.0:
-            k[land] = self._ksh * (self._basin_width + x[land]) / self._basin_width
-        else:
-            k[land] = self._ksh
+            k[row, under_water] = (
+                self._load
+                * ((x[under_water] - x_of_shore[row]) + self.grid.dx)
+                / (water_depth[row, under_water] + b)
+            )
 
-        return k
+            k[row, deep_water] *= np.exp(
+                -(water_depth[row, deep_water] - self._wave_base) / self._wave_base
+            )
+
+            self._load = self._load0 * (1 + sea_level * self._load_sl)
+            self._ksh = self._load / self._plain_slope
+
+            if self._basin_width > 0.0:
+                k[row, land] = (
+                    self._ksh * (self._basin_width + x[land]) / self._basin_width
+                )
+            else:
+                k[row, land] = self._ksh
+
+            # TODO: modify diffusion outside of the channel row.
+            if row != n_rows // 2:
+                k[row, land] *= 0.5
+
+            # if row == n_rows // 2:
+            #     if self._basin_width > 0.0:
+            #         k[row, land] = (
+            #             self._ksh * (self._basin_width + x[land]) / self._basin_width
+            #         )
+            #     else:
+            #         k[row, land] = self._ksh
+            # else:  # outside of the channel with low diffusivity
+            #     if self._basin_width > 0.0:
+            #         k[row, land] = self._ksh * (self.grid.dx + x[land]) / self._basin_width
+            #     else:
+            #         k[row, land] = self._ksh * (self.grid.dx) / self._basin_width
+
+            # if self._basin_width > 0.0:
+            #     k[land] = self._ksh * (self._basin_width + x[land]) / self._basin_width
+            # else:
+            #     k[land] = self._ksh
+
+        k = self.grid.at_node["kd"].reshape(self.grid.shape)
+        k[0, :] = k[1, :]
+        k[-1, :] = k[-1, :]
+
+        return self.grid.at_node["kd"]
 
     def run_one_step(self, dt: float) -> None:
         """Advance component one time step.
@@ -272,20 +308,22 @@ class SubmarineDiffuser(LinearDiffuser):
             Time step to advance component by.
         """
         shore = find_shoreline(
-            self.grid.x_of_node[self.grid.node_at_cell],
-            self.grid.at_node["topographic__elevation"][self.grid.node_at_cell],
+            self.grid.x_of_column,
+            self.grid.get_profile("topographic__elevation"),
             sea_level=self.grid.at_grid["sea_level__elevation"],
         )
 
         self.calc_diffusion_coef(shore)
 
         # set elevation at upstream boundary to ensure proper sediment influx
-        x = self.grid.x_of_node.reshape(self.grid.shape)
+        x = self.grid.x_of_column
         z = self._grid.at_node["topographic__elevation"].reshape(self.grid.shape)
         # k = self._grid.at_node["kd"].reshape(self.grid.shape)
         # z[1, 0] = z[1,1] + self._load / k[1, 0] * (x[1,1]-x[1,0])
-        z[1, 0] = z[1, 1] + self._plain_slope * (x[1, 1] - x[1, 0])
-        # self._load/self._load0)
+        # z[1, 0] = z[1, 1] + self._plain_slope * (x[1, 1] - x[1, 0])
+        z[1, 0] = z[1, 1] + self._plain_slope * (x[1] - x[0])
+
+        z[1:-1, 0] = z[1:-1, 1] + self._plain_slope * (x[1] - x[0])
 
         z_before = self.grid.at_node["topographic__elevation"].copy()
 

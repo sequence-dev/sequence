@@ -1,4 +1,5 @@
 """Write a `SequenceModelGrid` to a NetCDF file."""
+import contextlib
 import os
 import warnings
 from collections import defaultdict
@@ -6,6 +7,7 @@ from os import PathLike
 from typing import Any, Iterable, Optional, Sequence, Union
 
 import netCDF4 as nc
+import numpy as np
 from numpy.typing import NDArray
 
 from ._grid import SequenceModelGrid
@@ -43,15 +45,28 @@ def _create_grid_dimension(
 ) -> Any:
     """Create grid dimensions for a netcdf file."""
     if ids is None:
-        # ids = Ellipsis
         ids = slice(None)
 
-    if at not in ("node", "link", "patch", "corner", "face", "cell", "grid"):
+    if at not in (
+        "node",
+        "link",
+        "patch",
+        "corner",
+        "face",
+        "cell",
+        "grid",
+        "row",
+        "column",
+    ):
         raise ValueError(f"unknown grid location {at}")
 
     if at not in root.dimensions:
         if at == "grid":
             number_of_elements = 1
+        elif at == "row":
+            number_of_elements = len(getattr(grid, f"y_of_{at}")[ids])
+        elif at == "column":
+            number_of_elements = len(getattr(grid, f"x_of_{at}")[ids])
         else:
             number_of_elements = len(getattr(grid, f"xy_of_{at}")[ids])
         root.createDimension(at, number_of_elements)
@@ -95,9 +110,16 @@ def _set_grid_coordinates(
     if at == "grid":
         return
 
-    coords = getattr(grid, f"xy_of_{at}")
-    root.variables[f"x_of_{at}"][:] = coords[ids, 0]
-    root.variables[f"y_of_{at}"][:] = coords[ids, 1]
+    if at == "row":
+        coords = getattr(grid, f"y_of_{at}")
+        root.variables[f"y_of_{at}"][:] = coords[ids]
+    elif at == "column":
+        coords = getattr(grid, f"x_of_{at}")
+        root.variables[f"x_of_{at}"][:] = coords[ids]
+    else:
+        coords = getattr(grid, f"xy_of_{at}")
+        root.variables[f"x_of_{at}"][:] = coords[ids, 0]
+        root.variables[f"y_of_{at}"][:] = coords[ids, 1]
 
 
 def _create_field(
@@ -139,6 +161,12 @@ def _set_field(
         )
         names = names & set(grid[at])
 
+    if at == "grid":
+        with contextlib.suppress(KeyError):
+            names.remove("x_of_shelf_edge")
+        with contextlib.suppress(KeyError):
+            names.remove("x_of_shore")
+
     _create_field(root, grid, at=at, names=names)
 
     if "time" in root.dimensions:
@@ -149,7 +177,6 @@ def _set_field(
             else:
                 values = grid[at][name]
             root.variables[_netcdf_var_name(name, at)][n_times - 1, :] = values
-
     else:
         for name in names:
             root.variables[_netcdf_var_name(name, at)][:] = grid[at][name][ids]
@@ -165,16 +192,21 @@ def _create_layers(
         netcdf_name = _netcdf_var_name(name, "layer")
         if netcdf_name not in root.variables:
             root.createVariable(
-                netcdf_name, _netcdf_type(grid.event_layers[name]), ("layer", "cell")
+                netcdf_name,
+                _netcdf_type(grid.event_layers[name]),
+                ("layer", "row", "column"),
             )
 
     netcdf_name = _netcdf_var_name("thickness", "layer")
     if netcdf_name not in root.variables:
-        root.createVariable(netcdf_name, "f8", ("layer", "cell"))
+        root.createVariable(netcdf_name, "f8", ("layer", "row", "column"))
 
 
 def _set_layers(
-    root: Any, grid: SequenceModelGrid, names: Optional[Iterable[str]] = None
+    root: Any,
+    grid: SequenceModelGrid,
+    names: Optional[Iterable[str]] = None,
+    ids: Optional[Union[slice, Iterable[int]]] = None,
 ) -> None:
     """Set values for variables at a grid layers."""
     if isinstance(names, str):
@@ -188,12 +220,15 @@ def _set_layers(
 
     n_layers = grid.event_layers.number_of_layers
     for name in names:
-        root.variables[_netcdf_var_name(name, "layer")][
-            :n_layers, :
-        ] = grid.event_layers[name][:]
-    root.variables[_netcdf_var_name("thickness", "layer")][
-        :n_layers, :
-    ] = grid.event_layers.dz[:]
+        layers = grid.event_layers[name][:, ids].reshape(
+            (-1, grid.shape[0] - 2, grid.shape[1] - 2)
+        )
+        root.variables[_netcdf_var_name(name, "layer")][:n_layers, :, :] = layers
+
+    dz = grid.event_layers.dz[:, ids].reshape(
+        (-1, grid.shape[0] - 2, grid.shape[1] - 2)
+    )
+    root.variables[_netcdf_var_name("thickness", "layer")][:n_layers, :, :] = dz
 
 
 def to_netcdf(
@@ -203,7 +238,7 @@ def to_netcdf(
     format: str = "NETCDF4",
     time: float = 0.0,
     at: Optional[Union[str, Sequence[str]]] = None,
-    ids: Optional[Union[dict[str, Iterable[int]], int, Iterable[int], slice]] = None,
+    ids: Optional[dict[str, NDArray[np.integer]] | int | Iterable[int] | slice] = None,
     names: Optional[
         Union[dict[str, Optional[Iterable[str]]], str, Iterable[str]]
     ] = None,
@@ -267,6 +302,12 @@ def to_netcdf(
             else:
                 names_dict[loc] = list(names_)
 
+    with contextlib.suppress(ValueError):
+        names_dict["grid"].remove("x_of_shore")
+    with contextlib.suppress(ValueError):
+        names_dict["grid"].remove("x_of_shelf_edge")
+    names_dict["row"] = ["x_of_shore", "x_of_shelf_edge"]
+
     ids_dict: dict[str, Union[slice, Iterable[int]]] = defaultdict(lambda: slice(None))
     if not isinstance(ids, dict):
         for loc in at:
@@ -286,6 +327,8 @@ def to_netcdf(
         root.createDimension("time", None)
         root.createVariable("time", "f8", ("time",))
 
+        _set_grid_coordinates(root, grid, at="row", ids=ids_dict["row"])
+        _set_grid_coordinates(root, grid, at="column", ids=ids_dict["column"])
         for loc in at:
             _set_grid_coordinates(root, grid, at=loc, ids=ids_dict[loc])
 
@@ -294,7 +337,15 @@ def to_netcdf(
 
     for loc in at:
         _set_field(root, grid, at=loc, ids=ids_dict[loc], names=names_dict[loc])
+    _set_field(
+        root,
+        grid,
+        at="row",
+        ids=ids_dict["row"],
+        names=["x_of_shore", "x_of_shelf_edge"],
+    )
+
     if with_layers:
-        _set_layers(root, grid, names=None)
+        _set_layers(root, grid, names=None, ids=ids_dict.get("cell", None))
 
     root.close()

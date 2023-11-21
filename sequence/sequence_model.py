@@ -39,13 +39,12 @@ class SequenceModel:
         "flexure",
     )
     DEFAULT_PARAMS = {
-        "grid": {"n_cols": 100, "spacing": 1000.0},
+        "grid": {"shape": (1, 100), "spacing": (1.0, 1000.0)},
         "clock": {"start": 0.0, "stop": 600000.0, "step": 100.0},
         "output": {
             "interval": 10,
             "filepath": "sequence.nc",
             "clobber": True,
-            "rows": [1],
             "fields": ["sediment_deposit__thickness", "bedrock_surface__elevation"],
         },
         "submarine_diffusion": {
@@ -116,8 +115,8 @@ class SequenceModel:
         if output is not None:
             self._components["output"] = OutputWriter(self._grid, **output)
 
-        self.grid.at_grid["x_of_shore"] = np.nan
-        self.grid.at_grid["x_of_shelf_edge"] = np.nan
+        self.grid.at_row["x_of_shore"][:] = np.nan
+        self.grid.at_row["x_of_shelf_edge"][:] = np.nan
         self.grid.at_grid["sea_level__elevation"] = 0.0
         self._n_archived_layers = 0
 

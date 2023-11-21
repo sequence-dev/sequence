@@ -27,7 +27,7 @@ we replace this section with the following,
 
 ```toml
 [sequence.sea_level]
-filepath = sealevel.csv
+filepath = "sealevel.csv"
 ```
 
 With this configuration, *Sequence* will read sea level values from this
