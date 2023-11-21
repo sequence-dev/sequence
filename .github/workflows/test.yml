@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v2
@@ -39,11 +39,13 @@ jobs:
         run: pip install nox
 
       - name: Test
-        run: nox -s test
+        run: |
+          nox -s test --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}"
 
       - name: Test the cli
-        run: nox -s test-cli
+        run: |
+          nox -s test-cli --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}"
 
       - name: Coveralls
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         uses: AndreMiras/coveralls-python-action@v20201129
