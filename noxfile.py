@@ -5,6 +5,7 @@ from itertools import chain
 
 import nox
 
+PYTHON_VERSION = "3.12"
 PROJECT = "sequence"
 ROOT = pathlib.Path(__file__).parent
 
@@ -18,7 +19,7 @@ FOLDER = {
 }
 
 
-@nox.session
+@nox.session(python=PYTHON_VERSION, venv_backend="conda")
 def test(session: nox.Session) -> None:
     """Run the tests."""
     session.install("-r", "requirements-testing.in")
@@ -30,7 +31,7 @@ def test(session: nox.Session) -> None:
     session.run("pytest", *args)
 
 
-@nox.session(name="test-notebooks")
+@nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="conda")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     session.install("nbmake")
@@ -41,7 +42,7 @@ def test_notebooks(session: nox.Session) -> None:
     session.run("pytest", "--nbmake", str(FOLDER["notebooks"]))
 
 
-@nox.session(name="test-cli")
+@nox.session(name="test-cli", python=PYTHON_VERSION, venv_backend="conda")
 def test_cli(session: nox.Session) -> None:
     """Test the command line interface."""
     session.install(".")
