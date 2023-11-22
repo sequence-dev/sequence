@@ -77,6 +77,7 @@ repos:
           .*requirements(-\w+)?.(in|txt)|
           MANIFEST.in
         )
+    - id: name-tests-test
 
 - repo: https://github.com/PyCQA/pydocstyle
   rev: 6.3.0
