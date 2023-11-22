@@ -14,7 +14,7 @@ maintainers = [
   {name = "Eric Hutton"}
 ]
 keywords = ["sequence", "stratigraphy", "landlab"]
-license = {file = "LICENSE.rst"}
+license = {text = "MIT"}
 classifiers = [
   "Development Status :: 2 - Pre-Alpha",
   "Intended Audience :: Science/Research",
@@ -43,7 +43,7 @@ dynamic = ["readme", "version"]
 homepage = "https://github.com/sequence-dev/sequence"
 documentation = "https://sequence.readthedocs.io"
 repository = "https://github.com/sequence-dev/sequence"
-changelog = "https://github.com/sequence-dev/sequence/blob/develop/CHANGES.rst"
+changelog = "https://github.com/sequence-dev/sequence/blob/develop/CHANGES.md"
 
 [project.optional-dependencies]
 dev = ["nox"]
@@ -55,7 +55,7 @@ sequence = "sequence.cli:sequence"
 packages = ["sequence"]
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.md", "AUTHORS.md"]}
+readme = {file = ["README.md", "AUTHORS.md"], content-type="text/markdown"}
 version = {attr = "sequence._version.__version__"}
 
 [tool.pytest.ini_options]
