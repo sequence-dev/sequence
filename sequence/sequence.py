@@ -1,14 +1,17 @@
 """*Sequence*'s main API for constructing sequence-stratigraphic models."""
-from typing import Any, Iterable, Optional
+from collections.abc import Iterable
+from typing import Any
+from typing import Optional
 
 import numpy as np
 from landlab import Component
 from landlab.layers import EventLayers
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 from tqdm import trange
 
-from ._grid import SequenceModelGrid
-from .plot import plot_grid
+from sequence._grid import SequenceModelGrid
+from sequence.plot import plot_grid
 
 
 class Sequence(Component):

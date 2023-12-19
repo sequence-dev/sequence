@@ -6,8 +6,8 @@ This module contains *Landlab* components that add a sand fraction to a
 import numpy as np
 from landlab import Component
 
-from ._grid import SequenceModelGrid
-from .shoreline import find_shoreline
+from sequence._grid import SequenceModelGrid
+from sequence.shoreline import find_shoreline
 
 
 class Fluvial(Component):

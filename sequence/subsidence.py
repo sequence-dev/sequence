@@ -1,13 +1,14 @@
 """Subside a `SequenceModelGrid`."""
 import os
-from typing import Callable, Union
+from collections.abc import Callable
+from typing import Union
 
 import numpy as np
 from landlab import Component
 from numpy.typing import NDArray
 from scipy import interpolate
 
-from ._grid import SequenceModelGrid
+from sequence._grid import SequenceModelGrid
 
 
 class SubsidenceTimeSeries(Component):

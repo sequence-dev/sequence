@@ -2,10 +2,14 @@
 import logging
 import os
 import time
-from collections import OrderedDict, defaultdict
-from collections.abc import Hashable, Iterable
+from collections import defaultdict
+from collections import OrderedDict
+from collections.abc import Hashable
+from collections.abc import Iterable
 from contextlib import suppress
-from typing import Any, Dict, Optional
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 import numpy as np
 import tomlkit
@@ -13,16 +17,18 @@ from compaction.landlab import Compact
 from landlab.bmi.bmi_bridge import TimeStepper
 from numpy.typing import ArrayLike
 
-from ._grid import SequenceModelGrid
-from .bathymetry import BathymetryReader
-from .errors import ParameterMismatchError
-from .fluvial import Fluvial
-from .output_writer import OutputWriter
-from .sea_level import SeaLevelTimeSeries, SinusoidalSeaLevel
-from .sediment_flexure import SedimentFlexure, WaterFlexure
-from .shoreline import ShorelineFinder
-from .submarine import SubmarineDiffuser
-from .subsidence import SubsidenceTimeSeries
+from sequence._grid import SequenceModelGrid
+from sequence.bathymetry import BathymetryReader
+from sequence.errors import ParameterMismatchError
+from sequence.fluvial import Fluvial
+from sequence.output_writer import OutputWriter
+from sequence.sea_level import SeaLevelTimeSeries
+from sequence.sea_level import SinusoidalSeaLevel
+from sequence.sediment_flexure import SedimentFlexure
+from sequence.sediment_flexure import WaterFlexure
+from sequence.shoreline import ShorelineFinder
+from sequence.submarine import SubmarineDiffuser
+from sequence.subsidence import SubsidenceTimeSeries
 
 logger = logging.getLogger("sequence")
 

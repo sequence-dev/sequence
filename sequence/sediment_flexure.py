@@ -1,13 +1,14 @@
 """Subside a `SequenceModelGrid` using flexure."""
 import logging
-from typing import Optional, Union
+from typing import Optional
+from typing import Union
 
 import numpy as np
 import tomlkit as toml
 from landlab.components.flexure import Flexure1D
 from numpy.typing import NDArray
 
-from ._grid import SequenceModelGrid
+from sequence._grid import SequenceModelGrid
 
 logger = logging.getLogger("sequence")
 

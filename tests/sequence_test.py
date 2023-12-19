@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
 
-from sequence import Sequence, SequenceModelGrid
+from sequence import Sequence
+from sequence import SequenceModelGrid
 from sequence.processes import ShorelineFinder
 
 

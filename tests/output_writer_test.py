@@ -1,6 +1,7 @@
 import numpy as np
 import xarray as xr
-from pytest import approx, raises
+from pytest import approx
+from pytest import raises
 
 from sequence import SequenceModelGrid
 from sequence.output_writer import OutputWriter

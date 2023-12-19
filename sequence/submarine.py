@@ -5,8 +5,8 @@ import numpy as np
 from landlab.components import LinearDiffuser
 from numpy.typing import NDArray
 
-from ._grid import SequenceModelGrid
-from .shoreline import find_shoreline
+from sequence._grid import SequenceModelGrid
+from sequence.shoreline import find_shoreline
 
 
 class SubmarineDiffuser(LinearDiffuser):

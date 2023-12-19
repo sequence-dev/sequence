@@ -4,14 +4,15 @@ This module contains *Landlab* components to read bathymetry into a
 `SequenceModelGrid`.
 """
 from os import PathLike
-from typing import Optional, Union
+from typing import Optional
+from typing import Union
 
 import numpy as np
 from landlab import Component
 from numpy.typing import NDArray
 from scipy import interpolate
 
-from ._grid import SequenceModelGrid
+from sequence._grid import SequenceModelGrid
 
 
 class BathymetryReader(Component):

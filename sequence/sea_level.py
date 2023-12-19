@@ -3,15 +3,16 @@
 This module contains *Landlab* components used for adjusting
 a grid's sea level.
 """
+from collections.abc import Callable
 from os import PathLike
-from typing import Callable, Union
+from typing import Union
 
 import numpy as np
 from landlab import Component
 from numpy.typing import NDArray
 from scipy import interpolate
 
-from ._grid import SequenceModelGrid
+from sequence._grid import SequenceModelGrid
 
 
 class SeaLevelTimeSeries(Component):

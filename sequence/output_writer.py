@@ -1,14 +1,16 @@
 """Write a `SequenceModelGrid` to a file."""
 import errno
 import os
+from collections.abc import Iterable
 from os import PathLike
-from typing import Iterable, Optional, Union
+from typing import Optional
+from typing import Union
 
 import numpy as np
 from landlab import Component
 
-from ._grid import SequenceModelGrid
-from .netcdf import to_netcdf
+from sequence._grid import SequenceModelGrid
+from sequence.netcdf import to_netcdf
 
 
 class OutputWriter(Component):

@@ -1,7 +1,9 @@
 """Plot the layers of a `SequenceModelGrid`."""
 from functools import partial
 from os import PathLike
-from typing import Any, Optional, Union
+from typing import Any
+from typing import Optional
+from typing import Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,8 +12,9 @@ from matplotlib.patches import Patch
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
-from ._grid import SequenceModelGrid
-from .errors import InvalidRowError, MissingRequiredVariable
+from sequence._grid import SequenceModelGrid
+from sequence.errors import InvalidRowError
+from sequence.errors import MissingRequiredVariable
 
 
 def plot_layers(

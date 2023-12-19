@@ -5,8 +5,15 @@ This module contains utilities for reading *Sequence* input data.
 import inspect
 import pathlib
 import warnings
+from collections.abc import Callable
+from collections.abc import Iterable
+from collections.abc import Sequence
 from os import PathLike
-from typing import Any, Callable, Iterable, Optional, Sequence, TextIO, Tuple, Union
+from typing import Any
+from typing import Optional
+from typing import TextIO
+from typing import Tuple
+from typing import Union
 
 import numpy as np
 import tomlkit as toml

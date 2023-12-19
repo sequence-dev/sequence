@@ -11,8 +11,9 @@ from landlab import Component
 from numpy.typing import NDArray
 from scipy import interpolate
 
-from ._grid import SequenceModelGrid
-from .errors import ShelfEdgeError, ShorelineError
+from sequence._grid import SequenceModelGrid
+from sequence.errors import ShelfEdgeError
+from sequence.errors import ShorelineError
 
 
 class ShorelineFinder(Component):

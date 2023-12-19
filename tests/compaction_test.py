@@ -1,7 +1,8 @@
 from numpy.testing import assert_array_almost_equal
 from pytest import approx
 
-from sequence import Sequence, SequenceModelGrid
+from sequence import Sequence
+from sequence import SequenceModelGrid
 from sequence.processes import Compact
 
 

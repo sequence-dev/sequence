@@ -3,14 +3,18 @@ import contextlib
 import os
 import warnings
 from collections import defaultdict
+from collections.abc import Iterable
+from collections.abc import Sequence
 from os import PathLike
-from typing import Any, Iterable, Optional, Sequence, Union
+from typing import Any
+from typing import Optional
+from typing import Union
 
 import netCDF4 as nc
 import numpy as np
 from numpy.typing import NDArray
 
-from ._grid import SequenceModelGrid
+from sequence._grid import SequenceModelGrid
 
 _NUMPY_TO_NETCDF_TYPE = {
     "float32": "f4",

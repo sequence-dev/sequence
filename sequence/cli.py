@@ -4,10 +4,14 @@ import logging
 import os
 import pathlib
 import re
+from collections.abc import Iterable
+from collections.abc import Iterator
 from contextlib import suppress
 from io import StringIO
 from os import PathLike
-from typing import Any, Iterable, Iterator, Optional, Union
+from typing import Any
+from typing import Optional
+from typing import Union
 
 import numpy as np
 import rich_click as click
@@ -17,11 +21,12 @@ from landlab.core import load_params
 from numpy.typing import ArrayLike
 from tqdm import tqdm
 
-from .errors import OutputValidationError
-from .input_reader import TimeVaryingConfig
-from .logging import LoggingHandler
-from .plot import plot_file, plot_layers
-from .sequence_model import SequenceModel
+from sequence.errors import OutputValidationError
+from sequence.input_reader import TimeVaryingConfig
+from sequence.logging import LoggingHandler
+from sequence.plot import plot_file
+from sequence.plot import plot_layers
+from sequence.sequence_model import SequenceModel
 
 click.rich_click.ERRORS_SUGGESTION = (
     "Try running the '--help' flag for more information."
