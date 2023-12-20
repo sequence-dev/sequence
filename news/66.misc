@@ -1,1 +1,0 @@
-Added type hints to the entire code base and a *mypy* hook to the *pre-commit* linters to identify potential typing issues.
