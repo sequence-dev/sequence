@@ -118,6 +118,17 @@ markers = [
     "notebook: marks tests as notebook (deselect with '-m \"not notebook\"')",
 ]
 
+[tool.ruff.lint]
+select = [
+    "D",
+]
+extend-select = [
+    "D417",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
 [tool.towncrier]
 directory = "news"
 package = "sequence"
