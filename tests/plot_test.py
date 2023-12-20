@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from sequence.plot import _interp_between_layers, _outline_layer
+from sequence.plot import _interp_between_layers
+from sequence.plot import _outline_layer
 
 
 def test_layer_interpolation_bottom_to_top():

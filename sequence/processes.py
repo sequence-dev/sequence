@@ -1,12 +1,15 @@
 """All available processes to include in a *Sequence* model."""
+from __future__ import annotations
+
 from compaction.landlab import Compact
 
-from .fluvial import Fluvial
-from .sea_level import SeaLevelTimeSeries, SinusoidalSeaLevel
-from .sediment_flexure import SedimentFlexure
-from .shoreline import ShorelineFinder
-from .submarine import SubmarineDiffuser
-from .subsidence import SubsidenceTimeSeries
+from sequence.fluvial import Fluvial
+from sequence.sea_level import SeaLevelTimeSeries
+from sequence.sea_level import SinusoidalSeaLevel
+from sequence.sediment_flexure import SedimentFlexure
+from sequence.shoreline import ShorelineFinder
+from sequence.submarine import SubmarineDiffuser
+from sequence.subsidence import SubsidenceTimeSeries
 
 __all__ = [
     "Compact",

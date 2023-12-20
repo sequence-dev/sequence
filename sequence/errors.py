@@ -1,4 +1,5 @@
 """Errors used by *sequence*."""
+from __future__ import annotations
 
 
 class SequenceError(Exception):

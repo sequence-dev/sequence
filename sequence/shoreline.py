@@ -3,16 +3,18 @@
 This module contains methods for calculating a grid's shoreline and
 shelf edge.
 """
+from __future__ import annotations
+
 import bisect
-from typing import Optional
 
 import numpy as np
 from landlab import Component
 from numpy.typing import NDArray
 from scipy import interpolate
 
-from ._grid import SequenceModelGrid
-from .errors import ShelfEdgeError, ShorelineError
+from sequence.errors import ShelfEdgeError
+from sequence.errors import ShorelineError
+from sequence.grid import SequenceModelGrid
 
 
 class ShorelineFinder(Component):
@@ -129,7 +131,7 @@ class ShorelineFinder(Component):
         self.grid.at_row["x_of_shore"][:] = x_of_shores
         self.grid.at_row["x_of_shelf_edge"][:] = x_of_shelf_edges
 
-    def run_one_step(self, dt: Optional[float] = None) -> None:
+    def run_one_step(self, dt: float | None = None) -> None:
         """Update the component on time step.
 
         Parameters

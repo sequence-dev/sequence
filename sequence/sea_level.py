@@ -3,15 +3,17 @@
 This module contains *Landlab* components used for adjusting
 a grid's sea level.
 """
+from __future__ import annotations
+
+from collections.abc import Callable
 from os import PathLike
-from typing import Callable, Union
 
 import numpy as np
 from landlab import Component
 from numpy.typing import NDArray
 from scipy import interpolate
 
-from ._grid import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 
 
 class SeaLevelTimeSeries(Component):
@@ -45,7 +47,7 @@ class SeaLevelTimeSeries(Component):
     def __init__(
         self,
         grid: SequenceModelGrid,
-        filepath: Union[str, PathLike[str]],
+        filepath: str | PathLike[str],
         kind: str = "linear",
         start: float = 0.0,
     ):
@@ -77,7 +79,7 @@ class SeaLevelTimeSeries(Component):
     @staticmethod
     def _sea_level_interpolator(
         data: NDArray[np.floating], kind: str = "linear"
-    ) -> Callable[[Union[float, NDArray]], NDArray]:
+    ) -> Callable[[float | NDArray], NDArray]:
         return interpolate.interp1d(
             data[:, 0],
             data[:, 1],
@@ -88,12 +90,12 @@ class SeaLevelTimeSeries(Component):
         )
 
     @property
-    def filepath(self) -> Union[str, PathLike[str]]:
+    def filepath(self) -> str | PathLike[str]:
         """Return the path to the sea-level file."""
         return self._filepath
 
     @filepath.setter
-    def filepath(self, new_path: Union[str, PathLike[str]]) -> None:
+    def filepath(self, new_path: str | PathLike[str]) -> None:
         self._filepath = new_path
         self._sea_level = SeaLevelTimeSeries._sea_level_interpolator(
             np.loadtxt(self._filepath, delimiter=","), kind=self._kind

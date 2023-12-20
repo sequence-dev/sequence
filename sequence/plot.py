@@ -1,7 +1,9 @@
 """Plot the layers of a `SequenceModelGrid`."""
+from __future__ import annotations
+
 from functools import partial
 from os import PathLike
-from typing import Any, Optional, Union
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,21 +12,22 @@ from matplotlib.patches import Patch
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
-from ._grid import SequenceModelGrid
-from .errors import InvalidRowError, MissingRequiredVariable
+from sequence.errors import InvalidRowError
+from sequence.errors import MissingRequiredVariable
+from sequence.grid import SequenceModelGrid
 
 
 def plot_layers(
     elevation_at_layer: NDArray[np.floating],
-    x_of_stack: Optional[NDArray[np.floating]] = None,
-    x_of_shore_at_layer: Optional[NDArray[np.floating]] = None,
-    x_of_shelf_edge_at_layer: Optional[NDArray[np.floating]] = None,
-    color_water: Union[tuple[float, float, float], str] = (0.8, 1.0, 1.0),
-    color_land: Union[tuple[float, float, float], str] = (0.8, 1.0, 0.8),
-    color_shoreface: Union[tuple[float, float, float], str] = (0.8, 0.8, 0.0),
-    color_shelf: Union[tuple[float, float, float], str] = (0.75, 0.5, 0.5),
+    x_of_stack: NDArray[np.floating] | None = None,
+    x_of_shore_at_layer: NDArray[np.floating] | None = None,
+    x_of_shelf_edge_at_layer: NDArray[np.floating] | None = None,
+    color_water: tuple[float, float, float] | str = (0.8, 1.0, 1.0),
+    color_land: tuple[float, float, float] | str = (0.8, 1.0, 0.8),
+    color_shoreface: tuple[float, float, float] | str = (0.8, 0.8, 0.0),
+    color_shelf: tuple[float, float, float] | str = (0.75, 0.5, 0.5),
     layer_line_width: float = 0.5,
-    layer_line_color: Union[tuple[float, float, float], str] = "k",
+    layer_line_color: tuple[float, float, float] | str = "k",
     layer_start: int = 0,
     layer_stop: int = -1,
     n_layers: int = 5,
@@ -171,7 +174,7 @@ def plot_layers(
     plt.show()
 
 
-def plot_grid(grid: SequenceModelGrid, row: Optional[int] = None, **kwds: Any) -> None:
+def plot_grid(grid: SequenceModelGrid, row: int | None = None, **kwds: Any) -> None:
     """Plot a :class:`~SequenceModelGrid`.
 
     Parameters
@@ -180,6 +183,8 @@ def plot_grid(grid: SequenceModelGrid, row: Optional[int] = None, **kwds: Any) -
         The grid to plot.
     row : int, optional
         The row of the grid to plot. If not provided, plot the middle row.
+    **kwds: dict, optional
+        Additional keyword arguments that are passed along to :func:`~plot_layers`.
 
     See Also
     --------
@@ -219,9 +224,7 @@ def plot_grid(grid: SequenceModelGrid, row: Optional[int] = None, **kwds: Any) -
     )
 
 
-def plot_file(
-    filename: Union[str, PathLike], row: Optional[int] = None, **kwds: Any
-) -> None:
+def plot_file(filename: str | PathLike, row: int | None = None, **kwds: Any) -> None:
     """Plot a `SequenceModelGrid` from a *Sequence* output file.
 
     Parameters
@@ -230,6 +233,8 @@ def plot_file(
         Path to the file to plot.
     row : int, optional
         Row to plot. If not provided, plot the middle row.
+    **kwds: dict, optional
+        Additional keyword arguments that are passed along to :func:`~plot_layers`.
 
     See Also
     --------
@@ -287,7 +292,7 @@ def plot_file(
     )
 
 
-def _get_layers_to_plot(start: int, stop: int, num: int = -1) -> Optional[slice]:
+def _get_layers_to_plot(start: int, stop: int, num: int = -1) -> slice | None:
     if num == 0:
         return None
     elif num < 0 or num > stop - start + 1:
@@ -299,9 +304,9 @@ def _get_layers_to_plot(start: int, stop: int, num: int = -1) -> Optional[slice]
 def _fill_between_layers(
     x: NDArray,
     y: NDArray,
-    lower: Optional[NDArray[np.integer]] = None,
-    upper: Optional[NDArray[np.integer]] = None,
-    fc: Optional[Union[tuple[float, float, float], str]] = None,
+    lower: NDArray[np.integer] | None = None,
+    upper: NDArray[np.integer] | None = None,
+    fc: tuple[float, float, float] | str | None = None,
 ) -> None:
     n_layers = len(y)
 
@@ -326,8 +331,8 @@ def _outline_layer(
     x: NDArray,
     y_of_bottom_layer: NDArray,
     y_of_top_layer: NDArray,
-    bottom_limits: Optional[tuple[Optional[float], Optional[float]]] = None,
-    top_limits: Optional[tuple[Optional[float], Optional[float]]] = None,
+    bottom_limits: tuple[float | None, float | None] | None = None,
+    top_limits: tuple[float | None, float | None] | None = None,
 ) -> tuple[NDArray, NDArray]:
     if bottom_limits is None:
         bottom_limits = (None, None)

@@ -1,13 +1,17 @@
 """The command line interface for *Sequence*."""
+from __future__ import annotations
+
 import inspect
 import logging
 import os
 import pathlib
 import re
+from collections.abc import Iterable
+from collections.abc import Iterator
 from contextlib import suppress
 from io import StringIO
 from os import PathLike
-from typing import Any, Iterable, Iterator, Optional, Union
+from typing import Any
 
 import numpy as np
 import rich_click as click
@@ -17,11 +21,12 @@ from landlab.core import load_params
 from numpy.typing import ArrayLike
 from tqdm import tqdm
 
-from .errors import OutputValidationError
-from .input_reader import TimeVaryingConfig
-from .logging import LoggingHandler
-from .plot import plot_file, plot_layers
-from .sequence_model import SequenceModel
+from sequence.errors import OutputValidationError
+from sequence.input_reader import TimeVaryingConfig
+from sequence.logging import LoggingHandler
+from sequence.plot import plot_file
+from sequence.plot import plot_layers
+from sequence.sequence_model import SequenceModel
 
 click.rich_click.ERRORS_SUGGESTION = (
     "Try running the '--help' flag for more information."
@@ -52,7 +57,7 @@ PLOT_KEYWORDS: dict[str, Any] = {
 }
 
 
-def _out(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+def _out(message: str | None = None, nl: bool = True, **styles: Any) -> None:
     if message is not None:
         if "bold" not in styles:
             styles["bold"] = True
@@ -60,7 +65,7 @@ def _out(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
     click.echo(message, nl=nl, err=True)
 
 
-def _err(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+def _err(message: str | None = None, nl: bool = True, **styles: Any) -> None:
     if message is not None:
         if "fg" not in styles:
             styles["fg"] = "red"
@@ -68,17 +73,17 @@ def _err(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
     click.echo(message, nl=nl, err=True)
 
 
-def out(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+def out(message: str | None = None, nl: bool = True, **styles: Any) -> None:
     """Print a user info message."""
     _out(message, nl=nl, **styles)
 
 
-def err(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+def err(message: str | None = None, nl: bool = True, **styles: Any) -> None:
     """Print a user error message."""
     _err(message, nl=nl, **styles)
 
 
-def _contents_of_input_file(infile: Union[str, PathLike[str]], set: str) -> str:
+def _contents_of_input_file(infile: str | PathLike[str], set: str) -> str:
     params = _load_model_params(
         defaults=SequenceModel.DEFAULT_PARAMS, dotted_params=set
     )
@@ -125,7 +130,7 @@ def _contents_of_input_file(infile: Union[str, PathLike[str]], set: str) -> str:
     return contents[str(infile)]
 
 
-def _time_from_filename(name: Union[str, PathLike[str]]) -> Optional[int]:
+def _time_from_filename(name: str | PathLike[str]) -> int | None:
     """Parse a time stamp from a file name.
 
     Parameters
@@ -156,9 +161,7 @@ def _time_from_filename(name: Union[str, PathLike[str]]) -> Optional[int]:
         return None
 
 
-def _find_config_files(
-    pathname: Union[str, PathLike[str]]
-) -> tuple[list[int], list[str]]:
+def _find_config_files(pathname: str | PathLike[str]) -> tuple[list[int], list[str]]:
     """Find all of the time-varying config files for a simulation.
 
     Parameters
@@ -452,8 +455,8 @@ def _dict_to_dots(d: dict) -> list[str]:
 
 
 def _load_model_params(
-    param_file: Optional[str] = None,
-    defaults: Optional[dict] = None,
+    param_file: str | None = None,
+    defaults: dict | None = None,
     dotted_params: Iterable[str] = (),
 ) -> dict[str, Any]:
     params = defaults or {}
@@ -469,7 +472,7 @@ def _load_model_params(
     return params
 
 
-def _walk_dict(indict: Union[dict, Any], prev: Optional[list] = None) -> Iterator[Any]:
+def _walk_dict(indict: dict | Any, prev: list | None = None) -> Iterator[Any]:
     prev = prev[:] if prev else []
 
     if isinstance(indict, dict):

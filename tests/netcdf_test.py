@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import xarray as xr
 from pytest import approx
 
-from sequence import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 from sequence.netcdf import to_netcdf
 
 

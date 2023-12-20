@@ -2,11 +2,17 @@
 
 This module contains utilities for reading *Sequence* input data.
 """
+from __future__ import annotations
+
 import inspect
 import pathlib
 import warnings
+from collections.abc import Callable
+from collections.abc import Iterable
+from collections.abc import Sequence
 from os import PathLike
-from typing import Any, Callable, Iterable, Optional, Sequence, TextIO, Tuple, Union
+from typing import Any
+from typing import TextIO
 
 import numpy as np
 import tomlkit as toml
@@ -14,8 +20,8 @@ import yaml
 
 
 def load_config(
-    stream: Union[TextIO, str, PathLike[str]], fmt: Optional[str] = None
-) -> Union[Iterable[Tuple[float, dict]], dict]:
+    stream: TextIO | str | PathLike[str], fmt: str | None = None
+) -> Iterable[tuple[float, dict]] | dict:
     """Load model configuration from a file-like object.
 
     Parameters
@@ -192,9 +198,9 @@ class TimeVaryingConfig:
     @classmethod
     def from_files(
         cls,
-        names: Iterable[Union[str, PathLike[str]]],
-        times: Optional[Iterable[float]] = None,
-    ) -> "TimeVaryingConfig":
+        names: Iterable[str | PathLike[str]],
+        times: Iterable[float] | None = None,
+    ) -> TimeVaryingConfig:
         """Load a configuration from a set of files.
 
         Parameters
@@ -214,9 +220,7 @@ class TimeVaryingConfig:
         return cls(times, dicts)
 
     @classmethod
-    def from_file(
-        cls, name: PathLike, fmt: Optional[str] = None
-    ) -> "TimeVaryingConfig":
+    def from_file(cls, name: PathLike, fmt: str | None = None) -> TimeVaryingConfig:
         """Load a configuration from a file.
 
         Parameters
@@ -358,7 +362,7 @@ class TimeVaryingConfig:
         ]
 
 
-def _flatten_dict(d: dict, sep: Optional[str] = None) -> dict:
+def _flatten_dict(d: dict, sep: str | None = None) -> dict:
     """Flatten a dictionary so that each value has it's own key.
 
     Parameters
@@ -392,7 +396,7 @@ def _flatten_dict(d: dict, sep: Optional[str] = None) -> dict:
         return {sep.join(keys): value for keys, value in _walk_dict(d)}
 
 
-def _add_flattened_item(keys: str, value: Any, base: Optional[dict] = None) -> None:
+def _add_flattened_item(keys: str, value: Any, base: dict | None = None) -> None:
     expanded = {} if base is None else base
     parent, name = keys[:-1], keys[-1]
 
@@ -413,9 +417,7 @@ def _expand_dict(flat_dict: dict[str, Any]) -> dict[str, Any]:
     return expanded
 
 
-def _walk_dict(
-    indict: dict[str, Any], prev: Optional[Sequence[str]] = None
-) -> Iterable:
+def _walk_dict(indict: dict[str, Any], prev: Sequence[str] | None = None) -> Iterable:
     """Walk the elements of a dictionary.
 
     Parameters

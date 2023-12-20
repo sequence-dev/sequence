@@ -1,11 +1,15 @@
 """Build a `SequenceModelGrid` model from collection of components."""
+from __future__ import annotations
+
 import logging
 import os
 import time
-from collections import OrderedDict, defaultdict
-from collections.abc import Hashable, Iterable
+from collections import defaultdict
+from collections import OrderedDict
+from collections.abc import Hashable
+from collections.abc import Iterable
 from contextlib import suppress
-from typing import Any, Dict, Optional
+from typing import Any
 
 import numpy as np
 import tomlkit
@@ -13,16 +17,18 @@ from compaction.landlab import Compact
 from landlab.bmi.bmi_bridge import TimeStepper
 from numpy.typing import ArrayLike
 
-from ._grid import SequenceModelGrid
-from .bathymetry import BathymetryReader
-from .errors import ParameterMismatchError
-from .fluvial import Fluvial
-from .output_writer import OutputWriter
-from .sea_level import SeaLevelTimeSeries, SinusoidalSeaLevel
-from .sediment_flexure import SedimentFlexure, WaterFlexure
-from .shoreline import ShorelineFinder
-from .submarine import SubmarineDiffuser
-from .subsidence import SubsidenceTimeSeries
+from sequence.bathymetry import BathymetryReader
+from sequence.errors import ParameterMismatchError
+from sequence.fluvial import Fluvial
+from sequence.grid import SequenceModelGrid
+from sequence.output_writer import OutputWriter
+from sequence.sea_level import SeaLevelTimeSeries
+from sequence.sea_level import SinusoidalSeaLevel
+from sequence.sediment_flexure import SedimentFlexure
+from sequence.sediment_flexure import WaterFlexure
+from sequence.shoreline import ShorelineFinder
+from sequence.submarine import SubmarineDiffuser
+from sequence.subsidence import SubsidenceTimeSeries
 
 logger = logging.getLogger("sequence")
 
@@ -89,9 +95,9 @@ class SequenceModel:
     def __init__(
         self,
         grid: SequenceModelGrid,
-        clock: Optional[dict] = None,
-        processes: Optional[dict] = None,
-        output: Optional[dict] = None,
+        clock: dict | None = None,
+        processes: dict | None = None,
+        output: dict | None = None,
     ):
         """Create a model on a `SequenceModelGrid`.
 
@@ -145,7 +151,7 @@ class SequenceModel:
         self.timer: dict[str, float] = defaultdict(float)
 
     @staticmethod
-    def load_grid(params: dict, bathymetry: Optional[dict] = None) -> SequenceModelGrid:
+    def load_grid(params: dict, bathymetry: dict | None = None) -> SequenceModelGrid:
         """Load a `SequenceModelGrid`.
 
         Parameters
@@ -185,7 +191,7 @@ class SequenceModel:
             processes = list(processes) + ["fluvial"]
         if "shoreline" not in processes:
             processes = list(processes) + ["shoreline"]
-        params: Dict[str, dict] = defaultdict(dict)
+        params: dict[str, dict] = defaultdict(dict)
         params.update(
             {process: context.get(process, {}).copy() for process in processes}
         )
@@ -291,7 +297,7 @@ class SequenceModel:
             for param, value in values.items():
                 setattr(c, param, value)
 
-    def run_one_step(self, dt: Optional[float] = None) -> None:
+    def run_one_step(self, dt: float | None = None) -> None:
         """Run each component for one time step."""
         dt = dt or self.clock.step
         self.clock.dt = dt

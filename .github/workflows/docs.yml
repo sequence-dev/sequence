@@ -26,7 +26,7 @@ jobs:
               micromamba-version: latest
               environment-name: testing
               create-args: >-
-                python=3.12
+                python=3.11
                 mamba
                 pandoc
                 nox
