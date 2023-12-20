@@ -1,4 +1,6 @@
 """Define the grid used for creating *Sequence* models."""
+from __future__ import annotations
+
 import os
 import sys
 
@@ -119,7 +121,7 @@ class SequenceModelGrid(RasterModelGrid):
         # return self.at_node[name].reshape(self.shape)[row]
 
     @classmethod
-    def from_toml(cls, filepath: os.PathLike[str]) -> "SequenceModelGrid":
+    def from_toml(cls, filepath: os.PathLike[str]) -> SequenceModelGrid:
         """Load a :class:`~SequenceModelGrid` from a *toml*-formatted file.
 
         Parameters
@@ -131,7 +133,7 @@ class SequenceModelGrid(RasterModelGrid):
             return SequenceModelGrid.from_dict(tomllib.load(fp)["sequence"]["grid"])
 
     @classmethod
-    def from_dict(cls, params: dict) -> "SequenceModelGrid":
+    def from_dict(cls, params: dict) -> SequenceModelGrid:
         """Create a :class:`~SequenceModelGrid` from a `dict`.
 
         If possible, this alternate constructor simply passes

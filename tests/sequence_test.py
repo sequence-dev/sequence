@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
-from sequence import Sequence
-from sequence import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 from sequence.processes import ShorelineFinder
+from sequence.sequence import Sequence
 
 
 @pytest.fixture(scope="function")

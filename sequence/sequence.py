@@ -1,7 +1,8 @@
 """*Sequence*'s main API for constructing sequence-stratigraphic models."""
+from __future__ import annotations
+
 from collections.abc import Iterable
 from typing import Any
-from typing import Optional
 
 import numpy as np
 from landlab import Component
@@ -58,7 +59,7 @@ class Sequence(Component):
         self,
         grid: SequenceModelGrid,
         time_step: float = 100.0,
-        components: Optional[Iterable] = None,
+        components: Iterable | None = None,
     ):
         """Create a Sequence model.
 
@@ -108,7 +109,7 @@ class Sequence(Component):
         """Return the current model time (in years)."""
         return self._time
 
-    def update(self, dt: Optional[float] = None) -> None:
+    def update(self, dt: float | None = None) -> None:
         """Update the model of a given time step.
 
         Parameters
@@ -135,8 +136,8 @@ class Sequence(Component):
 
     def run(
         self,
-        until: Optional[float] = None,
-        dt: Optional[float] = None,
+        until: float | None = None,
+        dt: float | None = None,
         progress_bar: bool = True,
     ) -> None:
         """Run the model to a given time.

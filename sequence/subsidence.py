@@ -1,7 +1,8 @@
 """Subside a `SequenceModelGrid`."""
+from __future__ import annotations
+
 import os
 from collections.abc import Callable
-from typing import Union
 
 import numpy as np
 from landlab import Component
@@ -70,7 +71,7 @@ class SubsidenceTimeSeries(Component):
     @staticmethod
     def _subsidence_interpolator(
         data: NDArray, kind: str = "linear"
-    ) -> Callable[[Union[float, NDArray]], NDArray]:
+    ) -> Callable[[float | NDArray], NDArray]:
         return interpolate.interp1d(
             data[:, 0],
             data[:, 1],

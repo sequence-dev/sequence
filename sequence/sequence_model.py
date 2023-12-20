@@ -1,4 +1,6 @@
 """Build a `SequenceModelGrid` model from collection of components."""
+from __future__ import annotations
+
 import logging
 import os
 import time
@@ -8,8 +10,6 @@ from collections.abc import Hashable
 from collections.abc import Iterable
 from contextlib import suppress
 from typing import Any
-from typing import Dict
-from typing import Optional
 
 import numpy as np
 import tomlkit
@@ -95,9 +95,9 @@ class SequenceModel:
     def __init__(
         self,
         grid: SequenceModelGrid,
-        clock: Optional[dict] = None,
-        processes: Optional[dict] = None,
-        output: Optional[dict] = None,
+        clock: dict | None = None,
+        processes: dict | None = None,
+        output: dict | None = None,
     ):
         """Create a model on a `SequenceModelGrid`.
 
@@ -151,7 +151,7 @@ class SequenceModel:
         self.timer: dict[str, float] = defaultdict(float)
 
     @staticmethod
-    def load_grid(params: dict, bathymetry: Optional[dict] = None) -> SequenceModelGrid:
+    def load_grid(params: dict, bathymetry: dict | None = None) -> SequenceModelGrid:
         """Load a `SequenceModelGrid`.
 
         Parameters
@@ -191,7 +191,7 @@ class SequenceModel:
             processes = list(processes) + ["fluvial"]
         if "shoreline" not in processes:
             processes = list(processes) + ["shoreline"]
-        params: Dict[str, dict] = defaultdict(dict)
+        params: dict[str, dict] = defaultdict(dict)
         params.update(
             {process: context.get(process, {}).copy() for process in processes}
         )
@@ -297,7 +297,7 @@ class SequenceModel:
             for param, value in values.items():
                 setattr(c, param, value)
 
-    def run_one_step(self, dt: Optional[float] = None) -> None:
+    def run_one_step(self, dt: float | None = None) -> None:
         """Run each component for one time step."""
         dt = dt or self.clock.step
         self.clock.dt = dt

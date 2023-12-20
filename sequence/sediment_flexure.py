@@ -1,7 +1,8 @@
 """Subside a `SequenceModelGrid` using flexure."""
+from __future__ import annotations
+
 import logging
-from typing import Optional
-from typing import Union
+from typing import Any
 
 import numpy as np
 import tomlkit as toml
@@ -16,7 +17,12 @@ logger = logging.getLogger("sequence")
 class DynamicFlexure(Flexure1D):
     """Calculate non-isostatic flexure."""
 
-    def __init__(self, grid, isostasytime: Optional[float] = 7000.0, **kwds: dict):
+    def __init__(
+        self,
+        grid: SequenceModelGrid,
+        isostasytime: float | None = 7000.0,
+        **kwds: dict[str, Any],
+    ):
         """Inherit from this base class for non-isostatic flexure.
 
         Parameters
@@ -61,12 +67,12 @@ class DynamicFlexure(Flexure1D):
         return time
 
     @property
-    def isostasy_time(self) -> Optional[float]:
+    def isostasy_time(self) -> float | None:
         """Return the isostasy time."""
         return self._isostasy_time
 
     @staticmethod
-    def calc_isostasy_fraction(isostasy_time: Optional[float], dt: float) -> float:
+    def calc_isostasy_fraction(isostasy_time: float | None, dt: float) -> float:
         """Calculate the fraction of isostatic subsidence.
 
         Parameters
@@ -121,7 +127,7 @@ class WaterFlexure(DynamicFlexure):
     def __init__(
         self,
         grid: SequenceModelGrid,
-        isostasytime: Optional[float] = 7000.0,
+        isostasytime: float | None = 7000.0,
         **kwds: dict,
     ):
         """Calculate flexural subsidence due to changes in water loading.
@@ -284,7 +290,7 @@ class SedimentFlexure(DynamicFlexure):
         grid: SequenceModelGrid,
         sand_density: float = 2650,
         mud_density: float = 2720.0,
-        isostasytime: Optional[float] = 7000.0,
+        isostasytime: float | None = 7000.0,
         water_density: float = 1030.0,
         **kwds: dict,
     ):
@@ -353,10 +359,10 @@ class SedimentFlexure(DynamicFlexure):
 
     @staticmethod
     def calc_bulk_density(
-        grain_density: Union[float, NDArray[np.floating]],
-        void_density: Union[float, NDArray[np.floating]],
-        porosity: Union[float, NDArray[np.floating]],
-    ) -> Union[float, NDArray[np.floating]]:
+        grain_density: float | NDArray[np.floating],
+        void_density: float | NDArray[np.floating],
+        porosity: float | NDArray[np.floating],
+    ) -> float | NDArray[np.floating]:
         """Calculate the bulk density of a material with a given porosity.
 
         Parameters
@@ -412,7 +418,7 @@ class SedimentFlexure(DynamicFlexure):
         )
 
     @property
-    def sand_bulk_density(self) -> Union[float, NDArray[np.floating]]:
+    def sand_bulk_density(self) -> float | NDArray[np.floating]:
         """Return the bulk density of sand."""
         return self._rho_sand
 
@@ -430,7 +436,7 @@ class SedimentFlexure(DynamicFlexure):
         )
 
     @property
-    def mud_bulk_density(self) -> Union[float, NDArray[np.floating]]:
+    def mud_bulk_density(self) -> float | NDArray[np.floating]:
         """Return the bulk density of mud."""
         return self._rho_mud
 
@@ -454,7 +460,7 @@ class SedimentFlexure(DynamicFlexure):
         deposit_thickness: NDArray[np.floating],
         z: NDArray[np.floating],
         sediment_porosity: float,
-        sediment_density: Union[float, NDArray[np.floating]],
+        sediment_density: float | NDArray[np.floating],
         water_density: float,
     ) -> NDArray[np.floating]:
         """Calculate the loading due to a, possibly submerged, sediment deposit.
@@ -501,8 +507,8 @@ class SedimentFlexure(DynamicFlexure):
 
     @staticmethod
     def _calc_density(
-        sand_fraction: Union[float, NDArray], sand_density: float, mud_density: float
-    ) -> Union[float, NDArray]:
+        sand_fraction: float | NDArray, sand_density: float, mud_density: float
+    ) -> float | NDArray:
         """Calculate the density of a sand/mud mixture.
 
         Parameters

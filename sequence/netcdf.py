@@ -1,4 +1,6 @@
 """Write a `SequenceModelGrid` to a NetCDF file."""
+from __future__ import annotations
+
 import contextlib
 import os
 import warnings
@@ -7,8 +9,6 @@ from collections.abc import Iterable
 from collections.abc import Sequence
 from os import PathLike
 from typing import Any
-from typing import Optional
-from typing import Union
 
 import netCDF4 as nc
 import numpy as np
@@ -45,7 +45,7 @@ def _create_grid_dimension(
     root: Any,
     grid: SequenceModelGrid,
     at: str = "node",
-    ids: Optional[Union[slice, Iterable[int]]] = None,
+    ids: slice | Iterable[int] | None = None,
 ) -> Any:
     """Create grid dimensions for a netcdf file."""
     if ids is None:
@@ -82,7 +82,7 @@ def _create_grid_coordinates(
     root: Any,
     grid: SequenceModelGrid,
     at: str = "node",
-    ids: Optional[Union[slice, Iterable[int]]] = None,
+    ids: slice | Iterable[int] | None = None,
 ) -> Any:
     """Create x and y coordinates for a field location."""
     _create_grid_dimension(root, grid, at=at, ids=ids)
@@ -103,7 +103,7 @@ def _set_grid_coordinates(
     root: Any,
     grid: SequenceModelGrid,
     at: str = "node",
-    ids: Optional[Union[slice, Iterable[int]]] = None,
+    ids: slice | Iterable[int] | None = None,
 ) -> None:
     """Set the values for the coordinates of a field location."""
     if ids is None:
@@ -130,7 +130,7 @@ def _create_field(
     root: Any,
     grid: SequenceModelGrid,
     at: str = "node",
-    names: Optional[Iterable[str]] = None,
+    names: Iterable[str] | None = None,
 ) -> None:
     """Create variables at a field location(s)."""
     if names is None:
@@ -150,8 +150,8 @@ def _set_field(
     root: Any,
     grid: SequenceModelGrid,
     at: str = "node",
-    ids: Optional[Union[slice, Iterable[int]]] = None,
-    names: Optional[Union[str, Iterable[str]]] = None,
+    ids: slice | Iterable[int] | None = None,
+    names: str | Iterable[str] | None = None,
 ) -> None:
     """Set values for variables at a field location(s)."""
     if isinstance(names, str):
@@ -187,7 +187,7 @@ def _set_field(
 
 
 def _create_layers(
-    root: Any, grid: SequenceModelGrid, names: Optional[Iterable[str]] = None
+    root: Any, grid: SequenceModelGrid, names: Iterable[str] | None = None
 ) -> None:
     """Create variables at grid layers."""
     if names is None:
@@ -209,8 +209,8 @@ def _create_layers(
 def _set_layers(
     root: Any,
     grid: SequenceModelGrid,
-    names: Optional[Iterable[str]] = None,
-    ids: Optional[Union[slice, Iterable[int]]] = None,
+    names: Iterable[str] | None = None,
+    ids: slice | Iterable[int] | None = None,
 ) -> None:
     """Set values for variables at a grid layers."""
     if isinstance(names, str):
@@ -237,15 +237,13 @@ def _set_layers(
 
 def to_netcdf(
     grid: SequenceModelGrid,
-    filepath: Union[str, PathLike[str]],
+    filepath: str | PathLike[str],
     mode: str = "w",
     format: str = "NETCDF4",
     time: float = 0.0,
-    at: Optional[Union[str, Sequence[str]]] = None,
-    ids: Optional[dict[str, NDArray[np.integer]] | int | Iterable[int] | slice] = None,
-    names: Optional[
-        Union[dict[str, Optional[Iterable[str]]], str, Iterable[str]]
-    ] = None,
+    at: str | Sequence[str] | None = None,
+    ids: dict[str, NDArray[np.integer]] | int | Iterable[int] | slice | None = None,
+    names: None | (dict[str, Iterable[str] | None] | str | Iterable[str]) = None,
     with_layers: bool = True,
 ) -> None:
     """Write a grid and fields to a netCDF file.
@@ -312,7 +310,7 @@ def to_netcdf(
         names_dict["grid"].remove("x_of_shelf_edge")
     names_dict["row"] = ["x_of_shore", "x_of_shelf_edge"]
 
-    ids_dict: dict[str, Union[slice, Iterable[int]]] = defaultdict(lambda: slice(None))
+    ids_dict: dict[str, slice | Iterable[int]] = defaultdict(lambda: slice(None))
     if not isinstance(ids, dict):
         for loc in at:
             ids_dict[loc] = ids

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import pytest
 from numpy.testing import assert_array_equal
 
-from sequence import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 from sequence.subsidence import SubsidenceTimeSeries
 
 

@@ -1,10 +1,10 @@
 """Write a `SequenceModelGrid` to a file."""
+from __future__ import annotations
+
 import errno
 import os
 from collections.abc import Iterable
 from os import PathLike
-from typing import Optional
-from typing import Union
 
 import numpy as np
 from landlab import Component
@@ -19,11 +19,11 @@ class OutputWriter(Component):
     def __init__(
         self,
         grid: SequenceModelGrid,
-        filepath: Union[str, PathLike[str]],
+        filepath: str | PathLike[str],
         interval: int = 1,
-        fields: Optional[Iterable[str]] = None,
+        fields: Iterable[str] | None = None,
         clobber: bool = False,
-        rows: Optional[Iterable[str]] = None,
+        rows: Iterable[str] | None = None,
     ):
         """Create an output-file writer.
 
@@ -61,7 +61,7 @@ class OutputWriter(Component):
         self._time = 0.0
         self._step_count = 0
 
-    def run_one_step(self, dt: Optional[float] = None) -> None:
+    def run_one_step(self, dt: float | None = None) -> None:
         """Update the writer by a time step.
 
         Parameters
@@ -86,12 +86,12 @@ class OutputWriter(Component):
         self._step_count += 1
 
     @property
-    def filepath(self) -> Union[str, PathLike[str]]:
+    def filepath(self) -> str | PathLike[str]:
         """Return the path to the output file."""
         return self._filepath
 
     @filepath.setter
-    def filepath(self, new_val: Union[str, PathLike[str]]) -> None:
+    def filepath(self, new_val: str | PathLike[str]) -> None:
         if os.path.isfile(new_val) and not self._clobber:
             raise RuntimeError("file exists")
         try:
