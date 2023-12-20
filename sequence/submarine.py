@@ -212,7 +212,7 @@ class SubmarineDiffuser(LinearDiffuser):
         sea level and three below, two of which are in deep water (below the
         default 60 m wave base).
 
-        >>> from sequence import SequenceModelGrid
+        >>> from sequence.grid import SequenceModelGrid
         >>> import numpy as np
 
         >>> grid = SequenceModelGrid((1, 6), spacing=(1.0, 200.0))

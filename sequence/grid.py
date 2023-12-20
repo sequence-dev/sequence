@@ -34,7 +34,7 @@ class SequenceModelGrid(RasterModelGrid):
 
         Examples
         --------
-        >>> from sequence import SequenceModelGrid
+        >>> from sequence.grid import SequenceModelGrid
         >>> grid = SequenceModelGrid(5, spacing=10.0)
         >>> grid.y_of_row
         array([  0.,  1.,  2.])
@@ -151,7 +151,7 @@ class SequenceModelGrid(RasterModelGrid):
 
         Examples
         --------
-        >>> from sequence import SequenceModelGrid
+        >>> from sequence.grid import SequenceModelGrid
         >>> params = {"shape": 5, "spacing": 10.0}
         >>> grid = SequenceModelGrid.from_dict(params)
         >>> grid.y_of_row
