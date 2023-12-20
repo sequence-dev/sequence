@@ -9,7 +9,7 @@ import tomlkit as toml
 from landlab.components.flexure import Flexure1D
 from numpy.typing import NDArray
 
-from sequence._grid import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 
 logger = logging.getLogger("sequence")
 

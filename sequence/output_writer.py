@@ -9,7 +9,7 @@ from os import PathLike
 import numpy as np
 from landlab import Component
 
-from sequence._grid import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 from sequence.netcdf import to_netcdf
 
 

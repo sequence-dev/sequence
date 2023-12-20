@@ -12,7 +12,7 @@ from matplotlib.patches import Patch
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
-from sequence._grid import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 from sequence.errors import InvalidRowError
 from sequence.errors import MissingRequiredVariable
 

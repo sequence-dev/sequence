@@ -11,7 +11,7 @@ from numpy.typing import ArrayLike
 from numpy.typing import NDArray
 from tqdm import trange
 
-from sequence._grid import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 from sequence.plot import plot_grid
 
 

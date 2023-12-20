@@ -13,7 +13,7 @@ from landlab import Component
 from numpy.typing import NDArray
 from scipy import interpolate
 
-from sequence._grid import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 
 
 class SeaLevelTimeSeries(Component):

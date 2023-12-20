@@ -8,7 +8,7 @@ from __future__ import annotations
 import numpy as np
 from landlab import Component
 
-from sequence._grid import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 from sequence.shoreline import find_shoreline
 
 

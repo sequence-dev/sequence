@@ -14,7 +14,7 @@ import netCDF4 as nc
 import numpy as np
 from numpy.typing import NDArray
 
-from sequence._grid import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 
 _NUMPY_TO_NETCDF_TYPE = {
     "float32": "f4",

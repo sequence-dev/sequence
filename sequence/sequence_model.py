@@ -17,7 +17,7 @@ from compaction.landlab import Compact
 from landlab.bmi.bmi_bridge import TimeStepper
 from numpy.typing import ArrayLike
 
-from sequence._grid import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 from sequence.bathymetry import BathymetryReader
 from sequence.errors import ParameterMismatchError
 from sequence.fluvial import Fluvial

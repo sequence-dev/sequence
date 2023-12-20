@@ -7,7 +7,7 @@ import numpy as np
 from landlab.components import LinearDiffuser
 from numpy.typing import NDArray
 
-from sequence._grid import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 from sequence.shoreline import find_shoreline
 
 
