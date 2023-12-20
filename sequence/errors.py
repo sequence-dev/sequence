@@ -1,6 +1,8 @@
 """Errors used by *sequence*."""
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 
 class SequenceError(Exception):
     """All *sequence* errors should inherit from this class."""
@@ -62,10 +64,10 @@ class MissingRequiredVariable(OutputValidationError):
 class ParameterMismatchError(SequenceError):
     """Raise this exception if values from two configurations are mismatched."""
 
-    def __init__(self, keys):
+    def __init__(self, keys: Iterable[str]):
         self.keys = tuple(keys)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return an error message with the offending keys."""
         params = ", ".join([repr(key) for key in self.keys])
         return f"mismatch in parameter{'s' if len(self.keys) > 1 else ''}: {params}"
