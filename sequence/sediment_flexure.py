@@ -31,6 +31,8 @@ class DynamicFlexure(Flexure1D):
             A *Landlab* grid.
         isostasytime : float, optional
             The e-folding time for a deflection to reach equilibrium.
+        **kwds : dict, optional
+            Additional keyword arguments that are passed to :class:`~Flexure1D`.
         """
         if isostasytime is None or np.isclose(isostasytime, 0.0):
             self._isostasy_time = None
@@ -140,6 +142,8 @@ class WaterFlexure(DynamicFlexure):
             The e-folding time for a deflection to reach equilibrium.
         water_density : float, optional
             Density of water.
+        **kwds : dict, optional
+            Additional keyword arguments that are passed to :class:`~Flexure1D`.
         """
         if "lithosphere__increment_of_overlying_pressure" not in grid.at_node:
             grid.add_zeros("lithosphere__increment_of_overlying_pressure", at="node")
@@ -308,6 +312,8 @@ class SedimentFlexure(DynamicFlexure):
             Density of water.
         isostasytime : float, optional
             Response time of the lithosphere to loading.
+        **kwds : dict, optional
+            Additional keyword arguments that are passed to :class:`~Flexure1D`.
         """
         self._water_density = SedimentFlexure.validate_density(water_density)
         self._sand_density = SedimentFlexure.validate_density(sand_density)

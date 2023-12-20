@@ -183,6 +183,8 @@ def plot_grid(grid: SequenceModelGrid, row: int | None = None, **kwds: Any) -> N
         The grid to plot.
     row : int, optional
         The row of the grid to plot. If not provided, plot the middle row.
+    **kwds: dict, optional
+        Additional keyword arguments that are passed along to :func:`~plot_layers`.
 
     See Also
     --------
@@ -231,6 +233,8 @@ def plot_file(filename: str | PathLike, row: int | None = None, **kwds: Any) -> 
         Path to the file to plot.
     row : int, optional
         Row to plot. If not provided, plot the middle row.
+    **kwds: dict, optional
+        Additional keyword arguments that are passed along to :func:`~plot_layers`.
 
     See Also
     --------
