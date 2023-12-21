@@ -394,8 +394,11 @@ def _outline_layer(
 
 
 def _interp_between_layers(
-    x: NDArray, y_of_bottom: NDArray, y_of_top: NDArray, kind: str = "linear"
-) -> NDArray:
+    x: NDArray[np.floating],
+    y_of_bottom: NDArray[np.floating],
+    y_of_top: NDArray[np.floating],
+    kind: str = "linear",
+) -> NDArray[np.floating]:
     x = np.asarray(x)
     y_of_top, y_of_bottom = np.asarray(y_of_top), np.asarray(y_of_bottom)
 

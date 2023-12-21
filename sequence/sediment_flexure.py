@@ -203,7 +203,7 @@ class WaterFlexure(DynamicFlexure):
 
     def calc_flexure_due_to_water(
         self, change_in_water_depth: NDArray[np.floating], change_in_sea_level: float
-    ):
+    ) -> NDArray[np.floating]:
         """Calculate flexure due to water loading.
 
         Parameters
@@ -225,7 +225,7 @@ class WaterFlexure(DynamicFlexure):
             change_in_sea_level * self.rho_water * self.gravity
         )
 
-    def update(self):
+    def update(self) -> None:
         """Update the component by a single time step."""
         self.grid.get_profile("lithosphere_surface__increment_of_elevation").fill(0.0)
 
@@ -249,12 +249,12 @@ class WaterFlexure(DynamicFlexure):
             f"max = {deflection.max()}"
         )
 
-    def run_one_step(self, dt):
+    def run_one_step(self, dt: float) -> None:
         """Update the component by a time step.
 
         Parameters
         ----------
-        dt : float, optional
+        dt : float
             The time step over which to update the component.
         """
         self._dt = dt

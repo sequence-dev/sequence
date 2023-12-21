@@ -7,6 +7,79 @@
 
 <!-- towncrier release notes start -->
 
+## 0.6.0 (2023-12-20)
+
+
+### 🍰 New Features
+
+- Added the ability for a user to control both what processes are run in a
+  *Sequence* simulation and the order with which those processes are run. [#62](https://github.com/sequence-dev/sequence/issues/62)
+- Changed all components to only update the current amount of subsidence and
+  deposited sediment but not to update secondary fields like the topographic
+  elevation. This removes the dependence of these secondary fields on
+  component ordering and ensures these secondary fields are updated once, and only
+  once, with each time step. [#67](https://github.com/sequence-dev/sequence/issues/67)
+- Added a {meth}`~sequence.SequenceModelGrid.get_profile` method to {class}`~sequence.SequenceModelGrid` that is a convenience
+  function to return a field just along the middle row of nodes (i.e. along the
+  profile). [#67](https://github.com/sequence-dev/sequence/issues/67)
+- Improved the logging of *Sequence*. *Sequence* now logs time spent running
+  each component, and the options available for the plot command. From the
+  command line, users are able to control the detail of the log messages through
+  the `--verbose` and `--silent` options. [#68](https://github.com/sequence-dev/sequence/issues/68)
+- Changed the {class}`~sequence.sediment_flexure.SedimentFlexure` component so
+  that it is no longer dependent on the ordering of components. It has been
+  simplified so that it now takes sediment loading as its only input field. [#71](https://github.com/sequence-dev/sequence/issues/71)
+- Added a new component, {class}`~sequence.sediment_flexure.WaterFlexure`, that
+  calculates deflections based on changes in water loading. [#72](https://github.com/sequence-dev/sequence/issues/72)
+- Added a quasi-2d mode for *Sequence* that keeps track of multiple cross-shore
+  rows. [#78](https://github.com/sequence-dev/sequence/issues/78)
+
+
+### 🛠️ Bug Fixes
+
+- Fixed a bug that caused a `FieldError` when running *Sequence* without the
+  subsidence component enabled. [#64](https://github.com/sequence-dev/sequence/issues/64)
+- Fixed a bug where the topographic elevations were not being updated correctly after the
+  components were time stepped. [#67](https://github.com/sequence-dev/sequence/issues/67)
+- Fixed a bug that incorrectly updated the profile elevations. Elevations were
+  being updated before the new layer was added rather than after.
+  Among other things, this caused the submarine diffuser component to use
+  incorrect diffusion coeffients. [#73](https://github.com/sequence-dev/sequence/issues/73)
+
+
+### 📖 Documentation Enhancements
+
+- Updated the *sequence* documentation to include a page for
+  [example notebooks](https://sequence.readthedocs.io/en/develop/notebooks.html). [#58](https://github.com/sequence-dev/sequence/issues/58)
+- Reorganized and cleaned up the documentation and switched to the [furo](https://pradyunsg.me/furo/) theme. [#59](https://github.com/sequence-dev/sequence/issues/59)
+- Updated the description of *sequence.toml* input file in the user guide. [#65](https://github.com/sequence-dev/sequence/issues/65)
+- Updated the documentation to now include an unreleased section of the release
+  notes that includes changes since the latest release. [#69](https://github.com/sequence-dev/sequence/issues/69)
+- Converted the documentation files from reStructuredText to MyST-flavored
+  markdown format. [#76](https://github.com/sequence-dev/sequence/issues/76)
+- Reorganize the docs to follow the [Diátaxis](https://diataxis.fr/)
+  Grand Unified Theory of Documentation. [#77](https://github.com/sequence-dev/sequence/issues/77)
+
+
+### 🔩 Other Changes and Additions
+
+- Set up [nox](https://nox.thea.codes) to automate testing and routine package
+  maintenance. [#60](https://github.com/sequence-dev/sequence/issues/60)
+- Added additional linters to the pre-commit hooks and removed the newly-found lint. [#61](https://github.com/sequence-dev/sequence/issues/61)
+- Significantly simplified the *grid* section of the input file. [#62](https://github.com/sequence-dev/sequence/issues/62)
+- Added unit tests to test *Sequence* runs for different combinations and ordering of components. [#64](https://github.com/sequence-dev/sequence/issues/64)
+- Enforce the existence of docstrings for all public function, classes, etc. and
+  ensure those docstrings adhere to the *numpy* docstring conventions. [#65](https://github.com/sequence-dev/sequence/issues/65)
+- Added type hints to the entire code base and a *mypy* hook to the *pre-commit* linters to identify potential typing issues. [#66](https://github.com/sequence-dev/sequence/issues/66)
+- Added tests for the compaction, flexure, and subsidence components. [#67](https://github.com/sequence-dev/sequence/issues/67)
+- Fixed an issue with building the docs on *readthedocs*. [#70](https://github.com/sequence-dev/sequence/issues/70)
+- Updated the repository continuous integration by adding new linters for the
+  notebooks, and add testing for Python 3.11. [#74](https://github.com/sequence-dev/sequence/issues/74)
+- Added support for Python 3.12 and dropped support for Python version older
+  than 3.10. [#79](https://github.com/sequence-dev/sequence/issues/79)
+- Updated *Sequence* annotations to python 3.10+. [#82](https://github.com/sequence-dev/sequence/issues/82)
+- Renamed the unit test files so that they all have a ``_test`` suffix rather
+  than a ``test_`` prefix. [#90](https://github.com/sequence-dev/sequence/issues/90)
 
 ## 0.5.1 (2022-06-30)
 

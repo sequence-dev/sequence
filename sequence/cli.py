@@ -393,7 +393,7 @@ def setup(set: str) -> None:
     nargs=1,
 )
 @click.pass_context
-def plot(ctx: Any, set: str, netcdf_file) -> None:
+def plot(ctx: Any, set: str, netcdf_file: click.Path) -> None:
     """Plot a Sequence output file."""
     verbose = ctx.parent.params["verbose"]
     folder = pathlib.Path.cwd()

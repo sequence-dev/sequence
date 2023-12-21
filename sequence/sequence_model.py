@@ -6,7 +6,6 @@ import os
 import time
 from collections import defaultdict
 from collections import OrderedDict
-from collections.abc import Hashable
 from collections.abc import Iterable
 from contextlib import suppress
 from typing import Any
@@ -444,7 +443,7 @@ class SequenceModel:
             change_in_water_depth[:] = new_water_depth - old_water_depth
 
 
-def _match_values(d1: dict, d2: dict, keys: Iterable[Hashable]) -> dict:
+def _match_values(d1: dict, d2: dict, keys: Iterable[str]) -> dict:
     """Match values between two dictionaries.
 
     Parameters
@@ -481,7 +480,7 @@ def _match_values(d1: dict, d2: dict, keys: Iterable[Hashable]) -> dict:
     >>> _match_values(a, b, ["foo"])
     {}
     """
-    mismatched_keys = []
+    mismatched_keys: list[str] = []
     matched = {}
     for key in keys:
         with suppress(KeyError):

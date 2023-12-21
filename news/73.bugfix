@@ -1,4 +1,0 @@
-Fixed a bug that incorrectly updated the profile elevations. Elevations were
-being updated before the new layer was added rather than after.
-Among other things, this caused the submarine diffuser component to use
-incorrect diffusion coeffients.
