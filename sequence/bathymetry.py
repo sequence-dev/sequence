@@ -3,15 +3,16 @@
 This module contains *Landlab* components to read bathymetry into a
 `SequenceModelGrid`.
 """
+from __future__ import annotations
+
 from os import PathLike
-from typing import Optional, Union
 
 import numpy as np
 from landlab import Component
 from numpy.typing import NDArray
 from scipy import interpolate
 
-from ._grid import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 
 
 class BathymetryReader(Component):
@@ -35,7 +36,7 @@ class BathymetryReader(Component):
     def __init__(
         self,
         grid: SequenceModelGrid,
-        filepath: Union[str, PathLike[str]],
+        filepath: str | PathLike[str],
         kind: str = "linear",
     ):
         """Generate a bathymetric profile from a file.
@@ -78,7 +79,7 @@ class BathymetryReader(Component):
             self.grid.nodes_at_bottom_edge
         ]
 
-    def run_one_step(self, dt: Optional[float] = None) -> None:
+    def run_one_step(self, dt: float | None = None) -> None:
         """Update the grid's bathymetry.
 
         Parameters

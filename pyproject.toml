@@ -1,83 +1,84 @@
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
-
 [project]
-name = "sequence-model"
+name = "sequence_model"
+requires-python = ">=3.10"
 description = "Python version of the Steckler Sequence model built with landlab"
+keywords = [
+    "landlab",
+    "sequence",
+    "stratigraphy",
+]
 authors = [
-  {email = "mcflugen@gmail.com"},
-  {name = "Eric Hutton"}
+    { email = "mcflugen@gmail.com" },
+    { name = "Eric Hutton" },
 ]
 maintainers = [
-  {email = "mcflugen@gmail.com"},
-  {name = "Eric Hutton"}
+    { email = "mcflugen@gmail.com" },
+    { name = "Eric Hutton" },
 ]
-keywords = ["sequence", "stratigraphy", "landlab"]
-license = {text = "MIT"}
 classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
-  "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: MIT License",
-  "Natural Language :: English",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
-requires-python = ">=3.10"
 dependencies = [
-  "compaction",
-  "landlab",
-  "netcdf4",
-  "numpy >=1.22",
-  "pyyaml",
-  "rich-click",
-  "scipy",
-  "tomlkit",
-  "tqdm",
+    "compaction",
+    "landlab",
+    "netcdf4",
+    "numpy >=1.22",
+    "pyyaml",
+    "rich-click",
+    "scipy",
+    "tomlkit",
+    "tqdm",
 ]
-dynamic = ["readme", "version"]
+dynamic = [
+    "readme",
+    "version",
+]
+
+[project.license]
+text = "MIT"
 
 [project.urls]
-homepage = "https://github.com/sequence-dev/sequence"
-documentation = "https://sequence.readthedocs.io"
-repository = "https://github.com/sequence-dev/sequence"
 changelog = "https://github.com/sequence-dev/sequence/blob/develop/CHANGES.md"
+documentation = "https://sequence.readthedocs.io"
+homepage = "https://github.com/sequence-dev/sequence"
+repository = "https://github.com/sequence-dev/sequence"
 
 [project.optional-dependencies]
-dev = ["nox"]
+dev = [
+    "nox",
+]
 
 [project.scripts]
 sequence = "sequence.cli:sequence"
 
-[tool.setuptools]
-packages = ["sequence"]
-
-[tool.setuptools.dynamic]
-readme = {file = ["README.md", "AUTHORS.md"], content-type="text/markdown"}
-version = {attr = "sequence._version.__version__"}
-
-[tool.pytest.ini_options]
-minversion = "6.0"
-testpaths = ["notebooks", "sequence", "tests"]
-norecursedirs = [".*", "*.egg*", "build", "dist", "examples"]
-addopts = """
-  --ignore setup.py
-  --tb native
-  --strict
-  --durations 16
-  --doctest-modules
-  -vvv
-"""
-doctest_optionflags = [
-  "NORMALIZE_WHITESPACE",
-  "IGNORE_EXCEPTION_DETAIL",
-  "ALLOW_UNICODE"
+[build-system]
+requires = [
+    "setuptools",
 ]
-markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "notebook: marks tests as notebook (deselect with '-m \"not notebook\"')"
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = [
+    "sequence",
+]
+
+[tool.setuptools.dynamic.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[tool.setuptools.dynamic.version]
+attr = "sequence._version.__version__"
+
+[tool.setuptools.package-data]
+sequence = [
+    "py.typed",
 ]
 
 [tool.isort]
@@ -88,40 +89,76 @@ combine_as_imports = true
 line_length = 88
 
 [tool.mypy]
-ignore_missing_imports = true
+check_untyped_defs = true
+# disallow_any_generics = true
+# disallow_incomplete_defs = true
+disallow_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+    "notebooks",
+    "sequence",
+    "tests",
+]
+norecursedirs = [
+    ".*",
+    "*.egg*",
+    "build",
+    "dist",
+    "examples",
+]
+addopts = [
+    "--ignore=setup.py",
+    "--tb=native",
+    "--strict",
+    "--durations=16",
+    "--doctest-modules",
+    "-vvv",
+]
+doctest_optionflags = [
+    "NORMALIZE_WHITESPACE",
+    "IGNORE_EXCEPTION_DETAIL",
+    "ALLOW_UNICODE",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "notebook: marks tests as notebook (deselect with '-m \"not notebook\"')",
+]
+
+[tool.ruff.lint]
+select = [
+    "D",
+]
+extend-select = [
+    "D417",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
 
 [tool.towncrier]
 directory = "news"
 package = "sequence"
 filename = "CHANGES.md"
 single_file = true
-underlines = ["", "", ""]
-start_string = "<!-- towncrier release notes start -->\n"
+underlines = [
+    "",
+    "",
+    "",
+]
+start_string = """
+<!-- towncrier release notes start -->
+"""
 template = "news/changelog_template.jinja"
 issue_format = "[#{issue}](https://github.com/sequence-dev/sequence/issues/{issue})"
 title_format = "## {version} ({project_date})"
-
-[[tool.towncrier.type]]
-directory = "notebook"
-name = "📚 New Tutorial Notebooks"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "feature"
-name = "🍰 New Features"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "bugfix"
-name = "🛠️ Bug Fixes"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "docs"
-name = "📖 Documentation Enhancements"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "misc"
-name = "🔩 Other Changes and Additions"
-showcontent = true
+type = [
+    { directory = "notebook", name = "📚 New Tutorial Notebooks", showcontent = true },
+    { directory = "feature", name = "🍰 New Features", showcontent = true },
+    { directory = "bugfix", name = "🛠️ Bug Fixes", showcontent = true },
+    { directory = "docs", name = "📖 Documentation Enhancements", showcontent = true },
+    { directory = "misc", name = "🔩 Other Changes and Additions", showcontent = true },
+]

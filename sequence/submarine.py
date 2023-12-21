@@ -1,12 +1,14 @@
 """Diffuse sediment along a profile."""
+from __future__ import annotations
+
 from typing import Any
 
 import numpy as np
 from landlab.components import LinearDiffuser
 from numpy.typing import NDArray
 
-from ._grid import SequenceModelGrid
-from .shoreline import find_shoreline
+from sequence.grid import SequenceModelGrid
+from sequence.shoreline import find_shoreline
 
 
 class SubmarineDiffuser(LinearDiffuser):
@@ -84,6 +86,8 @@ class SubmarineDiffuser(LinearDiffuser):
             Length of drainage basin upstream of model.  Creates increase in
             diffusivity downstream by (basin_width + x) / basin_width
             from increase river flow (m).
+        **kwds: dict, optional
+            Additional keyword arguments that are passed along to :class:`~LinearDiffuser`.
         """
         self._plain_slope = float(plain_slope)
         self._wave_base = float(wave_base)
@@ -208,7 +212,7 @@ class SubmarineDiffuser(LinearDiffuser):
         sea level and three below, two of which are in deep water (below the
         default 60 m wave base).
 
-        >>> from sequence import SequenceModelGrid
+        >>> from sequence.grid import SequenceModelGrid
         >>> import numpy as np
 
         >>> grid = SequenceModelGrid((1, 6), spacing=(1.0, 200.0))

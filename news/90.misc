@@ -1,3 +1,0 @@
-
-Renamed the unit test files so that they all have a ``_test`` suffix rather
-than a ``test_`` prefix.

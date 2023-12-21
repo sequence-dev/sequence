@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from sequence import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 from sequence.sediment_flexure import SedimentFlexure
 
 

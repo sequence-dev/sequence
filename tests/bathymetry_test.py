@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import os
 
 import numpy as np
 import pytest
 from landlab import RasterModelGrid
-from pytest import approx, raises
+from pytest import approx
+from pytest import raises
 
 from sequence.bathymetry import BathymetryReader
 

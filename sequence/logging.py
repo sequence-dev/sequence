@@ -1,8 +1,11 @@
 """Logger used for printing Sequence log messages."""
+from __future__ import annotations
+
 import contextlib
 import logging
 import sys
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 import click
 

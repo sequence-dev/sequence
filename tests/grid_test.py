@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import pytest
 
-from sequence import SequenceModelGrid
+from sequence.grid import SequenceModelGrid
 
 
 def test_init():
