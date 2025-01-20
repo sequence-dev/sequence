@@ -227,7 +227,7 @@ class SubmarineDiffuser(LinearDiffuser):
         >>> diffusion_coef = submarine_diffuser.calc_diffusion_coef(x_of_shore=500.0)
 
         >>> np.round(diffusion_coef.reshape((3, 6))[1])
-        array([ 3750.,  3750.,  3750.,   333.,    11.,    16.])
+        array([3750.,  3750.,  3750.,   333.,    11.,    16.])
 
         The calculated diffusion coefficient is also saved as an *at-node* field.
 
