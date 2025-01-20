@@ -19,17 +19,23 @@ jobs:
             shell: bash -l {0}
 
         steps:
-          - uses: actions/checkout@v3
+          - uses: actions/checkout@v4
 
-          - uses: mamba-org/setup-micromamba@v1
+          - uses: conda-incubator/setup-miniconda@v3
             with:
-              micromamba-version: latest
-              environment-name: testing
-              create-args: >-
-                python=3.11
-                mamba
-                pandoc
-                nox
+              python-version: 3.12
+              miniforge-variant: Miniforge3
+              miniforge-version: latest
+              auto-update-conda: true
+
+          - name: install and check pandoc
+            run: |
+              conda install pandoc -c conda-forge
+              pandoc --help
+              pandoc --version
+
+          - name: Install dependencies
+            run: pip install nox
 
           - name: Build documentation
             run: nox -s build-docs
