@@ -1,4 +1,5 @@
 """Plot the layers of a `SequenceModelGrid`."""
+
 from __future__ import annotations
 
 from functools import partial

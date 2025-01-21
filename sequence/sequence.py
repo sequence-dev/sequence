@@ -1,4 +1,5 @@
 """*Sequence*'s main API for constructing sequence-stratigraphic models."""
+
 from __future__ import annotations
 
 from collections.abc import Iterable

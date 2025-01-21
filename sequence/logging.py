@@ -1,4 +1,5 @@
 """Logger used for printing Sequence log messages."""
+
 from __future__ import annotations
 
 import contextlib

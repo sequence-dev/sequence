@@ -1,4 +1,5 @@
 """The command line interface for *Sequence*."""
+
 from __future__ import annotations
 
 import inspect

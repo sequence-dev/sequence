@@ -3,6 +3,7 @@
 This module contains methods for calculating a grid's shoreline and
 shelf edge.
 """
+
 from __future__ import annotations
 
 import bisect

@@ -1,4 +1,5 @@
 """Subside a `SequenceModelGrid` using flexure."""
+
 from __future__ import annotations
 
 import logging

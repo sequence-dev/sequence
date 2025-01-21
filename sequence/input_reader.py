@@ -2,6 +2,7 @@
 
 This module contains utilities for reading *Sequence* input data.
 """
+
 from __future__ import annotations
 
 import inspect

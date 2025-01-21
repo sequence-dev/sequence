@@ -1,4 +1,5 @@
 """All available processes to include in a *Sequence* model."""
+
 from __future__ import annotations
 
 from compaction.landlab import Compact
