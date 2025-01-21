@@ -31,14 +31,6 @@ def test_find_shoreline_fails_with_unknown_kind():
         find_shoreline([0, 1, 2, 3, 4, 5, 6], [5, 4, 3, 2, 1, 0, -1], kind="foobarbaz")
 
 
-def test_find_shoreline_return_value():
-    """Test find_shoreline return value"""
-    x_of_shore = find_shoreline(
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [5, 4, 3, 2, 1, 0, -1, -2, -3, -4]
-    )
-    assert x_of_shore == approx(5.0)
-
-
 def test_find_shoreline_return_value_with_sea_level():
     """Test find_shoreline return value with sea level"""
     x_of_shore = find_shoreline(
@@ -70,9 +62,20 @@ def test_find_shoreline_return_value_with_lo_sea_level():
 
 
 @pytest.mark.parametrize("kind", ("linear", "nearest", "zero", "slinear", "quadratic"))
-def test_find_shoreline_with_kind_cubic(kind):
-    """Test find_shoreline with cubic interpolation"""
+def test_find_shoreline_on_point(kind):
+    """Test find_shoreline with interpolation kind"""
     x_of_shore = find_shoreline(
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [5, 4, 3, 2, 1, 0, -1, -2, -3, -4], kind=kind
     )
     assert x_of_shore == approx(5.0)
+
+
+@pytest.mark.parametrize("kind", ("linear", "nearest", "zero", "slinear", "quadratic"))
+def test_find_shoreline_between_points(kind):
+    x_of_shore = find_shoreline(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
+        kind=kind,
+        sea_level=0.25,
+    )
+    assert (x_of_shore > 4.0) and (x_of_shore < 5.0)
