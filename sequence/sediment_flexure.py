@@ -1,4 +1,5 @@
 """Subside a `SequenceModelGrid` using flexure."""
+
 from __future__ import annotations
 
 import logging
@@ -162,9 +163,9 @@ class WaterFlexure(DynamicFlexure):
             "Flexure parameters\n"
             + toml.dumps(
                 {
-                    "isostasy_time": 0.0
-                    if self._isostasy_time is None
-                    else self._isostasy_time,
+                    "isostasy_time": (
+                        0.0 if self._isostasy_time is None else self._isostasy_time
+                    ),
                     "alpha": self.alpha,
                     "rigidity": self.rigidity,
                     "gamma_mantle": self.gamma_mantle,
@@ -350,9 +351,9 @@ class SedimentFlexure(DynamicFlexure):
                     "sand_density": self._sand_density,
                     "mud_density": self._mud_density,
                     "water_density": self._water_density,
-                    "isostasy_time": 0.0
-                    if self.isostasy_time is None
-                    else self.isostasy_time,
+                    "isostasy_time": (
+                        0.0 if self.isostasy_time is None else self.isostasy_time
+                    ),
                     "alpha": self.alpha,
                     "rigidity": self.rigidity,
                     "gamma_mantle": self.gamma_mantle,

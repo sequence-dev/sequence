@@ -1,4 +1,5 @@
 """Logger used for printing Sequence log messages."""
+
 from __future__ import annotations
 
 import contextlib
@@ -47,7 +48,7 @@ class LoggingHandler(logging.Handler):
 
 
 @contextlib.contextmanager
-def logging_handler() -> Generator[None, None, None]:
+def logging_handler() -> Generator[None]:
     """Change, temporarily, the current logger."""
     handler = LoggingHandler()
     logger.addHandler(handler)

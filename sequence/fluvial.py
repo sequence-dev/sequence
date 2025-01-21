@@ -3,6 +3,7 @@
 This module contains *Landlab* components that add a sand fraction to a
 `SequenceModelGrid`.
 """
+
 from __future__ import annotations
 
 import numpy as np

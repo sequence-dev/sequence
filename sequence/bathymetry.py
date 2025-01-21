@@ -3,6 +3,7 @@
 This module contains *Landlab* components to read bathymetry into a
 `SequenceModelGrid`.
 """
+
 from __future__ import annotations
 
 from os import PathLike

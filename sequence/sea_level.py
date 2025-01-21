@@ -3,6 +3,7 @@
 This module contains *Landlab* components used for adjusting
 a grid's sea level.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable

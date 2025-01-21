@@ -1,11 +1,12 @@
 """Build a `SequenceModelGrid` model from collection of components."""
+
 from __future__ import annotations
 
 import logging
 import os
 import time
-from collections import defaultdict
 from collections import OrderedDict
+from collections import defaultdict
 from collections.abc import Iterable
 from contextlib import suppress
 from typing import Any

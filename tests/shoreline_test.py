@@ -1,4 +1,5 @@
 """Test the shoreline.find_shoreline function."""
+
 from __future__ import annotations
 
 import numpy as np

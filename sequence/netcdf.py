@@ -1,4 +1,5 @@
 """Write a `SequenceModelGrid` to a NetCDF file."""
+
 from __future__ import annotations
 
 import contextlib
