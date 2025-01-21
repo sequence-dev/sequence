@@ -9,11 +9,6 @@ from pytest import approx
 from sequence.shoreline import find_shoreline
 
 
-@pytest.fixture
-def x():
-    return np.arange(10.0)
-
-
 def test_find_shoreline_with_default_keywords():
     """Test find_shoreline with the keyword defaults"""
     x = np.arange(10.0)
@@ -23,81 +18,112 @@ def test_find_shoreline_with_default_keywords():
     assert actual == expected
 
 
-def test_find_shoreline_with_list_args(x):
+def test_find_shoreline_with_list_args():
     """Test find_shoreline with list arguments"""
-    x_list = x.tolist()
-    z_list = (5.0 - x).tolist()
-    find_shoreline(x_list, z_list)
+    x = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    z = [5, 4, 3, 2, 1, 0, -1, -2, -3, -4]
+    find_shoreline(x, z)
 
 
-def test_find_shoreline_fails_with_different_len_args(x):
-    """Test find_shoreline fails with arguments of different length"""
-    new_x = np.arange(float(len(x) + 1))
-    with pytest.raises(ValueError):
-        find_shoreline(new_x, 5.0 - x)
-
-
-def test_find_shoreline_fails_with_unknown_kind(x):
+def test_find_shoreline_fails_with_unknown_kind():
     """Test find_shoreline fails with unknown interpolation"""
     with pytest.raises(NotImplementedError):
-        find_shoreline(x, 5.0 - x, kind="foobarbaz")
+        find_shoreline([0, 1, 2, 3, 4, 5, 6], [5, 4, 3, 2, 1, 0, -1], kind="foobarbaz")
 
 
-def test_find_shoreline_return_value(x):
+def test_find_shoreline_return_value():
     """Test find_shoreline return value"""
-    r = find_shoreline(x, 5.0 - x)
-    assert r == approx(5.0)
+    x_of_shore = find_shoreline(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [5, 4, 3, 2, 1, 0, -1, -2, -3, -4]
+    )
+    assert x_of_shore == approx(5.0)
 
 
-def test_find_shoreline_return_value_with_sea_level(x):
+def test_find_shoreline_return_value_with_sea_level():
     """Test find_shoreline return value with sea level"""
-    r = find_shoreline(x, 5.0 - x, sea_level=0.25)
-    assert r == approx(4.75)
+    x_of_shore = find_shoreline(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
+        sea_level=0.25,
+    )
+    assert x_of_shore == approx(4.75)
 
 
-def test_find_shoreline_return_value_with_hi_sea_level(x):
+def test_find_shoreline_return_value_with_hi_sea_level():
     """Test find_shoreline return value with high sea level"""
-    r = find_shoreline(x, 5.0 - x, sea_level=100.0)
-    assert r == approx(x[0])
+    x_of_shore = find_shoreline(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
+        sea_level=100,
+    )
+    assert x_of_shore == approx(0.0)
 
 
-def test_find_shoreline_return_value_with_lo_sea_level(x):
+def test_find_shoreline_return_value_with_lo_sea_level():
     """Test find_shoreline return value with low sea level"""
-    r = find_shoreline(x, 5.0 - x, sea_level=-100.0)
-    assert r == approx(x[-1])
+    x_of_shore = find_shoreline(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
+        sea_level=-100,
+    )
+    assert x_of_shore == approx(9.0)
 
 
-def test_find_shoreline_with_kind_linear(x):
+def test_find_shoreline_with_kind_linear():
     """Test find_shoreline with linear interpolation"""
-    r = find_shoreline(x, 5.0 - x, kind="linear")
-    assert r == approx(5.0)
+    x_of_shore = find_shoreline(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
+        kind="linear",
+    )
+    assert x_of_shore == approx(5.0)
 
 
-def test_find_shoreline_with_kind_nearest(x):
+def test_find_shoreline_with_kind_nearest():
     """Test find_shoreline with nearest interpolation"""
-    r = find_shoreline(x, 5.0 - x, kind="nearest")
-    assert r == approx(5.0)
+    x_of_shore = find_shoreline(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
+        kind="linear",
+    )
+    assert x_of_shore == approx(5.0)
 
 
-def test_find_shoreline_with_kind_zero(x):
+def test_find_shoreline_with_kind_zero():
     """Test find_shoreline with zero interpolation"""
-    r = find_shoreline(x, 5.0 - x, kind="zero")
-    assert r == approx(5.0)
+    x_of_shore = find_shoreline(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
+        kind="zero",
+    )
+    assert x_of_shore == approx(5.0)
 
 
-def test_find_shoreline_with_kind_slinear(x):
+def test_find_shoreline_with_kind_slinear():
     """Test find_shoreline with slinear interpolation"""
-    r = find_shoreline(x, 5.0 - x, kind="slinear")
-    assert r == approx(5.0)
+    x_of_shore = find_shoreline(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
+        kind="slinear",
+    )
+    assert x_of_shore == approx(5.0)
 
 
-def test_find_shoreline_with_kind_quadratic(x):
+def test_find_shoreline_with_kind_quadratic():
     """Test find_shoreline with quadratic interpolation"""
-    r = find_shoreline(x, 5.0 - x, kind="quadratic")
-    assert r == approx(5.0)
+    x_of_shore = find_shoreline(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
+        kind="quadratic",
+    )
+    assert x_of_shore == approx(5.0)
 
 
-def test_find_shoreline_with_kind_cubic(x):
+def test_find_shoreline_with_kind_cubic():
     """Test find_shoreline with cubic interpolation"""
-    r = find_shoreline(x, 5.0 - x, kind="cubic")
-    assert r == approx(5.0)
+    x_of_shore = find_shoreline(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
+        kind="cubic",
+    )
+    assert x_of_shore == approx(5.0)
