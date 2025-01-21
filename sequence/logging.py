@@ -47,7 +47,7 @@ class LoggingHandler(logging.Handler):
 
 
 @contextlib.contextmanager
-def logging_handler() -> Generator[None, None, None]:
+def logging_handler() -> Generator[None]:
     """Change, temporarily, the current logger."""
     handler = LoggingHandler()
     logger.addHandler(handler)
