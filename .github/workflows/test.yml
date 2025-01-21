@@ -31,7 +31,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           miniforge-variant: Miniforge3
           miniforge-version: latest
-          channels: conda-forge
+          channels: conda-forge,defaults
           channel-priority: true
 
       - name: Show conda installation info

@@ -24,7 +24,7 @@ jobs:
             with:
               auto-update-conda: true
               python-version: "3.11"
-              channels: conda-forge
+              channels: conda-forge,default
               channel-priority: true
 
           - name: Show conda installation info
