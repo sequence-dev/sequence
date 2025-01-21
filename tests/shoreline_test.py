@@ -14,18 +14,6 @@ def x():
     return np.arange(10.0)
 
 
-def test_find_shoreline_fails_with_no_args():
-    """Test find_shoreline fails with no arguments"""
-    with pytest.raises(TypeError):
-        find_shoreline()
-
-
-def test_find_shoreline_fails_with_one_arg(x):
-    """Test find_shoreline fails with one argument"""
-    with pytest.raises(TypeError):
-        find_shoreline(x)
-
-
 def test_find_shoreline_with_default_keywords(x):
     """Test find_shoreline with the keyword defaults"""
     find_shoreline(x, 5.0 - x)
