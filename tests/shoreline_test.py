@@ -14,9 +14,13 @@ def x():
     return np.arange(10.0)
 
 
-def test_find_shoreline_with_default_keywords(x):
+def test_find_shoreline_with_default_keywords():
     """Test find_shoreline with the keyword defaults"""
-    find_shoreline(x, 5.0 - x)
+    x = np.arange(10.0)
+    expected = find_shoreline(x, 5.0 - x, sea_level=0.0, kind="cubic")
+    actual = find_shoreline(x, 5.0 - x)
+
+    assert actual == expected
 
 
 def test_find_shoreline_with_list_args(x):
