@@ -69,61 +69,10 @@ def test_find_shoreline_return_value_with_lo_sea_level():
     assert x_of_shore == approx(9.0)
 
 
-def test_find_shoreline_with_kind_linear():
-    """Test find_shoreline with linear interpolation"""
-    x_of_shore = find_shoreline(
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
-        kind="linear",
-    )
-    assert x_of_shore == approx(5.0)
-
-
-def test_find_shoreline_with_kind_nearest():
-    """Test find_shoreline with nearest interpolation"""
-    x_of_shore = find_shoreline(
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
-        kind="linear",
-    )
-    assert x_of_shore == approx(5.0)
-
-
-def test_find_shoreline_with_kind_zero():
-    """Test find_shoreline with zero interpolation"""
-    x_of_shore = find_shoreline(
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
-        kind="zero",
-    )
-    assert x_of_shore == approx(5.0)
-
-
-def test_find_shoreline_with_kind_slinear():
-    """Test find_shoreline with slinear interpolation"""
-    x_of_shore = find_shoreline(
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
-        kind="slinear",
-    )
-    assert x_of_shore == approx(5.0)
-
-
-def test_find_shoreline_with_kind_quadratic():
-    """Test find_shoreline with quadratic interpolation"""
-    x_of_shore = find_shoreline(
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
-        kind="quadratic",
-    )
-    assert x_of_shore == approx(5.0)
-
-
-def test_find_shoreline_with_kind_cubic():
+@pytest.mark.parametrize("kind", ("linear", "nearest", "zero", "slinear", "quadratic"))
+def test_find_shoreline_with_kind_cubic(kind):
     """Test find_shoreline with cubic interpolation"""
     x_of_shore = find_shoreline(
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
-        kind="cubic",
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [5, 4, 3, 2, 1, 0, -1, -2, -3, -4], kind=kind
     )
     assert x_of_shore == approx(5.0)
