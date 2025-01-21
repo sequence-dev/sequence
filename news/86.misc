@@ -1,0 +1,3 @@
+
+Fixed some failing CI workflows due to old versions of GitHub Actions
+and *numpy* 2.

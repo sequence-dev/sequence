@@ -19,12 +19,12 @@ jobs:
             shell: bash -l {0}
 
         steps:
-          - uses: actions/checkout@v2
-          - uses: conda-incubator/setup-miniconda@v2
+          - uses: actions/checkout@v4
+          - uses: conda-incubator/setup-miniconda@v3
             with:
               auto-update-conda: true
               python-version: "3.11"
-              channels: conda-forge
+              channels: conda-forge,default
               channel-priority: true
 
           - name: Show conda installation info

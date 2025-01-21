@@ -23,13 +23,15 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-          channels: conda-forge
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          channels: conda-forge,defaults
           channel-priority: true
 
       - name: Show conda installation info

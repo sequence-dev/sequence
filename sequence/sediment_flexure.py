@@ -537,7 +537,7 @@ class SedimentFlexure(DynamicFlexure):
         >>> SedimentFlexure._calc_density(0.5, 1600, 1200)
         1400.0
         >>> SedimentFlexure._calc_density([1.0, 0.75, 0.5, 0.25, 0.0], 1600.0, 1200.0)
-        array([ 1600.,  1500.,  1400.,  1300.,  1200.])
+        array([1600.,  1500.,  1400.,  1300.,  1200.])
         """
         sand_fraction = np.asarray(sand_fraction)
         return sand_fraction * sand_density + (1.0 - sand_fraction) * mud_density

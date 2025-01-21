@@ -91,8 +91,9 @@ repos:
   rev: v1.7.1
   hooks:
   - id: mypy
-    additional_dependencies: [types-all]
+    language_version: python3.12
     files: sequence/.*\.py$
+    additional_dependencies: ["types-pyyaml"]
 
 - repo: https://github.com/citation-file-format/cff-converter-python
   rev: 44e8fc9174119805b64b0b333aa69d285a866673

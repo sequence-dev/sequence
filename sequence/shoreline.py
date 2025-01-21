@@ -298,7 +298,12 @@ def find_shoreline(
                 x_of_shoreline = x[-1]
         else:
             func = interpolate.interp1d(x, z[row] - sea_level, kind=kind)
-            x_of_shoreline = bisect(func, x[index_at_shore - 1], x[index_at_shore])
+            if np.isclose(func(x[index_at_shore - 1]), 0.0):
+                x_of_shoreline = x[index_at_shore - 1]
+            elif np.isclose(func(x[index_at_shore]), 0.0):
+                x_of_shoreline = x[index_at_shore]
+            else:
+                x_of_shoreline = bisect(func, x[index_at_shore - 1], x[index_at_shore])
         x_of_shorelines[row] = x_of_shoreline
 
     if n_rows == 1:

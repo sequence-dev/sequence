@@ -37,7 +37,7 @@ class SequenceModelGrid(RasterModelGrid):
         >>> from sequence.grid import SequenceModelGrid
         >>> grid = SequenceModelGrid(5, spacing=10.0)
         >>> grid.y_of_row
-        array([  0.,  1.,  2.])
+        array([0.,  1.,  2.])
         >>> grid.x_of_column
         array([ 0.,  10.,  20.,  30.,  40.])
 
@@ -155,14 +155,14 @@ class SequenceModelGrid(RasterModelGrid):
         >>> params = {"shape": 5, "spacing": 10.0}
         >>> grid = SequenceModelGrid.from_dict(params)
         >>> grid.y_of_row
-        array([  0.,  1.,  2.])
+        array([0.,  1.,  2.])
         >>> grid.x_of_column
         array([ 0.,  10.,  20.,  30.,  40.])
 
         >>> params = {"shape": (3, 5), "spacing": (10000.0, 10.0)}
         >>> grid = SequenceModelGrid.from_dict(params)
         >>> grid.y_of_row
-        array([  0.,  10000.,  20000.,  30000., 40000.])
+        array([ 0.,  10000.,  20000.,  30000., 40000.])
         >>> grid.x_of_column
         array([ 0.,  10.,  20.,  30.,  40.])
         """

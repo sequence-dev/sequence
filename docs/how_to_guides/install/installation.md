@@ -5,7 +5,7 @@
 :::{important}
 The following commands will install *sequence* into your current environment. Although
 not necessary, we **highly recommend** you install sequence into its own
-{ref}`virtual environment <virtual_environments>`.
+{ref}`virtual environment <virtual-environments>`.
 :::
 
 <!-- start-install-release -->
