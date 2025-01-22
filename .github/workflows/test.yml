@@ -26,28 +26,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: conda-incubator/setup-miniconda@v3
+      - name: Use Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-          channels: conda-forge,defaults
-          channel-priority: true
-
-      - name: Show conda installation info
-        run: conda info
 
       - name: Install dependencies
         run: pip install nox
 
       - name: Test
         run: |
-          nox -s test --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}"
+          nox -s test
 
       - name: Test the cli
         run: |
-          nox -s test-cli --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}"
+          nox -s test-cli
 
   coverage:
     if: |
@@ -62,21 +55,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: actions/setup-python@v5
         with:
-          auto-update-conda: true
-          python-version: 3.12
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-          channels: conda-forge,defaults
-          channel-priority: true
+          python-version: "3.12"
 
       - name: coverage
         env:
           COVERAGE_CORE": "sysmon"
         run: |
           pip install nox
-          nox --verbose -s coverage --force-pythons=3.12
+          nox --verbose -s coverage
 
       - name: Coveralls
         uses: AndreMiras/coveralls-python-action@develop
