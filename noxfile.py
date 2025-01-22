@@ -27,10 +27,29 @@ def test(session: nox.Session) -> None:
     session.install("-r", "requirements-testing.in")
     session.install(".")
 
-    args = session.posargs or ["-n", "auto", "--cov", PROJECT, "-vvv"]
+    session.run("pytest", "-n", "auto", "-vvv")
+
+
+@nox.session(python=PYTHON_VERSION, venv_backend="conda")
+def coverage(session: nox.Session) -> None:
+    session.install("coverage", "pytest", "pytest-datadir", "pytest-runner")
+    session.install("-e", ".")
+
+    session.run("coverage", "erase")
+    session.run(
+        "coverage",
+        "run",
+        "--source=sequence",
+        "--module",
+        "pytest",
+        "-vvv",
+        env={"COVERAGE_CORE": "sysmon"},
+    )
+
     if "CI" in os.environ:
-        args.append("--cov-report=xml:$(pwd)/coverage.xml")
-    session.run("pytest", *args)
+        session.run("coverage", "xml", "-o", os.path.join(ROOT, "coverage.xml"))
+    else:
+        session.run("coverage", "report", "--ignore-errors", "--show-missing")
 
 
 @nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="conda")
