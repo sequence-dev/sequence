@@ -33,7 +33,7 @@ def test(session: nox.Session) -> None:
 @nox.session(python=PYTHON_VERSION, venv_backend="conda")
 def coverage(session: nox.Session) -> None:
     session.install("coverage", "pytest", "pytest-datadir", "pytest-runner")
-    session.install(".")
+    session.install("-e", ".")
 
     session.run("coverage", "erase")
     session.run(
