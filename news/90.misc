@@ -1,0 +1,3 @@
+
+Remove *conda* environments from the *nox* file and from the CI
+testing workflows.
