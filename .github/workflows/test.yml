@@ -30,6 +30,7 @@ jobs:
           path: ${{ github.workspace }}/dist/*.whl
 
   test:
+    name: Run the tests
     needs: build
     runs-on: ${{ matrix.os }}
 
@@ -71,6 +72,32 @@ jobs:
       - name: Test the cli
         run: |
           nox -s test-cli -- dist/*.whl
+
+  test-notebooks:
+    needs: build
+    name: Test the Notebooks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/download-artifact@v4
+        name: Download build artifacts
+        with:
+          pattern: "build-*"
+          merge-multiple: true
+          path: ${{ github.workspace }}/dist
+
+      - name: Test the notebooks
+        run: |
+          pip install nox
+          nox -s test-notebooks -- dist/*.whl
 
   coverage:
     needs: build
