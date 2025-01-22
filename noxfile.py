@@ -21,7 +21,7 @@ FOLDER = {
 }
 
 
-@nox.session(python=PYTHON_VERSION, venv_backend="conda")
+@nox.session
 def test(session: nox.Session) -> None:
     """Run the tests."""
     session.install("-r", "requirements-testing.in")
@@ -30,7 +30,7 @@ def test(session: nox.Session) -> None:
     session.run("pytest", "-n", "auto", "-vvv")
 
 
-@nox.session(python=PYTHON_VERSION, venv_backend="conda")
+@nox.session
 def coverage(session: nox.Session) -> None:
     session.install("coverage", "pytest", "pytest-datadir", "pytest-runner")
     session.install("-e", ".")
@@ -52,7 +52,7 @@ def coverage(session: nox.Session) -> None:
         session.run("coverage", "report", "--ignore-errors", "--show-missing")
 
 
-@nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="conda")
+@nox.session(name="test-notebooks")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     session.install("nbmake")
@@ -63,7 +63,7 @@ def test_notebooks(session: nox.Session) -> None:
     session.run("pytest", "--nbmake", str(FOLDER["notebooks"]))
 
 
-@nox.session(name="test-cli", python=PYTHON_VERSION, venv_backend="conda")
+@nox.session(name="test-cli")
 def test_cli(session: nox.Session) -> None:
     """Test the command line interface."""
     session.install(".")
