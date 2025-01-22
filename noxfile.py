@@ -22,6 +22,13 @@ FOLDER = {
 
 
 @nox.session
+def build(session: nox.Session) -> None:
+    """Build wheel dists."""
+    session.install("build")
+    session.run("python", "-m", "build", "--outdir", "./dist")
+
+
+@nox.session
 def test(session: nox.Session) -> None:
     """Run the tests."""
     session.install("-r", "requirements-testing.in")
