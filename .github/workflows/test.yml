@@ -66,11 +66,11 @@ jobs:
 
       - name: Test
         run: |
-          nox -s test
+          nox -s test -- dist/*.whl
 
       - name: Test the cli
         run: |
-          nox -s test-cli
+          nox -s test-cli -- dist/*.whl
 
   coverage:
     needs: build
