@@ -3,12 +3,35 @@ name: Build/Test CI
 on: [push, pull_request]
 
 jobs:
-  build:
+  check-tag:
+    name: Check for release tag
+    # Run on external PRs, but not on internal PRs, to avoid duplicate runs
     if: |
       github.event_name == 'push' ||
       github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      publish_url: ${{ steps.check-publish.outputs.publish_url }}
 
+    steps:
+      - name: Check if this is a release/prerelease
+        id: check-publish
+        run: |
+          tag_name="${GITHUB_REF#refs/tags/}"
+          if [[ "$tag_name" =~ ^v[0-9]+\.[0-9]+\.[0-9]+[ab][0-9]+$ ]]; then
+            publish_url="https://test.pypi.org/legacy/"
+          elif [[ "$tag_name" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            publish_url="https://upload.pypi.org/legacy/"
+          else
+            publish_url="none"
+          fi
+          echo "publish_url=$publish_url" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$tag_name"
+          echo "publish_url=$publish_url"
+
+  build:
     name: Build source distribution
+    needs: check-tag
     runs-on: ubuntu-latest
 
     steps:
