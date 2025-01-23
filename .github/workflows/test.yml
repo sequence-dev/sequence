@@ -157,3 +157,30 @@ jobs:
           parallel: true
           flag-name: py3.12-ubuntu-latest
           debug: true
+
+  publish:
+    needs:
+      - check-tag
+      - build
+      - test
+      - test-notebooks
+      - coverage
+    name: "Publish to PyPI/TestPyPI"
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "build-*"
+          merge-multiple: true
+          path: ${{ github.workspace }}/dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        if: ${{ startsWith(needs.check-tag.outputs.publish_url, 'http') }}
+        with:
+          repository-url: ${{ needs.check-tag.outputs.publish_url }}
+          skip-existing: true
+          print-hash: true
+          verify-metadata: false
