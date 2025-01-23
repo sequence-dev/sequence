@@ -1,0 +1,190 @@
+name: Build/Test CI
+
+on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  check-tag:
+    name: Check for release tag
+    # Run on external PRs, but not on internal PRs, to avoid duplicate runs
+    if: |
+      github.event_name == 'push' ||
+      github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      publish_url: ${{ steps.check-publish.outputs.publish_url }}
+
+    steps:
+      - name: Check if this is a release/prerelease
+        id: check-publish
+        run: |
+          tag_name="${GITHUB_REF#refs/tags/}"
+          if [[ "$tag_name" =~ ^v[0-9]+\.[0-9]+\.[0-9]+[ab][0-9]+$ ]]; then
+            publish_url="https://test.pypi.org/legacy/"
+          elif [[ "$tag_name" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            publish_url="https://upload.pypi.org/legacy/"
+          else
+            publish_url="none"
+          fi
+          echo "publish_url=$publish_url" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$tag_name"
+          echo "publish_url=$publish_url"
+
+  build:
+    name: Build source distribution
+    needs: check-tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build wheel
+        run: |
+          pip install nox
+          nox -s build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-sdist
+          path: ${{ github.workspace }}/dist/*.whl
+
+  test:
+    name: Run the tests
+    needs: build
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+        exclude:
+          # This is tested in the coverage job
+          - os: ubuntu-latest
+            python-version: "3.12"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: actions/download-artifact@v4
+        name: Download build artifacts
+        with:
+          pattern: "build-*"
+          merge-multiple: true
+          path: ${{ github.workspace }}/dist
+
+      - name: Install dependencies
+        run: pip install nox
+
+      - name: Test
+        run: |
+          nox -s test -- dist/*.whl
+
+      - name: Test the cli
+        run: |
+          nox -s test-cli -- dist/*.whl
+
+  test-notebooks:
+    needs: build
+    name: Test the Notebooks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/download-artifact@v4
+        name: Download build artifacts
+        with:
+          pattern: "build-*"
+          merge-multiple: true
+          path: ${{ github.workspace }}/dist
+
+      - name: Test the notebooks
+        run: |
+          pip install nox
+          nox -s test-notebooks -- dist/*.whl
+
+  coverage:
+    needs: build
+    name: Run coverage
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/download-artifact@v4
+        name: Download build artifacts
+        with:
+          pattern: "build-*"
+          merge-multiple: true
+          path: ${{ github.workspace }}/dist
+
+      - name: coverage
+        env:
+          COVERAGE_CORE": "sysmon"
+        run: |
+          pip install nox
+          nox --verbose -s coverage
+
+      - name: Coveralls
+        uses: AndreMiras/coveralls-python-action@develop
+        with:
+          parallel: true
+          flag-name: py3.12-ubuntu-latest
+          debug: true
+
+  publish:
+    needs:
+      - check-tag
+      - build
+      - test
+      - test-notebooks
+      - coverage
+    name: "Publish to PyPI/TestPyPI"
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "build-*"
+          merge-multiple: true
+          path: ${{ github.workspace }}/dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        if: ${{ startsWith(needs.check-tag.outputs.publish_url, 'http') }}
+        with:
+          repository-url: ${{ needs.check-tag.outputs.publish_url }}
+          skip-existing: true
+          print-hash: true
+          verify-metadata: false

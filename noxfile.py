@@ -22,10 +22,30 @@ FOLDER = {
 
 
 @nox.session
+def build(session: nox.Session) -> None:
+    """Build wheel dists."""
+    session.install("build")
+    session.run("python", "-m", "build", "--outdir", "./dist")
+
+
+@nox.session
+def install(session: nox.Session) -> None:
+    first_arg = session.posargs[0] if session.posargs else None
+
+    if first_arg:
+        if os.path.isfile(first_arg):
+            session.install(first_arg)
+        else:
+            session.error("path must be a wheel")
+    else:
+        session.install(".")
+
+
+@nox.session
 def test(session: nox.Session) -> None:
     """Run the tests."""
     session.install("-r", "requirements-testing.in")
-    session.install(".")
+    install(session)
 
     session.run("pytest", "-n", "auto", "-vvv")
 
@@ -58,7 +78,7 @@ def test_notebooks(session: nox.Session) -> None:
     session.install("nbmake")
     session.install("-r", "requirements-testing.in")
     session.install("-r", str(FOLDER["notebooks"] / "requirements.in"))
-    session.install(".")
+    install(session)
 
     session.run("pytest", "--nbmake", str(FOLDER["notebooks"]))
 
@@ -66,7 +86,7 @@ def test_notebooks(session: nox.Session) -> None:
 @nox.session(name="test-cli")
 def test_cli(session: nox.Session) -> None:
     """Test the command line interface."""
-    session.install(".")
+    install(session)
     session.run("sequence", "--version")
     session.run("sequence", "--help")
     session.run("sequence", "generate", "--help")
@@ -180,25 +200,6 @@ def live_docs(session: nox.Session) -> None:
     )
 
 
-@nox.session
-def build(session: nox.Session) -> None:
-    """Build sdist and wheel dists."""
-    session.install("pip")
-    session.install("wheel")
-    session.install("setuptools")
-    session.run("python", "--version")
-    session.run("pip", "--version")
-    session.run(
-        "python",
-        "setup.py",
-        "bdist_wheel",
-        "sdist",
-        "--dist-dir",
-        str(FOLDER["build"] / "wheelhouse"),
-    )
-
-
-@nox.session
 def release(session):
     """Tag, build and publish a new release to PyPI."""
     session.install("zest.releaser[recommended]")
