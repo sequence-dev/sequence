@@ -248,9 +248,9 @@ def plot_file(filename: str | PathLike, row: int | None = None, **kwds: Any) -> 
             raise MissingRequiredVariable("row")
 
         if row is None:
-            row = ds.dims["row"] // 2
-        elif (row >= ds.dims["row"]) or (row < -ds.dims["row"]):
-            raise InvalidRowError(row, ds.dims["row"])
+            row = ds.sizes["row"] // 2
+        elif (row >= ds.sizes["row"]) or (row < -ds.sizes["row"]):
+            raise InvalidRowError(row, ds.sizes["row"])
 
         try:
             thickness_at_layer = ds["at_layer:thickness"][:, row, :]
@@ -258,12 +258,12 @@ def plot_file(filename: str | PathLike, row: int | None = None, **kwds: Any) -> 
             x_of_shelf_edge = ds["at_row:x_of_shelf_edge"].data
             bedrock = (
                 ds["at_node:bedrock_surface__elevation"]
-                .data.reshape((-1, ds.dims["row"] + 2, ds.dims["column"] + 2))
+                .data.reshape((-1, ds.sizes["row"] + 2, ds.sizes["column"] + 2))
                 .squeeze()
             )
             time = ds["time"]
             time_at_layer = ds["at_layer:age"].data.reshape(
-                (-1, ds.dims["row"], ds.dims["column"])
+                (-1, ds.sizes["row"], ds.sizes["column"])
             )
         except KeyError as err:
             raise MissingRequiredVariable(str(err)) from err
@@ -271,11 +271,11 @@ def plot_file(filename: str | PathLike, row: int | None = None, **kwds: Any) -> 
         try:
             x_of_stack = (
                 ds["x_of_cell"]
-                .data.reshape((ds.dims["row"], ds.dims["column"]))[row, :]
+                .data.reshape((ds.sizes["row"], ds.sizes["column"]))[row, :]
                 .squeeze()
             )
         except KeyError:
-            x_of_stack = np.arange(ds.dims["cell"])
+            x_of_stack = np.arange(ds.sizes["cell"])
 
         elevation_at_layer = bedrock[-1, row, 1:-1] + np.cumsum(
             thickness_at_layer, axis=0
