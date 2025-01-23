@@ -2,6 +2,10 @@ name: Build/Test CI
 
 on: [push, pull_request]
 
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   check-tag:
     name: Check for release tag
