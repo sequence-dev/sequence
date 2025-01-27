@@ -1,0 +1,3 @@
+
+Removed deprecated usage of Dataset.dims to get the size of a dimension,
+use Dataset.sizes instead.

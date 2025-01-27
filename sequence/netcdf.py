@@ -345,7 +345,7 @@ def to_netcdf(
         grid,
         at="row",
         ids=ids_dict["row"],
-        names=["x_of_shore", "x_of_shelf_edge"],
+        names={"x_of_shore", "x_of_shelf_edge"} & set(grid["row"]),
     )
 
     if with_layers:

@@ -98,7 +98,7 @@ def test_with_layers(tmpdir):
     with tmpdir.as_cwd():
         to_netcdf(grid, "test.nc", ids={"row": [1], "column": [1, 2]})
         ds = xr.open_dataset("test.nc")
-    assert ds.dims["layer"] == 1
+    assert ds.sizes["layer"] == 1
     assert np.all(ds["at_layer:thickness"] == np.array([[10.0, 10.0]]))
     assert np.all(ds["at_layer:age"] == np.array([[0.0, 0.0]]))
     assert np.all(ds["at_layer:water_depth"] == np.array([[0.0, 1.0]]))
